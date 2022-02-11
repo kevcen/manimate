@@ -6,6 +6,11 @@ __pycache__/
 # C extensions
 *.so
 
+# manim media files
+*.aux
+*.dvi 
+*.svg 
+*.tex
 # Distribution / packaging
 .Python
 build/
