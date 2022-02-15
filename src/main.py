@@ -22,8 +22,18 @@ from pathlib import Path
 import moderngl_window as mglw
 from moderngl_window.context.pyside2.window import Window as PySideWindow
 from moderngl_window.timers.clock import Timer
+from scene.scene_handler import SceneHandler
 
-from gui.window import QTWindow, ManimWidget
+from view.state_bar import StateWidget
+from view.window import QTWindow, ManimWidget
+
+
+states = [] #list of dictionary, mobject -> state 
+
+
+
+
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
@@ -54,8 +64,17 @@ if __name__ == "__main__":
         scene = manim_scene.Test(renderer)
         renderer.scene = scene
 
+        scene_handler = SceneHandler(scene)
+
         widget = ManimWidget(scene)
         widget.show()
+
+        state_bar = StateWidget(scene_handler)
+        state_bar.show()
+
+        # window._widget.hide()
+        # window._widget.show()
+
         scene.render()
 
     sys.exit(app.exec())

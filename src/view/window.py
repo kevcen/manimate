@@ -81,8 +81,8 @@ class QTWindow(PySideWindow):
         super().mouse_move_event(event)
         x, y = event.x(), event.y()
         dx, dy = self._calc_mouse_delta(x, y)
-        point = self.renderer.pixel_coords_to_space_coords(x, y, topLeft=True)
-        d_point = self.renderer.pixel_coords_to_space_coords(dx, dy, relative=True, topLeft=True)
+        point = self.renderer.pixel_coords_to_space_coords(x, y)
+        d_point = self.renderer.pixel_coords_to_space_coords(dx, dy, relative=True)
         self.renderer.scene.mouse_move_event(point, d_point)
 
     def key_pressed_event(self, event):
