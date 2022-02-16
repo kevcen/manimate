@@ -16,6 +16,7 @@ class Reverser:
                 tcopy = self.getCopy(tobj)
                 self.removeCopy(tcopy, mcopy)
                 mcopy_ = self.getCopy(mobj)
+                self.matchPosition(mcopy_, tcopy)
                 return ReplacementTransform(tcopy, mcopy_)
             case Create(mobject=mobj):
                 mcopy = self.getCopy(mobj)
@@ -27,6 +28,8 @@ class Reverser:
             case ReplacementTransform(mobject=obj, target_mobject=tobj):
                 mcopy = self.getCopy(obj)
                 tcopy = self.getCopy(tobj)
+                
+                self.matchPosition(tcopy, mcopy)
                 return ReplacementTransform(mcopy, tcopy)
             case FadeIn(mobject=obj):
                 mcopy = self.getCopy(obj)
@@ -35,12 +38,17 @@ class Reverser:
                 mcopy = self.getCopy(obj)
                 return Create(mcopy)
         
+    def matchPosition(self, mobject, target_mobject):
+        mobject.match_x(target_mobject)
+        mobject.match_y(target_mobject)
+
     def getCopy(self, mobject):
         if mobject not in self.copies:
             mcopy = mobject.copy()
             self.originals[mcopy] = mobject 
             self.copies[mobject] = mcopy 
         
+   
         return self.copies[mobject]
         
     def removeCopy(self, *mcopies):
