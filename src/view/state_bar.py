@@ -26,9 +26,15 @@ from moderngl_window.timers.clock import Timer
 
 class StateWidget(QWidget):
     def __init__(self, scene_handler):
+        def timeChangeHandler(value):
+            # self.timeSlider.setValue(value)
+            label.setText(str(value))
+            state_handler.set_state_number(value)
+
         def stateChangeHandler(value):
             self.timeSlider.setValue(value)
             label.setText(str(value))
+
 
         # def sliderReleaseHandler():
         #     # self.timeSlider.setValue(round(self.timeSlider.value))
@@ -55,10 +61,10 @@ class StateWidget(QWidget):
         self.timeSlider.maximum = 2
         self.timeSlider.minimum = 0
         self.timeSlider.tickPosition = QSlider.TickPosition.TicksBelow
-        self.timeSlider.valueChanged.connect(lambda v: state_handler.set_state_number(v))
+        self.timeSlider.valueChanged.connect(timeChangeHandler)
         # self.timeSlider.sliderReleased.connect(sliderReleaseHandler)
 
-        label = QLabel("None")
+        label = QLabel("0")
         # label.setText(str(self.timeSlider.tickInterval))
 
         state_handler.stateChange.connect(stateChangeHandler)
