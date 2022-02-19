@@ -47,6 +47,7 @@ Scene.point_to_mobject = point_to_mobject
 
 class Test(Scene):
     def construct(self):
+        self.mouse_is_down = False
         A = Dot([1, 0, 0])
         B = Dot([0, 1, 0])
         plane = always_redraw(
@@ -70,9 +71,34 @@ class Test(Scene):
         self.mouse_point.move_to(point)
         from PySide2.QtCore import Qt
         
-        if Qt.Key_A in self.renderer.pressed_keys:  # Move the object by holding down 'A'
+        if self.mouse_is_down:
             mob = self.point_to_mobject(point)
             if mob is None:
                 return
             mob.move_to(self.mouse_point)
 
+    def on_mouse_press(self, point, mouse_button, modifiers):
+        super().on_mouse_press(point, mouse_button, modifiers)
+        if mouse_button == "LEFT":
+            self.mouse_is_down = True
+            self.mouse_point.move_to(point)
+            mob = self.point_to_mobject(point)
+            if mob is None:
+                return
+            self.handler.set_selected_mobject(mob)
+
+    def on_mouse_release(self, point, mouse_button, modifiers):
+        # super().on_mouse_release(point, mouse_button, modifiers)
+        if mouse_button == "LEFT":
+            self.mouse_is_down = False
+        #     self.mouse_point.move_to(point)
+        #     mob = self.point_to_mobject(point)
+        #     if mob is None:
+        #         return
+        #     self.handler.set_selected_mobject(mob)
+
+
+
+    
+
+            

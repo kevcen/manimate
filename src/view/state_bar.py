@@ -7,7 +7,7 @@ from manim.renderer.opengl_renderer import OpenGLRenderer
 
 from PySide6.QtGui import QOpenGLContext, QSurfaceFormat
 from PySide6.QtOpenGLWidgets import QOpenGLWidget
-from PySide6.QtCore import Qt, Slot
+from PySide6.QtCore import Qt, Slot, QRect
 from PySide6.QtWidgets import (
     QApplication,
     QLabel,
@@ -25,7 +25,7 @@ from moderngl_window.timers.clock import Timer
 
 
 class StateWidget(QWidget):
-    def __init__(self, scene_handler):
+    def __init__(self, scene_handler, state_handler):
         def timeChangeHandler(value):
             # self.timeSlider.setValue(value)
             label.setText(str(value))
@@ -42,17 +42,19 @@ class StateWidget(QWidget):
 
         super().__init__()
 
-        self.setWindowTitle("Widgets App")
-
+        self.setWindowTitle(" ")
+        self.geometry = QRect(900, 800, 900, 100)
 
         # button1 = QPushButton("manim it")
         # button1.clicked.connect(lambda : self.manim_run())
         layout = QHBoxLayout()
 
-        state_handler = StateHandler(scene_handler)
 
         runBtn = QPushButton("run")
         runBtn.clicked.connect(lambda : state_handler.run())
+
+        stopBtn = QPushButton("stop")
+        stopBtn.clicked.connect(lambda : state_handler.stop())
 
         self.timeSlider = QSlider()
         # QSlider.setTickInterval(self.timeSlider, 2)
@@ -71,7 +73,7 @@ class StateWidget(QWidget):
         
         # self.manim.setFormat(format); # must be called before the widget or its parent window gets shown
 
-        for w in (self.timeSlider, runBtn, label):
+        for w in (self.timeSlider, runBtn, stopBtn, label):
             layout.addWidget(w)
         
         self.setLayout(layout)

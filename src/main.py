@@ -18,15 +18,17 @@ from PySide6.QtWidgets import (
     QLineEdit
 )
 from __feature__ import true_property
+from fsm.state_handler import StateHandler
 import scene.manim_scene as manim_scene 
 from pathlib import Path
 import moderngl_window as mglw
 from moderngl_window.context.pyside2.window import Window as PySideWindow
 from moderngl_window.timers.clock import Timer
 from scene.scene_handler import SceneHandler
+from view.objects_bar import ObjectsBar
 
 from view.state_bar import StateWidget
-from view.window import QTWindow, ManimWidget
+from view.window import QTWindow
 
 
 states = [] #list of dictionary, mobject -> state 
@@ -67,11 +69,12 @@ if __name__ == "__main__":
         renderer.scene = scene
 
         scene_handler = SceneHandler(scene)
+        state_handler = StateHandler(scene_handler)
 
-        widget = ManimWidget(scene)
+        widget = ObjectsBar(state_handler)
         widget.show()
 
-        state_bar = StateWidget(scene_handler)
+        state_bar = StateWidget(scene_handler, state_handler)
         state_bar.show()
 
         # window._widget.hide()
