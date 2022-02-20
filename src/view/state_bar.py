@@ -7,7 +7,7 @@ from manim.renderer.opengl_renderer import OpenGLRenderer
 
 from PySide6.QtGui import QOpenGLContext, QSurfaceFormat
 from PySide6.QtOpenGLWidgets import QOpenGLWidget
-from PySide6.QtCore import Qt, Slot, QRect
+from PySide6.QtCore import Qt, Slot, QRect, QEventLoop
 from PySide6.QtWidgets import (
     QApplication,
     QLabel,
@@ -77,3 +77,4 @@ class StateWidget(QWidget):
             layout.addWidget(w)
         
         self.setLayout(layout)
+        self.setStyleSheet("background-color: #232326; color: white")

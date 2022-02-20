@@ -63,6 +63,7 @@ class Test(Scene):
         num = always_redraw(lambda: DecimalNumber(-shoelace(det.points)).to_corner(UL))
         self.add(plane, det, vecs, num, A, B)
 
+        self.play(Create(Circle()))
         self.interactive_embed()
 
 

@@ -4,11 +4,14 @@ from fsm.reverser import Reverser
 from manim.utils.color import *
 
 class SceneHandler:
-    def __init__(self, scene):
+    def __init__(self, scene=None):
         self.scene = scene
-        scene.handler = self
         self.reverser = Reverser()
         self.selected = {}
+
+    def setScene(self, scene):
+        self.scene = scene
+        scene.handler = self
 
     def play(self, state):
         forward_anim = [self.reverser.forward(anim) for anim in state.animations]

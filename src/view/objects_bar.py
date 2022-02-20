@@ -58,3 +58,4 @@ class ObjectsBar(QWidget):
             layout.addWidget(w)
         
         self.setLayout(layout)
+        self.setStyleSheet("background-color: #232326; color:white")
