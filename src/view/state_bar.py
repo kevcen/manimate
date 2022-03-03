@@ -1,5 +1,5 @@
 import sys
-from fsm.state_handler import StateHandler
+from model.state_handler import StateHandler
 import moderngl
 from manim import *
 from manim.opengl import *
@@ -28,12 +28,14 @@ class StateWidget(QWidget):
     def __init__(self, scene_handler, state_handler):
         def timeChangeHandler(value):
             # self.timeSlider.setValue(value)
-            label.setText(str(value))
+            label.setText(f"{value}/{timeSlider.maximum}")
             state_handler.set_state_number(value)
 
-        def stateChangeHandler(value):
-            self.timeSlider.setValue(value)
-            label.setText(str(value))
+        def stateChangeHandler(value, length):
+            timeSlider.maximum = length
+            timeSlider.setValue(value)
+            label.setText(f"{value}/{length}")
+
 
 
         # def sliderReleaseHandler():
@@ -56,24 +58,24 @@ class StateWidget(QWidget):
         stopBtn = QPushButton("stop")
         stopBtn.clicked.connect(lambda : state_handler.stop())
 
-        self.timeSlider = QSlider()
-        # QSlider.setTickInterval(self.timeSlider, 2)
-        self.timeSlider.setOrientation(Qt.Horizontal)
-        self.timeSlider.tickInterval = 1
-        self.timeSlider.maximum = 2
-        self.timeSlider.minimum = 0
-        self.timeSlider.tickPosition = QSlider.TickPosition.TicksBelow
-        self.timeSlider.valueChanged.connect(timeChangeHandler)
-        # self.timeSlider.sliderReleased.connect(sliderReleaseHandler)
 
-        label = QLabel("0")
-        # label.setText(str(self.timeSlider.tickInterval))
+        frameBtn = QPushButton("new frame")
+        frameBtn.clicked.connect(lambda : state_handler.add_state())
+
+        timeSlider = QSlider()
+        timeSlider.setOrientation(Qt.Horizontal)
+        timeSlider.tickInterval = 1
+        timeSlider.maximum = 1
+        timeSlider.minimum = 0
+        timeSlider.tickPosition = QSlider.TickPosition.TicksBelow
+        timeSlider.value = 1
+        timeSlider.valueChanged.connect(timeChangeHandler)
+
+        label = QLabel("1/1")
 
         state_handler.stateChange.connect(stateChangeHandler)
-        
-        # self.manim.setFormat(format); # must be called before the widget or its parent window gets shown
 
-        for w in (self.timeSlider, runBtn, stopBtn, label):
+        for w in (timeSlider, label, runBtn, stopBtn, frameBtn):
             layout.addWidget(w)
         
         self.setLayout(layout)

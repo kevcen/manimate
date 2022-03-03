@@ -48,20 +48,20 @@ Scene.point_to_mobject = point_to_mobject
 class Test(Scene):
     def construct(self):
         self.mouse_is_down = False
-        A = Dot([1, 0, 0])
-        B = Dot([0, 1, 0])
-        plane = always_redraw(
-            lambda: NumberPlane().apply_matrix(np.array([A.get_center()[:2], B.get_center()[:2]]).T)
-        )
-        vecs = VGroup(
-            always_redraw(lambda: Vector(A.get_center(), color=RED)),
-            always_redraw(lambda: Vector(B.get_center(), color=GREEN)),
-        )
-        det = always_redraw(
-            lambda: Polygon(ORIGIN, A.get_center(), A.get_center() + B.get_center(), B.get_center(), fill_opacity=0.4, color=YELLOW)
-        )
-        num = always_redraw(lambda: DecimalNumber(-shoelace(det.points)).to_corner(UL))
-        self.add(plane, det, vecs, num, A, B)
+        # A = Dot([1, 0, 0])
+        # B = Dot([0, 1, 0])
+        # plane = always_redraw(
+        #     lambda: NumberPlane().apply_matrix(np.array([A.get_center()[:2], B.get_center()[:2]]).T)
+        # )
+        # vecs = VGroup(
+        #     always_redraw(lambda: Vector(A.get_center(), color=RED)),
+        #     always_redraw(lambda: Vector(B.get_center(), color=GREEN)),
+        # )
+        # det = always_redraw(
+        #     lambda: Polygon(ORIGIN, A.get_center(), A.get_center() + B.get_center(), B.get_center(), fill_opacity=0.4, color=YELLOW)
+        # )
+        # num = always_redraw(lambda: DecimalNumber(-shoelace(det.points)).to_corner(UL))
+        # self.add(plane, det, vecs, num, A, B)
 
         self.interactive_embed()
 
@@ -86,16 +86,13 @@ class Test(Scene):
             if mob is None:
                 return
             self.handler.set_selected_mobject(mob)
+        if mouse_button == "RIGHT":
+            self.handler.unselect_mobjects(signal=True)
 
     def on_mouse_release(self, point, mouse_button, modifiers):
-        # super().on_mouse_release(point, mouse_button, modifiers)
         if mouse_button == "LEFT":
+            self.handler.move_selected_object()
             self.mouse_is_down = False
-        #     self.mouse_point.move_to(point)
-        #     mob = self.point_to_mobject(point)
-        #     if mob is None:
-        #         return
-        #     self.handler.set_selected_mobject(mob)
 
 
 

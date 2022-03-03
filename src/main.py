@@ -17,25 +17,22 @@ from PySide6.QtWidgets import (
     QSizePolicy,
     QLineEdit
 )
+
+from PySide6.QtGui import QImage
+import pygame
 from __feature__ import true_property
-from fsm.state_handler import StateHandler
+from model.mobject_handler import MobjectHandler
+from model.state_handler import StateHandler
 import scene.manim_scene as manim_scene 
 from pathlib import Path
 import moderngl_window as mglw
 from moderngl_window.context.pyside2.window import Window as PySideWindow
 from moderngl_window.timers.clock import Timer
-from scene.scene_handler import SceneHandler
+from model.scene_handler import SceneHandler
+from view.details_bar import DetailsBar
 from view.objects_bar import ObjectsBar
-
 from view.state_bar import StateWidget
 from view.window import QTWindow
-
-
-states = [] #list of dictionary, mobject -> state 
-
-
-
-
 
 
 if __name__ == "__main__":
@@ -68,14 +65,20 @@ if __name__ == "__main__":
         scene = manim_scene.Test(renderer)
         renderer.scene = scene
 
-        scene_handler = SceneHandler(scene)
-        state_handler = StateHandler(scene_handler)
+        mobject_handler = MobjectHandler()
+        scene_handler = SceneHandler(scene, mobject_handler)
+        state_handler = StateHandler(scene_handler, mobject_handler)
+        scene_handler.state_handler = state_handler
 
-        widget = ObjectsBar(state_handler)
-        widget.show()
+        objects_bar = ObjectsBar(state_handler)
+        objects_bar.show()
 
         state_bar = StateWidget(scene_handler, state_handler)
         state_bar.show()
+
+
+        details_bar = DetailsBar(scene_handler, state_handler)
+        details_bar.show()
 
         # window._widget.hide()
         # window._widget.show()

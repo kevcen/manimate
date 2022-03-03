@@ -64,8 +64,8 @@ class QTWindow(PySideWindow):
         super().mouse_move_event(event)
         x, y = event.x(), event.y()
         dx, dy = self._calc_mouse_delta(x, y)
-        point = self.renderer.pixel_coords_to_space_coords(x, y)
-        d_point = self.renderer.pixel_coords_to_space_coords(dx, dy, relative=True)
+        point = self.renderer.pixel_coords_to_space_coords(x, y, top_left=True)
+        d_point = self.renderer.pixel_coords_to_space_coords(dx, dy, relative=True, top_left=True)
         self.renderer.scene.mouse_move_event(point, d_point)
 
     # def key_pressed_event(self, event):
@@ -86,11 +86,11 @@ class QTWindow(PySideWindow):
         x, y = event.x(), event.y()
         button = self._mouse_button_map.get(event.button())
         modifiers = event.modifiers()
-        point = self.renderer.pixel_coords_to_space_coords(x, y)
+        point = self.renderer.pixel_coords_to_space_coords(x, y, top_left=True)
         mouse_button_map = {
             1: "LEFT",
-            2: "MOUSE",
-            4: "RIGHT",
+            # 2: "MOUSE",
+            2: "RIGHT",
         }
         self.renderer.scene.on_mouse_press(point, mouse_button_map[button], modifiers)
 
@@ -99,11 +99,11 @@ class QTWindow(PySideWindow):
         x, y = event.x(), event.y()
         button = self._mouse_button_map.get(event.button())
         modifiers = event.modifiers()
-        point = self.renderer.pixel_coords_to_space_coords(x, y)
+        point = self.renderer.pixel_coords_to_space_coords(x, y, top_left=True)
         mouse_button_map = {
             1: "LEFT",
-            2: "MOUSE",
-            4: "RIGHT",
+            # 2: "MOUSE",
+            2: "RIGHT",
         }
         self.renderer.scene.on_mouse_release(point, mouse_button_map[button], modifiers)
 
