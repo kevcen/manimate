@@ -3,6 +3,9 @@ from manim.utils.color import *
 from manim import *
 from PySide6.QtCore import (Signal, QObject)
 
+"""
+Handles any rendering on the manim scene
+"""
 class SceneHandler(QObject):
     selectedMobjectChange = Signal(Mobject)
 
@@ -15,11 +18,8 @@ class SceneHandler(QObject):
         self.state_handler = None #to set
         self.mobject_handler = mobject_handler
 
+    # For debugging purposes
     def playOne(self, anim, state):
-        # forward_anim = self.generator.forward(anim, state)
-        # forward_anim.run_time = 0
-        # self.scene.play(forward_anim)
-        # anim = anim.copy()
         anim.run_time = 0
         self.scene.play(anim)
 
@@ -79,39 +79,30 @@ class SceneHandler(QObject):
 
     def set_selected_mobject(self, mobject):
         self.unselect_mobjects()
-
-        # self.selected[mobject] = mobject.get_color()
         self.selected = mobject
-        mobject.set_color(WHITE)
+
+        # mobject.set_color(WHITE)
+        self.state_handler.select_mobject(mobject)
 
         self.selectedMobjectChange.emit(mobject)
 
-        self.state_handler.select_mobject(mobject)
-
-        #create copy of target to prepare for any movements
-        # self.state_handler.create_target(mboject)
-
 
     def unselect_mobjects(self, signal=False):
-        # for mobj, color in list(self.selected.items()):
-        #     mobj.set_color(color)
-        #     del self.selected[mobj]
         self.selected = None
 
-        if signal:
+        if signal: # emit signal for widgets
             self.selectedMobjectChange.emit(None)
-        # pass
 
     def move_selected_object(self):
-        # if not self.selected:
-        #     return #nothing selected 
-        
-        # mcopy = list(self.selected.keys())[0] #assume only 1 object is selected for now
-        # if mcopy not in self.mobject_handler.originals:
-        #     return 
-
         mcopy = self.selected
-        mcopy.set_color(YELLOW_C)
+
+        if mcopy is None:
+            return
 
         self.state_handler.move_to_target(mcopy)
+
+    def added_this_frame(self, mcopy):
+        mobject = self.mobject_handler.getOriginal(mcopy)
+
+        return self.state_handler.created_here(mobject)
             

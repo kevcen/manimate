@@ -73,8 +73,9 @@ class Test(Scene):
         
         if self.mouse_is_down:
             mob = self.point_to_mobject(point)
-            if mob is None:
+            if mob is None or self.handler.added_this_frame(mob):
                 return
+            # TODO: use selected object
             mob.move_to(self.mouse_point)
 
     def on_mouse_press(self, point, mouse_button, modifiers):
@@ -83,9 +84,10 @@ class Test(Scene):
             self.mouse_is_down = True
             self.mouse_point.move_to(point)
             mob = self.point_to_mobject(point)
-            if mob is None:
+            if mob is None or self.handler.added_this_frame(mob):
                 return
             self.handler.set_selected_mobject(mob)
+
         if mouse_button == "RIGHT":
             self.handler.unselect_mobjects(signal=True)
 

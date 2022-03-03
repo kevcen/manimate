@@ -6,9 +6,7 @@ class State:
     def __init__(self, animations=None):
         self.next = None #next state
         self.prev = None #previous state
-        self.animations = animations if animations else [] #list of animation instructions
-        # self.states = {} #mapping from mobject to state
-        self.mobjects = []
+        self.animations = animations if animations else [] #list of animations to play
         self.targets = bidict()
         self.transforms = {}
 

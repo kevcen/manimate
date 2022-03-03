@@ -31,7 +31,7 @@ class StateHandler(QObject):
         self.currIdx = 1 # curr idx
 
              
-    def playCurr(self, fast=True):
+    def playForward(self, fast=True):
         if fast:
             self.scene_handler.playFast(self.curr)
         else:
@@ -47,7 +47,7 @@ class StateHandler(QObject):
     def run(self):
         self.is_running = True
         while self.curr.next != self.end and self.is_running:
-            self.playCurr(False)
+            self.playForward(fast=False)
             self.stateChange.emit(self.currIdx, self.numStates)
             
         self.is_running = False
@@ -56,24 +56,13 @@ class StateHandler(QObject):
         self.is_running = False
 
     def set_state_number(self, idx):
-        if 0 <= idx <= self.numStates:
+        if 1 <= idx <= self.numStates:
             if idx < self.currIdx:
                 for _ in range(self.currIdx, idx, -1):
                     self.playBack()
             else:
                 for _ in range(self.currIdx, idx):
-                    self.playCurr()
-
-
-    def add_object(self, mobject):
-        # self.curr.mobjects.append(mobject)
-        create = Create(mobject)
-        self.curr.prev.animations.append(create)
-        self.curr.targets[mobject] = mobject
-        self.scene_handler.playCopy(create, self.curr.prev)
-        # self.scene_handler.replay(self.curr)
-        # self.scene_handler.add(mobject)
-
+                    self.playForward()
     def add_state(self):
         if self.is_running:
             return 
@@ -94,42 +83,6 @@ class StateHandler(QObject):
         self.stateChange.emit(self.currIdx, self.numStates)
         
     def move_to_target(self, mcopy):
-        # # mobject = self.curr.prev.targets.inverse[mcopy]
-        # if mobject not in self.curr.targets:
-        #     transform = Transform(mobject, target)
-        #     # self.curr.targets[mcopy] = mobject
-        #     # self.curr.prev.targets[mobject] = mobject.copy()
-        #     self.curr.prev.animations.append(transform)
-
-        #     replace = Transform(mobject, target)
-        #     self.scene_handler.playOne(replace, self.curr.prev)
-        #     # self.scene_handler.replay(self.curr)
-
-
-
-        # mcopy.set_color(GREEN_C)
-        # # mobject = self.mobject_handler.getOriginal(mcopy) #nvm gets target
-        # tobject = self.mobject_handler.getOriginal(mcopy) #inner representation
-        # mobject = self.curr.targets.inverse[tobject]
-
-        # target = mcopy.copy() #capture position
-        # target.set_color(GREEN_C)
-
-        # # oldTarget = self.curr.targets[mobject] # is the same as mcopy
-        # oldTarget = mcopy
-        # self.curr.targets[mobject] = target
-
-
-        # # update animation
-        # replace = self.curr.prev.transforms[mobject]
-        # replace.target_mobject = target
-
-        # replace2 = Transform(oldTarget, target) #replace copies on screen
-        # self.scene_handler.playCopy(replace2, self.curr.prev)
-
-        # if self.scene_handler.selected == mcopy:
-        #     self.scene_handler.selected = self.mobject_handler.getCopy(target)
-
         mobject = self.mobject_handler.getOriginal(mcopy)
 
         target = mcopy.copy()
@@ -139,42 +92,26 @@ class StateHandler(QObject):
         replace = self.curr.prev.getTransform(mobject)
         replace.target_mobject = target
 
-
-
-
-
-
     def select_mobject(self, mcopy):
-        if mcopy in self.curr.prev.targets.inverse: #already copied for this frame
-            return 
+        #capture previous frame for reverse 
+        if mcopy not in self.curr.prev.targets.inverse:
+            mobject = self.mobject_handler.getOriginal(mcopy)
+            self.curr.prev.targets[mobject] = mcopy.copy()
 
-        mobject = self.mobject_handler.getOriginal(mcopy)
-        self.curr.prev.targets[mobject] = mcopy.copy() #capture previous frame for reverse 
-        
-        # # mobject = self.curr.prev.targets.inverse[mcopy]
-        # mobject = self.mobject_handler.getOriginal(mcopy)
-        # #preserve previous state if current frame changes it
-        # # self.curr.prev.targets[mobject] = mcopy.copy()
-        # target = mcopy.copy() #capture position
-        # self.curr.targets[mobject] = target
+    def created_here(self, mobject):
+        return mobject in self.curr.targets and self.curr.targets[mobject] == mobject
 
+    def add_object(self, mobject):
+        # TODO: make it instant with scene.add
 
-        # replace = Transform(mobject, target)
-        # self.curr.prev.transforms[mobject] = replace
+        create = Create(mobject)
+        self.curr.prev.animations.append(create)
+        self.curr.targets[mobject] = mobject
 
-        # self.curr.prev.animations.append(replace)
-        # self.scene_handler.playCopy(replace, self.curr.prev)
-
-
-        # if self.scene_handler.selected == mcopy:
-        #     self.scene_handler.selected = self.mobject_handler.getCopy(target)
-
-
-    def create_target(self, mobject):
-        # target = mobject.copy()
-        pass
+        self.scene_handler.playCopy(create, self.curr.prev)
 
     def add_transform(self):
+        # TODO: make a transform widget to alter color, position, shape?
         pass
 
 

@@ -23,5 +23,4 @@ class MobjectHandler:
         self.copies[mobject] = mcopy 
 
     def getOriginal(self, mcopy):
-
         return self.copies.inverse[mcopy]
