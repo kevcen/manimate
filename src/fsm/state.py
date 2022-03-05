@@ -1,6 +1,7 @@
 
 from manim import *
 from bidict import bidict
+from collections import defaultdict
 
 class State:
     def __init__(self, animations=None):
@@ -9,6 +10,8 @@ class State:
         self.animations = animations if animations else [] #list of animations to play
         self.targets = bidict()
         self.transforms = {}
+        self.changedTargetAttributes = defaultdict(lambda: {})
+        self.added = set()
 
     def getTransform(self, mobject):
         """

@@ -1,9 +1,11 @@
 import sys
 from PySide6.QtCore import (Signal, QObject)
+from file.writer import Writer
 from fsm.state import State
 from manim import *
 import time
 from model import scene_handler
+import numpy as np
 
 
 
@@ -82,21 +84,23 @@ class StateHandler(QObject):
 
         self.stateChange.emit(self.currIdx, self.numStates)
         
-    def move_to_target(self, mcopy):
+    def move_to_target(self, mcopy, point):
         mobject = self.mobject_handler.getOriginal(mcopy)
 
         target = mcopy.copy()
         self.curr.targets[mobject] = target 
+        self.curr.changedTargetAttributes[mobject]['move_to'] = str(point.tolist())
 
         # update animation
         replace = self.curr.prev.getTransform(mobject)
         replace.target_mobject = target
 
     def select_mobject(self, mcopy):
-        #capture previous frame for reverse 
+        #capture previous frame for reverse if editable
         if mcopy not in self.curr.prev.targets.inverse:
             mobject = self.mobject_handler.getOriginal(mcopy)
-            self.curr.prev.targets[mobject] = mcopy.copy()
+            if mobject not in self.curr.prev.targets:
+                self.curr.prev.targets[mobject] = mcopy.copy()
 
     def created_here(self, mobject):
         return mobject in self.curr.targets and self.curr.targets[mobject] == mobject
@@ -107,6 +111,13 @@ class StateHandler(QObject):
         create = Create(mobject)
         self.curr.prev.animations.append(create)
         self.curr.targets[mobject] = mobject
+        self.curr.prev.added.add(mobject)
+
+        # if self.curr.targets[mobject] == create.mobject:
+        #     mobject.set_color(GREEN_C)
+        # else:
+        #     mobject.set_color(BLUE_C)
+
 
         self.scene_handler.playCopy(create, self.curr.prev)
 
@@ -114,4 +125,8 @@ class StateHandler(QObject):
         # TODO: make a transform widget to alter color, position, shape?
         pass
 
+    def export(self):
+        writer = Writer(self.head, "scene/export_scene.py")
+
+        writer.write()
 

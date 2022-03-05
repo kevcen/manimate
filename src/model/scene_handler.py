@@ -93,13 +93,13 @@ class SceneHandler(QObject):
         if signal: # emit signal for widgets
             self.selectedMobjectChange.emit(None)
 
-    def move_selected_object(self):
+    def move_selected_object(self, point):
         mcopy = self.selected
 
         if mcopy is None:
             return
 
-        self.state_handler.move_to_target(mcopy)
+        self.state_handler.move_to_target(mcopy, point)
 
     def added_this_frame(self, mcopy):
         mobject = self.mobject_handler.getOriginal(mcopy)

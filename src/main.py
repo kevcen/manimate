@@ -21,6 +21,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtGui import QImage
 import pygame
 from __feature__ import true_property
+from file.reader import Reader
 from model.mobject_handler import MobjectHandler
 from model.state_handler import StateHandler
 import scene.manim_scene as manim_scene 
@@ -36,6 +37,8 @@ from view.window import QTWindow
 
 
 if __name__ == "__main__":
+    # read_tokens = Reader("scene/manim_scene.py")
+    
     signal.signal(signal.SIGINT, signal.SIG_DFL)
     app = QApplication(sys.argv)
     with tempconfig( {

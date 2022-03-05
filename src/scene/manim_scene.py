@@ -93,7 +93,7 @@ class Test(Scene):
 
     def on_mouse_release(self, point, mouse_button, modifiers):
         if mouse_button == "LEFT":
-            self.handler.move_selected_object()
+            self.handler.move_selected_object(point)
             self.mouse_is_down = False
 
 

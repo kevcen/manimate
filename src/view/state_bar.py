@@ -58,6 +58,9 @@ class StateWidget(QWidget):
         frameBtn = QPushButton("new frame")
         frameBtn.clicked.connect(lambda : state_handler.add_state())
 
+        exportBtn = QPushButton("export")
+        exportBtn.clicked.connect(lambda : state_handler.export())
+
         timeSlider = QSlider()
         timeSlider.setOrientation(Qt.Horizontal)
         timeSlider.tickInterval = 1
@@ -71,7 +74,7 @@ class StateWidget(QWidget):
 
         state_handler.stateChange.connect(stateChangeHandler)
 
-        for w in (timeSlider, label, runBtn, stopBtn, frameBtn):
+        for w in (timeSlider, label, runBtn, stopBtn, frameBtn, exportBtn):
             layout.addWidget(w)
         
         self.setLayout(layout)
