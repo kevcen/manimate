@@ -72,11 +72,12 @@ class Test(Scene):
         from PySide2.QtCore import Qt
         
         if self.mouse_is_down:
-            mob = self.point_to_mobject(point)
-            if mob is None or self.handler.added_this_frame(mob):
-                return
+            # mob = self.point_to_mobject(point)
+            # if mob is None or self.handler.added_this_frame(mob):
+            #     return
             # TODO: use selected object
-            mob.move_to(self.mouse_point)
+            # mob.move_to(self.mouse_point)
+            self.handler.move_selected_to(self.mouse_point)
 
     def on_mouse_press(self, point, mouse_button, modifiers):
         super().on_mouse_press(point, mouse_button, modifiers)
@@ -93,7 +94,7 @@ class Test(Scene):
 
     def on_mouse_release(self, point, mouse_button, modifiers):
         if mouse_button == "LEFT":
-            self.handler.move_selected_object(point)
+            self.handler.confirm_selected_move(point)
             self.mouse_is_down = False
 
 
