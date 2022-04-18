@@ -22,14 +22,14 @@ from PySide6.QtGui import QImage
 import pygame
 from __feature__ import true_property
 from file.reader import Reader
-from model.mobject_handler import MobjectHandler
-from model.state_handler import StateHandler
+from models.mobject_helper import MobjectHandler
+from models.fsm_model import StateHandler
+from models.scene_model import SceneHandler
 import scene.manim_scene as manim_scene 
 from pathlib import Path
 import moderngl_window as mglw
 from moderngl_window.context.pyside2.window import Window as PySideWindow
 from moderngl_window.timers.clock import Timer
-from model.scene_handler import SceneHandler
 from view.details_bar import DetailsBar
 from view.objects_bar import ObjectsBar
 from view.state_bar import StateWidget

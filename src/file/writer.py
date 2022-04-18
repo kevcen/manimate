@@ -29,10 +29,6 @@ class Writer:
             
     def print_targets(self, f, curr, init=False):
         for mobject, tobject in curr.targets.items():
-            # if (init and not mobject == tobject) or tobject in self.existing_names: #only consider initialisations
-            #     continue
-            init = mobject == tobject
-
             tobj_str = self.get_mobject_str(tobject)
             f.write(f"    {tobj_str} = {tobject.__class__.__name__}()\n")
 

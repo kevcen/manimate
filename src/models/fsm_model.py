@@ -4,7 +4,7 @@ from file.writer import Writer
 from fsm.state import State
 from manim import *
 import time
-from model import scene_handler
+from models import scene_model
 import numpy as np
 
 
@@ -65,10 +65,12 @@ class StateHandler(QObject):
             else:
                 for _ in range(self.currIdx, idx):
                     self.playForward()
+
     def add_state(self):
         if self.is_running:
             return 
 
+        #route new state within the state machine
         new_state = State()
         temp = self.curr.next 
 
@@ -78,13 +80,15 @@ class StateHandler(QObject):
         temp.prev = new_state
         new_state.prev = self.curr 
 
+        #move to new state
         self.curr = new_state
         self.numStates += 1
         self.currIdx += 1
 
+        #emit signal for widgets
         self.stateChange.emit(self.currIdx, self.numStates)
         
-    def move_to_target(self, mcopy, point):
+    def confirm_move(self, mcopy, point):
         mobject = self.mobject_handler.getOriginal(mcopy)
 
         target = mcopy.copy()
@@ -92,41 +96,41 @@ class StateHandler(QObject):
         self.curr.changedTargetAttributes[mobject]['move_to'] = str(point.tolist())
 
         # update animation
-        replace = self.curr.prev.getTransform(mobject)
-        replace.target_mobject = target
+        if not self.created_at_curr_state(mobject):
+            replace = self.curr.prev.getTransform(mobject)
+            replace.target_mobject = target
 
     def select_mobject(self, mcopy):
         #capture previous frame for reverse if editable
         if mcopy not in self.curr.prev.targets.inverse:
             mobject = self.mobject_handler.getOriginal(mcopy)
-            if mobject not in self.curr.prev.targets:
+            if mobject not in self.curr.prev.targets: #TODO: need to use separate reverse targets, temp and replace each time u reverse
                 self.curr.prev.targets[mobject] = mcopy.copy()
 
-    def created_here(self, mobject):
+    def created_at_curr_state(self, mobject):
         return mobject in self.curr.targets and self.curr.targets[mobject] == mobject
 
-    def add_object(self, mobject):
+    def add_object_to_curr(self, mobject):
         # TODO: make it instant with scene.add
 
         create = Create(mobject)
         self.curr.prev.animations.append(create)
         self.curr.targets[mobject] = mobject
         self.curr.prev.added.add(mobject)
-
-        # if self.curr.targets[mobject] == create.mobject:
-        #     mobject.set_color(GREEN_C)
-        # else:
-        #     mobject.set_color(BLUE_C)
-
-
         self.scene_handler.playCopy(create, self.curr.prev)
 
-    def add_transform(self):
+    def instant_add(self, mobject):
+        self.curr.targets[mobject] = mobject
+        self.curr.prev.added.add(mobject)
+        self.scene_handler.add(mobject)
+
+
+    def add_transform_to_curr(self):
         # TODO: make a transform widget to alter color, position, shape?
         pass
 
     def export(self):
-        writer = Writer(self.head, "scene/export_scene.py")
+        writer = Writer(self.head, "io/export_scene.py")
 
         writer.write()
 

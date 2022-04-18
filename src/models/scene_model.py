@@ -70,9 +70,9 @@ class SceneHandler(QObject):
         if forward_anim:
             self.scene.play(*forward_anim)
 
-    def reset(self):
-        self.scene.clear()
-        self.scene.render()
+    # def reset(self):
+    #     self.scene.clear()
+    #     self.scene.render()
 
     def add(self, mobject):
         self.scene.add(mobject)
@@ -93,21 +93,22 @@ class SceneHandler(QObject):
         if signal: # emit signal for widgets
             self.selectedMobjectChange.emit(None)
 
+    # TODO: refactor non-scene related functions out
     def confirm_selected_move(self, point):
         mcopy = self.selected
 
         if mcopy is None:
             return
 
-        self.state_handler.move_to_target(mcopy, point)
+        self.state_handler.confirm_move(mcopy, point)
 
-    def added_this_frame(self, mcopy):
+    def created_at_curr_state(self, mcopy):
         mobject = self.mobject_handler.getOriginal(mcopy)
 
-        return self.state_handler.created_here(mobject)
+        return self.state_handler.created_at_curr_state(mobject)
 
     def move_selected_to(self, point):
-        if self.selected is None or self.added_this_frame(self.selected):
+        if self.selected is None:
                 return
         
         self.selected.move_to(point)

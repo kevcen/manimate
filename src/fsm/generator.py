@@ -28,10 +28,12 @@ class AnimationGenerator:
                 self.mobject_handler.setCopy(obj, tcopy)
                 return ReplacementTransform(mcopy, tcopy)
             case FadeIn(mobject=obj):
-                mcopy = self.mobject_handler.getCopy(obj) #new
+                mcopy = state.next.targets[obj].copy() #target[obj] == obj for introducers
+                self.mobject_handler.setCopy(obj, mcopy)
                 return FadeIn(mcopy)
             case Create(mobject=obj):
-                mcopy = self.mobject_handler.getCopy(obj) #new
+                mcopy = state.next.targets[obj].copy()
+                self.mobject_handler.setCopy(obj, mcopy)
                 return Create(mcopy)
                 
                 

@@ -1,5 +1,5 @@
 import sys
-from model.state_handler import StateHandler
+from models.fsm_model import StateHandler
 import moderngl
 from manim import *
 from manim.opengl import *

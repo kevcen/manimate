@@ -1,5 +1,5 @@
 import sys
-from model.state_handler import StateHandler
+from models.fsm_model import StateHandler
 import moderngl
 from manim import *
 from manim.opengl import *
@@ -56,7 +56,7 @@ class DetailsBar(QWidget):
         # lineCmd = QLineEdit()
 
         button2 = QPushButton("add transform")
-        button2.clicked.connect(lambda : state_handler.add_transform())
+        button2.clicked.connect(lambda : state_handler.add_transform_to_curr())
 
         self.emptyLabel = QLabel("nothing selected")
         self.layout.addWidget(self.emptyLabel)

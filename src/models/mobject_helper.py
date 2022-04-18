@@ -4,7 +4,6 @@ from bidict import bidict
 class MobjectHandler:
     def __init__(self):
         self.copies = bidict()
-        self.targets = defaultdict(lambda: {})
 
     def getCopy(self, mobject):
         if mobject not in self.copies:
