@@ -73,7 +73,7 @@ if __name__ == "__main__":
         state_handler = StateHandler(scene_handler, mobject_handler)
         scene_handler.state_handler = state_handler
 
-        objects_bar = ObjectsBar(state_handler)
+        objects_bar = ObjectsBar(state_handler, mobject_handler)
         objects_bar.show()
 
         state_bar = StateWidget(scene_handler, state_handler)

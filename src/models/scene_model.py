@@ -105,6 +105,9 @@ class SceneHandler(QObject):
     def created_at_curr_state(self, mcopy):
         mobject = self.mobject_handler.getOriginal(mcopy)
 
+        if mobject is None:
+            return True #block any interaction with it
+
         return self.state_handler.created_at_curr_state(mobject)
 
     def move_selected_to(self, point):

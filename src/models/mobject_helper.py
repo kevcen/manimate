@@ -22,4 +22,4 @@ class MobjectHandler:
         self.copies[mobject] = mcopy 
 
     def getOriginal(self, mcopy):
-        return self.copies.inverse[mcopy]
+        return self.copies.inverse[mcopy] if mcopy in self.copies.inverse else None

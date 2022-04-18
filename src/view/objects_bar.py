@@ -23,10 +23,12 @@ import moderngl_window as mglw
 from moderngl_window.context.pyside2.window import Window as PySideWindow
 from moderngl_window.timers.clock import Timer
 
+from mobjects.tree import Node, Root
+
 
 
 class ObjectsBar(QWidget):
-    def __init__(self, state_handler):
+    def __init__(self, state_handler, mobject_handler):
         super().__init__()
 
         self.setWindowTitle(" ")
@@ -39,14 +41,33 @@ class ObjectsBar(QWidget):
         # lineCmd = QLineEdit()
 
         button2 = QPushButton("add circle")
-        button2.clicked.connect(lambda : state_handler.add_object(Circle()))
+        button2.clicked.connect(lambda : state_handler.add_object_to_curr(Circle()))
+
+
+        # button4 = QPushButton("add graph")
+        # button4.clicked.connect(lambda : state_handler.add_object_to_curr(Graph([1, 2, 3, 4], [(1, 2), (2, 3), (3, 4), (1, 3), (1, 4)], layout='tree')))
+        
+        tree = Root(mobject_handler, text="n0")
+        n1 = Node(mobject_handler, text="n1")
+        n2 = Node(mobject_handler, text="n2")
+        n3 = Node(mobject_handler, text="n3")
+        n4 = Node(mobject_handler, text="n4")
+        n5 = Node(mobject_handler, text="n5")
+        tree.add_child(n1)
+        tree.add_child(n2)
+        n2.add_child(n3)
+        n2.add_child(n4)
+        n1.add_child(n5)
+
+        tree.build(2,2)
+        # g = tree.to_vgroup()
 
 
         button4 = QPushButton("add graph")
-        button4.clicked.connect(lambda : state_handler.add_object(Graph([1, 2, 3, 4], [(1, 2), (2, 3), (3, 4), (1, 3), (1, 4)])))
+        button4.clicked.connect(lambda : tree.build_tree_to_scene(state_handler))
 
         button5 = QPushButton("add square")
-        button5.clicked.connect(lambda : state_handler.add_object(Square()))
+        button5.clicked.connect(lambda : state_handler.add_object_to_curr(Square()))
 
         button3 = QPushButton("debug")
         button3.clicked.connect(lambda : self.debug())
