@@ -1,10 +1,15 @@
 from manim import *
 
-class CircleAST:
+class IMobject:
+    def __init__(self):
+        self.mobject = None
+
+class ICircle(IMobject):
     def __init__(self):
         self.mobject = Circle()
 
 
-class SquareAST:
+class ISquare(IMobject):
     def __init__(self):
         self.mobject = Square()
+

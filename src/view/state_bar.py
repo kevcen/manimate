@@ -27,6 +27,7 @@ from moderngl_window.timers.clock import Timer
 class StateWidget(QWidget):
     def __init__(self, scene_handler, state_handler):
         def timeChangeHandler(value):
+            scene_handler.unselect_mobjects()
             label.setText(f"{value}/{timeSlider.maximum}")
             state_handler.set_state_number(value)
 

@@ -29,6 +29,7 @@ class SceneHandler(QObject):
         self.scene.play(forward_anim)
 
     def play(self, state):
+        self.addMobjects(state)
         forward_anim = [self.generator.forward(anim, state) for anim in state.animations]
 
         if forward_anim:
@@ -36,24 +37,34 @@ class SceneHandler(QObject):
         else:
             self.scene.wait(1)
 
+    def addMobjects(self, state):
+        for mobjects in state.added:
+            self.scene.add(mobjects)
+
+    def removeMobjects(self, state):
+        for mobjects in state.added:
+            self.scene.remove(mobjects)
 
     def playFast(self, state):
+        self.addMobjects(state)
         forward_anim = [self.generator.forward(anim, state) for anim in state.animations]
         for animation in forward_anim:
-            animation.run_time = 0.1
+            animation.run_time = 0
 
         if forward_anim:
             self.scene.play(*forward_anim)
 
     def playRev(self, state):
+        self.removeMobjects(state)
         reversed_anim = [self.generator.reverse(instr, state) for instr in state.animations]
         
         for animation in reversed_anim:
-            animation.run_time = 0.1
+            animation.run_time = 0
 
         if reversed_anim:
             self.scene.play(*reversed_anim)
 
+    ## debugging
     def replay(self, state):
         reversed_anim = [self.generator.reverse(instr, state) for instr in state.animations]
 
@@ -70,13 +81,10 @@ class SceneHandler(QObject):
         if forward_anim:
             self.scene.play(*forward_anim)
 
-    # def reset(self):
-    #     self.scene.clear()
-    #     self.scene.render()
-
     def add(self, mobject):
         self.scene.add(mobject)
 
+    """ Selection functions """
     def set_selected_mobject(self, mobject):
         self.unselect_mobjects()
         self.selected[mobject] = mobject.get_color()
@@ -96,6 +104,7 @@ class SceneHandler(QObject):
         if signal: # emit signal for widgets
             self.selectedMobjectChange.emit(None)
 
+    """" Movement functions """
     # TODO: refactor non-scene related functions out
     def confirm_selected_move(self, point):
         for mcopy in self.selected:

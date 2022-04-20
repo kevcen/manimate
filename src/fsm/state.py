@@ -3,6 +3,8 @@ from manim import *
 from bidict import bidict
 from collections import defaultdict
 
+from intermediate.ianimation import ITransform
+
 class State:
     def __init__(self, animations=None):
         self.next = None #next state
@@ -13,15 +15,15 @@ class State:
         self.changedTargetAttributes = defaultdict(lambda: {})
         self.added = set()
 
-    def getTransform(self, mobject):
+    def getTransform(self, imobject):
         """
         PRE: called only after next state has a target for the transform
         """
-        assert mobject in self.next.targets
+        assert imobject in self.next.targets
 
-        if mobject not in self.transforms:
-            self.transforms[mobject] = Transform(mobject, self.next.targets[mobject])
-            self.animations.append(self.transforms[mobject])
+        if imobject not in self.transforms:
+            self.transforms[imobject] = ITransform(imobject)
+            self.animations.append(self.transforms[imobject])
         
-        return self.transforms[mobject]
+        return self.transforms[imobject]
         

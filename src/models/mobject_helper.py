@@ -5,12 +5,12 @@ class MobjectHandler:
     def __init__(self):
         self.copies = bidict()
 
-    def getCopy(self, mobject):
-        if mobject not in self.copies:
-            mcopy = mobject.copy()
-            self.setCopy(mobject, mcopy)
+    def getCopy(self, imobject):
+        if imobject not in self.copies:
+            mcopy = imobject.mobject.copy()
+            self.setCopy(imobject, mcopy)
         
-        return self.copies[mobject]
+        return self.copies[imobject]
     
         
     def removeCopy(self, *mcopies):

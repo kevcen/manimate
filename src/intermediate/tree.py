@@ -1,8 +1,9 @@
-from re import X
 from manim import *
 import igraph
 
-class Node:
+from intermediate.imobject import IMobject
+
+class INode(IMobject):
     def __init__(self, mobject_handler, text="N", radius=0.6, color=RED, textcolor=RED):
         # Node members
         self.parent = None
@@ -11,7 +12,7 @@ class Node:
         # Manim mobjects
         self.label = Text(text, color=textcolor) 
         self.circle = Circle(radius=radius, color=color)
-        self.node = VGroup(self.label, self.circle)
+        self.mobject = VGroup(self.label, self.circle)
         self.line_to_parent = None 
 
         # Aux info for igraph layout and line connecting
@@ -19,16 +20,16 @@ class Node:
         self.mobject_handler = mobject_handler
 
 
-    def add_child(self, node):
-        self.children.append(node)
-        node.parent = self
+    def add_child(self, child):
+        self.children.append(child)
+        child.parent = self
 
     def move_node(self, x, y):
-        self.node.move_to(np.array([x, y, 0]))
+        self.mobject.move_to(np.array([x, y, 0]))
         if self.parent is not None:
             # Move connecting line
-            pn = self.parent.node
-            cn = self.node
+            pn = self.parent.mobject
+            cn = self.mobject
 
             if pn.get_x() <= cn.get_x():
                 direction = RIGHT
@@ -40,8 +41,8 @@ class Node:
                         stroke_width=2,
                         color=GREY)
 
-            self.line_to_parent.add_updater(lambda m: m.put_start_and_end_on(self.mobject_handler.getCopy(self.parent.node).get_corner(DOWN + direction) + DOWN * SMALL_BUFF,
-                        self.mobject_handler.getCopy(self.node).get_top() + UP * SMALL_BUFF))
+            self.line_to_parent.add_updater(lambda m: m.put_start_and_end_on(self.mobject_handler.getCopy(self.parent).get_corner(DOWN + direction) + DOWN * SMALL_BUFF,
+                        self.mobject_handler.getCopy(self).get_top() + UP * SMALL_BUFF))
 
     """ Recursive functions """
     def scale_subtree(self, layout):
@@ -58,8 +59,8 @@ class Node:
             c.update_colours()
 
     def build_tree_to_scene(self, state_handler):
-        if self.node is not None:
-            state_handler.add_object_to_curr(self.node)
+        if self.mobject is not None:
+            state_handler.add_object_to_curr(self)
         if self.line_to_parent is not None:
             state_handler.instant_add(self.line_to_parent)
 
@@ -75,7 +76,7 @@ class Node:
             c.build_igraph(g, v.index)
 
     
-class Root(Node):
+class IRoot(INode):
     def build(self, x_scale, y_scale):
         self.update_colours()
         self.layout(x_scale, y_scale)

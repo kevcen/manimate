@@ -4,6 +4,7 @@ from file.writer import Writer
 from fsm.state import State
 from manim import *
 import time
+from intermediate.ianimation import ICreate
 from models import scene_model
 import numpy as np
 
@@ -47,6 +48,7 @@ class StateHandler(QObject):
         self.scene_handler.playRev(self.curr)
 
     def run(self):
+        self.scene_handler.unselect_mobjects()
         self.is_running = True
         while self.curr.next != self.end and self.is_running:
             self.playForward(fast=False)
@@ -55,6 +57,7 @@ class StateHandler(QObject):
         self.is_running = False
 
     def stop(self):
+        self.scene_handler.unselect_mobjects()
         self.is_running = False
 
     def set_state_number(self, idx):
@@ -89,38 +92,40 @@ class StateHandler(QObject):
         self.stateChange.emit(self.currIdx, self.numStates)
         
     def confirm_move(self, mcopy, point):
-        mobject = self.mobject_handler.getOriginal(mcopy)
+        imobject = self.mobject_handler.getOriginal(mcopy)
 
         target = mcopy.copy()
-        self.curr.targets[mobject] = target 
-        self.curr.changedTargetAttributes[mobject]['move_to'] = str(point.tolist())
+        target.set_color(self.scene_handler.selected[mcopy])
+        self.curr.targets[imobject] = target 
+        self.curr.changedTargetAttributes[imobject]['move_to'] = str(point.tolist()) # TODO: put info into imobject
 
         # update animation
-        if not self.created_at_curr_state(mobject):
-            replace = self.curr.prev.getTransform(mobject)
+        if not self.created_at_curr_state(imobject):
+            replace = self.curr.prev.getTransform(imobject)
             replace.target_mobject = target
 
     def select_mobject(self, mcopy):
         #capture previous frame for reverse if editable
         if mcopy not in self.curr.prev.targets.inverse:
-            mobject = self.mobject_handler.getOriginal(mcopy)
-            if mobject not in self.curr.prev.targets: #TODO: need to use separate reverse targets, temp and replace each time u reverse
-                self.curr.prev.targets[mobject] = mcopy.copy()
+            imobject = self.mobject_handler.getOriginal(mcopy)
+            if imobject not in self.curr.prev.targets: #TODO: need to use separate reverse targets, temp and replace each time u reverse
+                target = mcopy.copy()
+                target.set_color(self.scene_handler.selected[mcopy])
+                self.curr.prev.targets[imobject] = target
 
-    def created_at_curr_state(self, mobject):
-        return mobject in self.curr.targets and self.curr.targets[mobject] == mobject
+    def created_at_curr_state(self, imobject):
+        return imobject in self.curr.targets and self.curr.targets[imobject] == imobject.mobject
 
-    def add_object_to_curr(self, mobject):
+    def add_object_to_curr(self, imobject):
         # TODO: make it instant with scene.add
 
-        create = Create(mobject)
+        create = ICreate(imobject)
         self.curr.prev.animations.append(create)
-        self.curr.targets[mobject] = mobject
-        self.curr.prev.added.add(mobject)
+        self.curr.targets[imobject] = imobject.mobject
+        # self.curr.prev.added.add(imobject)
         self.scene_handler.playCopy(create, self.curr.prev)
 
     def instant_add(self, mobject):
-        self.curr.targets[mobject] = mobject
         self.curr.prev.added.add(mobject)
         self.scene_handler.add(mobject)
 
