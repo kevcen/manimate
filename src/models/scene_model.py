@@ -14,7 +14,7 @@ class SceneHandler(QObject):
         self.scene = scene
         scene.handler = self
         self.generator = AnimationGenerator(mobject_handler)
-        self.selected = None
+        self.selected = {}
         self.state_handler = None #to set
         self.mobject_handler = mobject_handler
 
@@ -79,28 +79,27 @@ class SceneHandler(QObject):
 
     def set_selected_mobject(self, mobject):
         self.unselect_mobjects()
-        self.selected = mobject
+        self.selected[mobject] = mobject.get_color()
 
-        # mobject.set_color(WHITE)
+        mobject.set_color(WHITE)
         self.state_handler.select_mobject(mobject)
 
         self.selectedMobjectChange.emit(mobject)
 
 
     def unselect_mobjects(self, signal=False):
-        self.selected = None
+        for mobject, color in self.selected.items():
+            mobject.set_color(color)
+
+        self.selected = {}
 
         if signal: # emit signal for widgets
             self.selectedMobjectChange.emit(None)
 
     # TODO: refactor non-scene related functions out
     def confirm_selected_move(self, point):
-        mcopy = self.selected
-
-        if mcopy is None:
-            return
-
-        self.state_handler.confirm_move(mcopy, point)
+        for mcopy in self.selected:
+            self.state_handler.confirm_move(mcopy, point)
 
     def created_at_curr_state(self, mcopy):
         mobject = self.mobject_handler.getOriginal(mcopy)
@@ -111,7 +110,8 @@ class SceneHandler(QObject):
         return self.state_handler.created_at_curr_state(mobject)
 
     def move_selected_to(self, point):
-        if self.selected is None:
+        if not self.selected:
                 return
         
-        self.selected.move_to(point)
+        for mobject in self.selected:
+            mobject.move_to(point)

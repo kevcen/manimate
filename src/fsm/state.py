@@ -8,7 +8,7 @@ class State:
         self.next = None #next state
         self.prev = None #previous state
         self.animations = animations if animations else [] #list of animations to play
-        self.targets = bidict()
+        self.targets = bidict() # what the mobjects look like at this state initially
         self.transforms = {}
         self.changedTargetAttributes = defaultdict(lambda: {})
         self.added = set()
