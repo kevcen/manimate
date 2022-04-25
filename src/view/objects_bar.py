@@ -54,13 +54,17 @@ class ObjectsBar(QWidget):
         n3 = INode(mobject_handler, text="n3")
         n4 = INode(mobject_handler, text="n4")
         n5 = INode(mobject_handler, text="n5")
+        n6 = INode(mobject_handler, text="n6")
+        n7 = INode(mobject_handler, text="n7")
         tree.add_child(n1)
         tree.add_child(n2)
         n2.add_child(n3)
         n2.add_child(n4)
         n1.add_child(n5)
+        n1.add_child(n6)
+        n1.add_child(n7)
 
-        tree.build(2,2)
+        tree.build(2.5,2)
         # g = tree.to_vgroup()
 
 

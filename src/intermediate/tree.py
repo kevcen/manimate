@@ -36,13 +36,13 @@ class INode(IMobject):
             else:
                 direction = LEFT
 
-            self.line_to_parent = Line(pn.get_corner(DOWN + direction) + DOWN * SMALL_BUFF,
-                        cn.get_top() + UP * SMALL_BUFF,
+            self.line_to_parent = Line(pn.get_corner(DOWN + direction) + DOWN * 0,
+                        cn.get_top() + UP * 0,
                         stroke_width=2,
                         color=GREY)
 
-            self.line_to_parent.add_updater(lambda m: m.put_start_and_end_on(self.mobject_handler.getCopy(self.parent).get_corner(DOWN + direction) + DOWN * SMALL_BUFF,
-                        self.mobject_handler.getCopy(self).get_top() + UP * SMALL_BUFF))
+            self.line_to_parent.add_updater(lambda m: m.put_start_and_end_on(self.mobject_handler.getCopy(self.parent).get_corner(DOWN + direction) + DOWN * 0,
+                        self.mobject_handler.getCopy(self).get_top() + UP * 0))
 
     """ Recursive functions """
     def scale_subtree(self, layout):
@@ -89,5 +89,5 @@ class IRoot(INode):
 
         layout = g.layout_reingold_tilford(root=[0])
 
-        scaled_layout = [[x * x_scale, -y * y_scale] for x, y in layout]
+        scaled_layout = [[x * x_scale, -y * y_scale +3] for x, y in layout]
         self.scale_subtree(scaled_layout) 

@@ -14,7 +14,13 @@ class AnimationGenerator:
                 return FadeOut(mcopy)
             case ITransform(imobject=imobj):
                 mcopy = self.mobject_handler.getCopy(imobj)
-                tcopy = state.targets[imobj].copy()
+
+                tcopy = None
+                if imobj in state.prev.targets:
+                    tcopy = state.prev.targets[imobj].copy()
+                else: 
+                    tcopy = state.rev_targets[imobj].copy()
+
                 self.mobject_handler.setCopy(imobj, tcopy)
                 return ReplacementTransform(mcopy, tcopy)
             case ICreate(imobject=imobj):
@@ -26,15 +32,15 @@ class AnimationGenerator:
         match animation:
             case ITransform(imobject=imobj):
                 mcopy = self.mobject_handler.getCopy(imobj)
-                tcopy = state.next.targets[imobj].copy()
+                tcopy = state.targets[imobj].copy()
                 self.mobject_handler.setCopy(imobj, tcopy)
                 return ReplacementTransform(mcopy, tcopy)
             case IFadeIn(imobject=imobj):
-                mcopy = state.next.targets[imobj].copy() #target[obj] == obj for introducers
+                mcopy = state.targets[imobj].copy() #target[obj] == obj for introducers
                 self.mobject_handler.setCopy(imobj, mcopy)
                 return FadeIn(mcopy)
             case ICreate(imobject=imobj):
-                mcopy = state.next.targets[imobj].copy()
+                mcopy = state.targets[imobj].copy()
                 self.mobject_handler.setCopy(imobj, mcopy)
                 return Create(mcopy)
                 

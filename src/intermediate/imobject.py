@@ -1,8 +1,8 @@
 from manim import *
 
 class IMobject:
-    def __init__(self):
-        self.mobject = None
+    def __init__(self, mobject):
+        self.mobject = mobject
 
 class ICircle(IMobject):
     def __init__(self):

@@ -10,16 +10,17 @@ class State:
         self.next = None #next state
         self.prev = None #previous state
         self.animations = animations if animations else [] #list of animations to play
-        self.targets = bidict() # what the mobjects look like at this state initially
+        self.targets = bidict() # what the mobjects look like at this state at the end
+        self.rev_targets = bidict()
         self.transforms = {}
         self.changedTargetAttributes = defaultdict(lambda: {})
         self.added = set()
 
     def getTransform(self, imobject):
         """
-        PRE: called only after next state has a target for the transform
+        PRE: called only after state has a target for the transform
         """
-        assert imobject in self.next.targets
+        assert imobject in self.targets
 
         if imobject not in self.transforms:
             self.transforms[imobject] = ITransform(imobject)

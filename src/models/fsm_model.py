@@ -35,17 +35,17 @@ class StateHandler(QObject):
 
              
     def playForward(self, fast=True):
+        self.currIdx += 1
+        self.curr = self.curr.next
         if fast:
             self.scene_handler.playFast(self.curr)
         else:
             self.scene_handler.play(self.curr)
-        self.currIdx += 1
-        self.curr = self.curr.next
 
     def playBack(self):
+        self.scene_handler.playRev(self.curr)
         self.curr = self.curr.prev 
         self.currIdx -= 1
-        self.scene_handler.playRev(self.curr)
 
     def run(self):
         self.scene_handler.unselect_mobjects()
@@ -101,17 +101,19 @@ class StateHandler(QObject):
 
         # update animation
         if not self.created_at_curr_state(imobject):
-            replace = self.curr.prev.getTransform(imobject)
+            replace = self.curr.getTransform(imobject) # ??? why prev
             replace.target_mobject = target
 
     def select_mobject(self, mcopy):
-        #capture previous frame for reverse if editable
+        # capture previous frame for reverse if editable
         if mcopy not in self.curr.prev.targets.inverse:
             imobject = self.mobject_handler.getOriginal(mcopy)
-            if imobject not in self.curr.prev.targets: #TODO: need to use separate reverse targets, temp and replace each time u reverse
+            if imobject not in self.curr.prev.targets:
                 target = mcopy.copy()
                 target.set_color(self.scene_handler.selected[mcopy])
-                self.curr.prev.targets[imobject] = target
+                # self.curr.prev.targets[imobject] = target
+                self.curr.rev_targets[imobject] = target
+        pass
 
     def created_at_curr_state(self, imobject):
         return imobject in self.curr.targets and self.curr.targets[imobject] == imobject.mobject
@@ -120,14 +122,22 @@ class StateHandler(QObject):
         # TODO: make it instant with scene.add
 
         create = ICreate(imobject)
-        self.curr.prev.animations.append(create)
+        self.curr.animations.append(create)
         self.curr.targets[imobject] = imobject.mobject
+        imobject.addedState = self.curr
         # self.curr.prev.added.add(imobject)
-        self.scene_handler.playCopy(create, self.curr.prev)
+        self.scene_handler.playCopy(create, self.curr)
 
     def instant_add(self, mobject):
+        # TODO: remove after line to connect nodes uses imobject
         self.curr.prev.added.add(mobject)
         self.scene_handler.add(mobject)
+
+    def instant_add_object_to_curr(self, imobject):
+        self.curr.prev.added.add(imobject)
+        self.scene_handler.add(imobject)
+
+        imobject.addedState = self.curr.prev
 
 
     def add_transform_to_curr(self):

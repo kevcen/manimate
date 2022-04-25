@@ -15,7 +15,8 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
     QSlider,
-    QLineEdit
+    QLineEdit,
+    QComboBox
 )
 from __feature__ import true_property
 from pathlib import Path
@@ -27,25 +28,32 @@ from moderngl_window.timers.clock import Timer
 
 class DetailsBar(QWidget):
     def __init__(self, scene_handler, state_handler):
-        def selectedMobjectHandler(mobject):
+        def selectedMobjectHandler(imobject):
+            if imobject == self.selectedImobject:
+                return #nothing happened 
+
             clearItems()
-            addItems(mobject is None)
+
+            classLbl.setText(imobject.__class__.__name__)
+            addItems(imobject is None)
+
+            self.selectedImobject = imobject
 
         def addItems(empty):
             if empty:
-                self.layout.addWidget(self.emptyLabel)
-            else:
+                self.layout.addWidget(QLabel("nothing selected"))
+            else: #fresh add
                 for w in self.all_widgets:
                     self.layout.addWidget(w)
         
         def clearItems():
-            for w in self.all_widgets:
-                w.setParent(None)
-            self.emptyLabel.setParent(None)
-            
+            for i in reversed(range(self.layout.count())): 
+                self.layout.itemAt(i).widget().setParent(None)
 
 
         super().__init__()
+
+        self.selectedImobject = None
 
         self.setWindowTitle(" ")
 
@@ -55,24 +63,36 @@ class DetailsBar(QWidget):
 
         # lineCmd = QLineEdit()
 
-        button2 = QPushButton("add transform")
-        button2.clicked.connect(lambda : state_handler.add_transform_to_curr())
+
+        classLbl = QLabel(self.selectedImobject.__class__.__name__)
+
+        transformBtn = QPushButton("add transform")
+        transformBtn.clicked.connect(lambda : state_handler.add_transform_to_curr())
+
+        introCb = QComboBox()
+        introCb.addItems(["Create", "FadeIn", "None"])
+        introCb.currentIndexChanged.connect(self.introAnimationHandler)
+
 
         self.emptyLabel = QLabel("nothing selected")
         self.layout.addWidget(self.emptyLabel)
 
-        self.all_widgets = (button2,)
-        # button4 = QPushButton("add graph")
-        # button4.clicked.connect(lambda : state_handler.add_object(Graph([1, 2, 3, 4], [(1, 2), (2, 3), (3, 4), (1, 3), (1, 4)])))
-
-        # button5 = QPushButton("add square")
-        # button5.clicked.connect(lambda : state_handler.add_object(Square()))
-
-
+        self.all_widgets = (classLbl, transformBtn,)
+    
         scene_handler.selectedMobjectChange.connect(selectedMobjectHandler)
         
-        # self.manim.setFormat(format); # must be called before the widget or its parent window gets shown
-
-
         self.setLayout(self.layout)
         
+
+    def introAnimationHandler(self, i):
+        match i:
+            case 0:
+                #Create
+                pass
+            case 1:
+                #FadeIn
+                pass
+            case 2:
+                # instant add
+                pass
+

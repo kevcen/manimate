@@ -1,6 +1,8 @@
 import collections
 from manim import *
 
+from intermediate.ianimation import ITransform
+
 class Writer:
     BOILERPLATE = "from manim import *\n\nclass Main(Scene):\n  def construct(self):\n" 
     def __init__(self, head_state, filename="scene/output_scene.py"):
@@ -18,21 +20,22 @@ class Writer:
                 # self.print_added(f, curr)
                 self.print_targets(f, curr.next)
                 
+                # TODO: add target that just added
                 self.print_animations(f, curr)
 
                 curr = curr.next
-
+    #debug
     def print_added(self, f, curr):
         for mobject in curr.added:
             mobj_str = self.get_mobject_str(mobject)
             f.write(f"    {mobj_str} = {mobject.__class__.__name__}()\n")
             
     def print_targets(self, f, curr, init=False):
-        for mobject, tobject in curr.targets.items():
+        for imobject, tobject in curr.targets.items():
             tobj_str = self.get_mobject_str(tobject)
             f.write(f"    {tobj_str} = {tobject.__class__.__name__}()\n")
 
-            for attr, value in curr.changedTargetAttributes[mobject].items():
+            for attr, value in curr.changedTargetAttributes[imobject].items():
                 f.write(f"    {tobj_str}.{attr}({value})\n")
 
             f.write('\n')
@@ -54,7 +57,7 @@ class Writer:
         res.append(self.get_mobject_str(anim.mobject))
 
         match anim:
-            case Transform(mobject=mobj, target_mobject=tobj):
+            case ITransform(mobject=mobj):
                 res.append(', ')
                 res.append(self.get_mobject_str(anim.target_mobject))
             case default:

@@ -3,11 +3,13 @@ from manim.utils.color import *
 from manim import *
 from PySide6.QtCore import (Signal, QObject)
 
+from intermediate.imobject import IMobject
+
 """
 Handles any rendering on the manim scene
 """
 class SceneHandler(QObject):
-    selectedMobjectChange = Signal(Mobject)
+    selectedMobjectChange = Signal(IMobject)
 
     def __init__(self, scene, mobject_handler):
         super().__init__()
@@ -92,10 +94,11 @@ class SceneHandler(QObject):
         mobject.set_color(WHITE)
         self.state_handler.select_mobject(mobject)
 
-        self.selectedMobjectChange.emit(mobject)
+        imobject = self.mobject_handler.getOriginal(mobject)
+        self.selectedMobjectChange.emit(imobject)
 
 
-    def unselect_mobjects(self, signal=False):
+    def unselect_mobjects(self, signal=True):
         for mobject, color in self.selected.items():
             mobject.set_color(color)
 
@@ -111,12 +114,12 @@ class SceneHandler(QObject):
             self.state_handler.confirm_move(mcopy, point)
 
     def created_at_curr_state(self, mcopy):
-        mobject = self.mobject_handler.getOriginal(mcopy)
+        imobject = self.mobject_handler.getOriginal(mcopy)
 
-        if mobject is None:
+        if imobject is None:
             return True #block any interaction with it
 
-        return self.state_handler.created_at_curr_state(mobject)
+        return self.state_handler.created_at_curr_state(imobject)
 
     def move_selected_to(self, point):
         if not self.selected:

@@ -79,13 +79,13 @@ class Test(Scene):
         if mouse_button == "LEFT":
             self.mouse_is_down = True
             self.mouse_point.move_to(point)
-            mob = self.point_to_mobject(point)
-            if mob is None or self.handler.created_at_curr_state(mob):
+            mcopy = self.point_to_mobject(point)
+            if mcopy is None or self.handler.created_at_curr_state(mcopy):
                 return
-            self.handler.set_selected_mobject(mob)
+            self.handler.set_selected_mobject(mcopy)
 
         if mouse_button == "RIGHT":
-            self.handler.unselect_mobjects(signal=True)
+            self.handler.unselect_mobjects()
 
     def on_mouse_release(self, point, mouse_button, modifiers):
         if mouse_button == "LEFT":
