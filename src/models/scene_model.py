@@ -97,9 +97,10 @@ class SceneHandler(QObject):
         self.selected[mobject] = mobject.get_color()
 
         mobject.set_color(WHITE)
-        self.state_handler.select_mobject(mobject)
+        self.state_handler.capture_prev(mobject)
 
         imobject = self.mobject_handler.getOriginal(mobject)
+        print(imobject)
         self.selectedMobjectChange.emit(imobject)
 
 

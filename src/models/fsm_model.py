@@ -104,7 +104,7 @@ class StateHandler(QObject):
             replace = self.curr.getTransform(imobject) # ??? why prev
             replace.target_mobject = target
 
-    def select_mobject(self, mcopy):
+    def capture_prev(self, mcopy):
         # capture previous frame for reverse if editable
         if mcopy not in self.curr.prev.targets.inverse:
             imobject = self.mobject_handler.getOriginal(mcopy)
@@ -113,7 +113,6 @@ class StateHandler(QObject):
                 target.set_color(self.scene_handler.selected[mcopy])
                 # self.curr.prev.targets[imobject] = target
                 self.curr.rev_targets[imobject] = target
-        pass
 
     def created_at_curr_state(self, imobject):
         return imobject in self.curr.targets and self.curr.targets[imobject] == imobject.mobject

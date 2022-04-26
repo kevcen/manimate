@@ -1,5 +1,6 @@
 import sys
 from intermediate.ianimation import ICreate, IFadeIn
+from intermediate.itree import INode
 from models.fsm_model import StateHandler
 import moderngl
 from manim import *
@@ -36,20 +37,29 @@ class DetailsBar(QWidget):
             clearItems()
 
             classLbl.setText(imobject.__class__.__name__)
-            addItems(imobject is None)
+            addItems(imobject)
 
             self.selectedImobject = imobject
 
-        def addItems(empty):
+        def addItems(imobject):
+            empty = imobject is None
             if empty:
                 self.layout.addWidget(QLabel("nothing selected"))
             else: #fresh add
                 for w in self.all_widgets:
                     self.layout.addWidget(w)
+
+                if isinstance(imobject, INode):
+                    self.addChildBtn.clicked.connect(imobject.spawn_child)
+                    for w in self.tree_widgets:
+                        self.layout.addWidget(w)
         
         def clearItems():
             for i in reversed(range(self.layout.count())): 
                 self.layout.itemAt(i).widget().setParent(None)
+                
+            if isinstance(self.selectedImobject, INode):
+                self.addChildBtn.clicked.disconnect(self.selectedImobject.spawn_child)
 
 
         super().__init__()
@@ -64,13 +74,10 @@ class DetailsBar(QWidget):
 
         self.layout = QVBoxLayout()
 
-        # lineCmd = QLineEdit()
-
-
         classLbl = QLabel(self.selectedImobject.__class__.__name__)
 
         transformBtn = QPushButton("add transform")
-        transformBtn.clicked.connect(lambda : state_handler.add_transform_to_curr())
+        transformBtn.clicked.connect(state_handler.add_transform_to_curr)
 
         introCb = QComboBox()
         introCb.addItems(["Create", "FadeIn", "None"])
@@ -81,6 +88,13 @@ class DetailsBar(QWidget):
         self.layout.addWidget(self.emptyLabel)
 
         self.all_widgets = (classLbl, introCb, transformBtn,)
+
+        # Tree widgets
+        changeParentCb = QComboBox()
+
+        self.addChildBtn = QPushButton("add child")
+
+        self.tree_widgets = (changeParentCb, self.addChildBtn, )
     
         scene_handler.selectedMobjectChange.connect(selectedMobjectHandler)
         
@@ -93,7 +107,7 @@ class DetailsBar(QWidget):
             imobject.addedState.animations.remove(imobject.introAnim)
         else:
             imobject.addedState.added.remove(imobject)
-            
+
         self.scene_handler.remove(imobject)
         match i:
             case 0:

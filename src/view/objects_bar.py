@@ -1,6 +1,6 @@
 import sys
 from intermediate.imobject import ICircle, ISquare
-from intermediate.tree import INode, IRoot
+from intermediate.itree import INode
 from models.fsm_model import StateHandler
 import moderngl
 from manim import *
@@ -32,6 +32,9 @@ class ObjectsBar(QWidget):
     def __init__(self, state_handler, mobject_handler):
         super().__init__()
 
+        self.state_handler = state_handler
+        self.mobject_handler = mobject_handler
+
         self.setWindowTitle(" ")
 
         self.geometry = QRect(750, 250, 150, 600)
@@ -42,37 +45,13 @@ class ObjectsBar(QWidget):
         # lineCmd = QLineEdit()
 
         button2 = QPushButton("add circle")
-        button2.clicked.connect(lambda : state_handler.add_object_to_curr(ICircle()))
+        button2.clicked.connect(lambda : state_handler.instant_add_object_to_curr(ICircle()))
 
-
-        # button4 = QPushButton("add graph")
-        # button4.clicked.connect(lambda : state_handler.add_object_to_curr(Graph([1, 2, 3, 4], [(1, 2), (2, 3), (3, 4), (1, 3), (1, 4)], layout='tree')))
-        
-        tree = IRoot(mobject_handler, text="n0")
-        n1 = INode(mobject_handler, text="n1")
-        n2 = INode(mobject_handler, text="n2")
-        n3 = INode(mobject_handler, text="n3")
-        n4 = INode(mobject_handler, text="n4")
-        n5 = INode(mobject_handler, text="n5")
-        n6 = INode(mobject_handler, text="n6")
-        n7 = INode(mobject_handler, text="n7")
-        tree.add_child(n1)
-        tree.add_child(n2)
-        n2.add_child(n3)
-        n2.add_child(n4)
-        n1.add_child(n5)
-        n1.add_child(n6)
-        n1.add_child(n7)
-
-        tree.build(2.5,2)
-        # g = tree.to_vgroup()
-
-
-        button4 = QPushButton("add graph")
-        button4.clicked.connect(lambda : tree.build_tree_to_scene(state_handler))
+        button4 = QPushButton("add tree")
+        button4.clicked.connect(self.add_tree)
 
         button5 = QPushButton("add square")
-        button5.clicked.connect(lambda : state_handler.add_object_to_curr(ISquare()))
+        button5.clicked.connect(lambda : state_handler.instant_add_object_to_curr(ISquare()))
 
         button3 = QPushButton("debug")
         button3.clicked.connect(lambda : self.debug())
@@ -84,3 +63,7 @@ class ObjectsBar(QWidget):
             layout.addWidget(w)
         
         self.setLayout(layout)
+
+    def add_tree(self):
+        node = INode(self.mobject_handler, self.state_handler)
+        node.show_node()
