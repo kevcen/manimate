@@ -7,18 +7,18 @@ import time
 from intermediate.ianimation import ICreate
 from models import scene_model
 import numpy as np
+import models.mobject_helper as mh
 
 
 
 class StateHandler(QObject):
     stateChange = Signal(int, int)
 
-    def __init__(self, scene_handler, mobject_handler):
+    def __init__(self, scene_handler):
         super().__init__()
 
         self.numStates = 1
         self.scene_handler = scene_handler
-        self.mobject_handler = mobject_handler
 
         self.head = State()
         self.end = State()
@@ -92,7 +92,7 @@ class StateHandler(QObject):
         self.stateChange.emit(self.currIdx, self.numStates)
         
     def confirm_move(self, mcopy, point):
-        imobject = self.mobject_handler.getOriginal(mcopy)
+        imobject = mh.getOriginal(mcopy)
 
         target = mcopy.copy()
         target.set_color(self.scene_handler.selected[mcopy])
@@ -107,7 +107,7 @@ class StateHandler(QObject):
     def capture_prev(self, mcopy):
         # capture previous frame for reverse if editable
         if mcopy not in self.curr.prev.targets.inverse:
-            imobject = self.mobject_handler.getOriginal(mcopy)
+            imobject = mh.getOriginal(mcopy)
             if imobject not in self.curr.prev.targets:
                 target = mcopy.copy()
                 target.set_color(self.scene_handler.selected[mcopy])

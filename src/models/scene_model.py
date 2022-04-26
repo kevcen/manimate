@@ -4,6 +4,7 @@ from manim import *
 from PySide6.QtCore import (Signal, QObject)
 
 from intermediate.imobject import IMobject
+import models.mobject_helper as mh
 
 """
 Handles any rendering on the manim scene
@@ -11,14 +12,13 @@ Handles any rendering on the manim scene
 class SceneHandler(QObject):
     selectedMobjectChange = Signal(IMobject)
 
-    def __init__(self, scene, mobject_handler):
+    def __init__(self, scene):
         super().__init__()
         self.scene = scene
         scene.handler = self
-        self.generator = AnimationGenerator(mobject_handler)
+        self.generator = AnimationGenerator()
         self.selected = {}
         self.state_handler = None #to set
-        self.mobject_handler = mobject_handler
 
     # For debugging purposes
     def playOne(self, anim, state):
@@ -41,12 +41,12 @@ class SceneHandler(QObject):
 
     def addMobjects(self, state):
         for imobject in state.added:
-            mcopy = self.mobject_handler.getCopy(imobject)
+            mcopy = mh.getCopy(imobject)
             self.scene.add(mcopy)
 
     def removeMobjects(self, state):
         for imobject in state.added:
-            mcopy = self.mobject_handler.getCopy(imobject)
+            mcopy = mh.getCopy(imobject)
             self.scene.remove(mcopy)
 
     def playFast(self, state):
@@ -86,10 +86,10 @@ class SceneHandler(QObject):
             self.scene.play(*forward_anim)
 
     def add(self, imobject):
-        self.scene.add(self.mobject_handler.getCopy(imobject))
+        self.scene.add(mh.getCopy(imobject))
 
     def remove(self, imobject):
-        self.scene.remove(self.mobject_handler.getCopy(imobject))
+        self.scene.remove(mh.getCopy(imobject))
 
     """ Selection functions """
     def set_selected_mobject(self, mobject):
@@ -99,7 +99,7 @@ class SceneHandler(QObject):
         mobject.set_color(WHITE)
         self.state_handler.capture_prev(mobject)
 
-        imobject = self.mobject_handler.getOriginal(mobject)
+        imobject = mh.getOriginal(mobject)
         print(imobject)
         self.selectedMobjectChange.emit(imobject)
 
@@ -120,7 +120,7 @@ class SceneHandler(QObject):
             self.state_handler.confirm_move(mcopy, point)
 
     def created_at_curr_state(self, mcopy):
-        imobject = self.mobject_handler.getOriginal(mcopy)
+        imobject = mh.getOriginal(mcopy)
 
         if imobject is None:
             return True #block any interaction with it

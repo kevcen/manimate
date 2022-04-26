@@ -1,8 +1,9 @@
 from intermediate.imobject import IMobject
 from manim import *
+import models.mobject_helper as mh
 
 class INode(IMobject):
-    def __init__(self, mobject_handler, state_handler):
+    def __init__(self, state_handler):
         self.parent = None
         self.children = []
 
@@ -14,16 +15,15 @@ class INode(IMobject):
         self.parent_edge = None
 
         # Aux info
-        self.mobject_handler = mobject_handler
         self.state_handler = state_handler
 
     def child(self):
-        child = INode(self.mobject_handler, self.state_handler)
-        parentcpy = self.mobject_handler.getCopy(self)
+        child = INode(self.state_handler)
+        parentcpy = mh.getCopy(self)
         child.mobject.move_to(np.array([parentcpy.get_x(), parentcpy.get_y() - 2, 0]))
         child.parent = self 
         child.parent_edge = IParentEdge(child)
-        child.parent_edge.continuously_update(child.mobject_handler)
+        child.parent_edge.continuously_update()
         return child
 
     def spawn_child(self):
@@ -35,6 +35,10 @@ class INode(IMobject):
         self.state_handler.instant_add_object_to_curr(self)
         if self.parent_edge is not None:
             self.state_handler.instant_add_object_to_curr(self.parent_edge)
+
+    def change_parent(self, parent):
+        self.parent = parent
+        #parent edge should auto update through updater
 
 
 class IParentEdge(IMobject):
@@ -49,8 +53,8 @@ class IParentEdge(IMobject):
         self.mobject = Line(pn.get_bottom(),
                         cn.get_top(), color=RED)
 
-    def continuously_update(self, mobject_handler):
-        self.mobject.add_updater(lambda mob: mob.put_start_and_end_on(mobject_handler.getCopy(self.node.parent).get_bottom(),
-                    mobject_handler.getCopy(self.node).get_top()))
+    def continuously_update(self):
+        self.mobject.add_updater(lambda mob: mob.put_start_and_end_on(mh.getCopy(self.node.parent).get_bottom(),
+                    mh.getCopy(self.node).get_top()))
 
     

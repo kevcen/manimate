@@ -22,7 +22,6 @@ from PySide6.QtGui import QImage
 import pygame
 from __feature__ import true_property
 from file.reader import Reader
-from models.mobject_helper import MobjectHandler
 from models.fsm_model import StateHandler
 from models.scene_model import SceneHandler
 import scene.manim_scene as manim_scene 
@@ -68,12 +67,11 @@ if __name__ == "__main__":
         scene = manim_scene.Test(renderer)
         renderer.scene = scene
 
-        mobject_handler = MobjectHandler()
-        scene_handler = SceneHandler(scene, mobject_handler)
-        state_handler = StateHandler(scene_handler, mobject_handler)
+        scene_handler = SceneHandler(scene)
+        state_handler = StateHandler(scene_handler)
         scene_handler.state_handler = state_handler
 
-        objects_bar = ObjectsBar(state_handler, mobject_handler)
+        objects_bar = ObjectsBar(state_handler)
         objects_bar.show()
 
         state_bar = StateWidget(scene_handler, state_handler)

@@ -29,11 +29,10 @@ from moderngl_window.timers.clock import Timer
 
 
 class ObjectsBar(QWidget):
-    def __init__(self, state_handler, mobject_handler):
+    def __init__(self, state_handler):
         super().__init__()
 
         self.state_handler = state_handler
-        self.mobject_handler = mobject_handler
 
         self.setWindowTitle(" ")
 
@@ -65,5 +64,5 @@ class ObjectsBar(QWidget):
         self.setLayout(layout)
 
     def add_tree(self):
-        node = INode(self.mobject_handler, self.state_handler)
+        node = INode(self.state_handler)
         node.show_node()
