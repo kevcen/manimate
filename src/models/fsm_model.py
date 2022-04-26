@@ -120,24 +120,25 @@ class StateHandler(QObject):
 
     def add_object_to_curr(self, imobject):
         # TODO: make it instant with scene.add
-
         create = ICreate(imobject)
         self.curr.animations.append(create)
         self.curr.targets[imobject] = imobject.mobject
         imobject.addedState = self.curr
+        imobject.introAnim = create
         # self.curr.prev.added.add(imobject)
         self.scene_handler.playCopy(create, self.curr)
 
     def instant_add(self, mobject):
         # TODO: remove after line to connect nodes uses imobject
-        self.curr.prev.added.add(mobject)
+        self.curr.added.add(mobject)
         self.scene_handler.add(mobject)
 
     def instant_add_object_to_curr(self, imobject):
-        self.curr.prev.added.add(imobject)
+        self.curr.added.add(imobject)
         self.scene_handler.add(imobject)
 
-        imobject.addedState = self.curr.prev
+        imobject.addedState = self.curr
+        imobject.introAnim = None
 
 
     def add_transform_to_curr(self):

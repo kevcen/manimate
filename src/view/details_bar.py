@@ -1,4 +1,5 @@
 import sys
+from intermediate.ianimation import ICreate, IFadeIn
 from models.fsm_model import StateHandler
 import moderngl
 from manim import *
@@ -53,6 +54,8 @@ class DetailsBar(QWidget):
 
         super().__init__()
 
+        self.scene_handler = scene_handler
+
         self.selectedImobject = None
 
         self.setWindowTitle(" ")
@@ -77,7 +80,7 @@ class DetailsBar(QWidget):
         self.emptyLabel = QLabel("nothing selected")
         self.layout.addWidget(self.emptyLabel)
 
-        self.all_widgets = (classLbl, transformBtn,)
+        self.all_widgets = (classLbl, introCb, transformBtn,)
     
         scene_handler.selectedMobjectChange.connect(selectedMobjectHandler)
         
@@ -85,14 +88,24 @@ class DetailsBar(QWidget):
         
 
     def introAnimationHandler(self, i):
+        imobject = self.selectedImobject
+        if imobject.introAnim is not None:
+            imobject.addedState.animations.remove(imobject.introAnim)
+        else:
+            imobject.addedState.added.remove(imobject)
+            
+        self.scene_handler.remove(imobject)
         match i:
             case 0:
-                #Create
-                pass
+                imobject.introAnim = ICreate(imobject)
             case 1:
-                #FadeIn
-                pass
+                imobject.introAnim = IFadeIn(imobject)
             case 2:
-                # instant add
-                pass
+                imobject.introAnim = None
 
+        if imobject.introAnim is not None:
+            imobject.addedState.animations.append(imobject.introAnim)
+            self.scene_handler.playCopy(imobject.introAnim, imobject.addedState)
+        else:
+            imobject.addedState.added.add(imobject)
+            self.scene_handler.add(imobject)

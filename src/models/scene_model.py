@@ -40,12 +40,14 @@ class SceneHandler(QObject):
             self.scene.wait(1)
 
     def addMobjects(self, state):
-        for mobjects in state.added:
-            self.scene.add(mobjects)
+        for imobject in state.added:
+            mcopy = self.mobject_handler.getCopy(imobject)
+            self.scene.add(mcopy)
 
     def removeMobjects(self, state):
-        for mobjects in state.added:
-            self.scene.remove(mobjects)
+        for imobject in state.added:
+            mcopy = self.mobject_handler.getCopy(imobject)
+            self.scene.remove(mcopy)
 
     def playFast(self, state):
         self.addMobjects(state)
@@ -83,8 +85,11 @@ class SceneHandler(QObject):
         if forward_anim:
             self.scene.play(*forward_anim)
 
-    def add(self, mobject):
-        self.scene.add(mobject)
+    def add(self, imobject):
+        self.scene.add(self.mobject_handler.getCopy(imobject))
+
+    def remove(self, imobject):
+        self.scene.remove(self.mobject_handler.getCopy(imobject))
 
     """ Selection functions """
     def set_selected_mobject(self, mobject):
