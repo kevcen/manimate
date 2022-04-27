@@ -30,6 +30,18 @@ class SceneHandler(QObject):
         forward_anim.run_time = 0
         self.scene.play(forward_anim)
 
+    def addMobjects(self, state):
+        for imobject in state.added:
+            mcopy = mh.getCopy(imobject)
+            self.scene.add(mcopy)
+
+    def removeMobjects(self, state):
+        print('added in this state', len(state.added))
+        for imobject in state.added:
+            mcopy = mh.getCopy(imobject)
+            print(mcopy)
+            self.scene.remove(mcopy)
+
     def play(self, state):
         self.addMobjects(state)
         forward_anim = [self.generator.forward(anim, state) for anim in state.animations]
@@ -38,16 +50,6 @@ class SceneHandler(QObject):
             self.scene.play(*forward_anim)
         else:
             self.scene.wait(1)
-
-    def addMobjects(self, state):
-        for imobject in state.added:
-            mcopy = mh.getCopy(imobject)
-            self.scene.add(mcopy)
-
-    def removeMobjects(self, state):
-        for imobject in state.added:
-            mcopy = mh.getCopy(imobject)
-            self.scene.remove(mcopy)
 
     def playFast(self, state):
         self.addMobjects(state)
@@ -119,13 +121,13 @@ class SceneHandler(QObject):
         for mcopy in self.selected:
             self.state_handler.confirm_move(mcopy, point)
 
-    def created_at_curr_state(self, mcopy):
+    def created_at_curr_state_with_anim(self, mcopy):
         imobject = mh.getOriginal(mcopy)
 
         if imobject is None:
             return True #block any interaction with it
 
-        return self.state_handler.created_at_curr_state(imobject)
+        return self.state_handler.created_at_curr_state_with_anim(imobject)
 
     def move_selected_to(self, point):
         if not self.selected:

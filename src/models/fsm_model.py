@@ -51,8 +51,8 @@ class StateHandler(QObject):
         self.scene_handler.unselect_mobjects()
         self.is_running = True
         while self.curr.next != self.end and self.is_running:
+            self.stateChange.emit(self.currIdx + 1, self.numStates)
             self.playForward(fast=False)
-            self.stateChange.emit(self.currIdx, self.numStates)
             
         self.is_running = False
 
@@ -96,13 +96,15 @@ class StateHandler(QObject):
 
         target = mcopy.copy()
         target.set_color(self.scene_handler.selected[mcopy])
-        self.curr.targets[imobject] = target 
-        self.curr.changedTargetAttributes[imobject]['move_to'] = str(point.tolist()) # TODO: put info into imobject
+
 
         # update animation
         if not self.created_at_curr_state(imobject):
-            replace = self.curr.getTransform(imobject) # ??? why prev
-            replace.target_mobject = target
+            self.curr.targets[imobject] = target 
+            self.curr.changedTargetAttributes[imobject]['move_to'] = str(point.tolist())
+        else:
+            imobject.mobject = target
+
 
     def capture_prev(self, mcopy):
         # capture previous frame for reverse if editable
@@ -115,7 +117,10 @@ class StateHandler(QObject):
                 self.curr.rev_targets[imobject] = target
 
     def created_at_curr_state(self, imobject):
-        return imobject in self.curr.targets and self.curr.targets[imobject] == imobject.mobject
+        return imobject.addedState == self.curr
+
+    def created_at_curr_state_with_anim(self, imobject):
+        return self.created_at_curr_state(imobject) and imobject.introAnim is not None
 
     def add_object_to_curr(self, imobject):
         # TODO: make it instant with scene.add
@@ -138,6 +143,15 @@ class StateHandler(QObject):
 
         imobject.addedState = self.curr
         imobject.introAnim = None
+
+    def instant_remove_obj_at_curr(self, imobject):
+        self.scene_handler.remove(imobject)
+        if imobject.addedState != self.curr:
+            self.curr.removed.add(imobject)
+            imobject.removedState = self.curr
+        else:
+            imobject.addedState = None 
+            self.curr.added.remove(imobject)
 
 
     def add_transform_to_curr(self):

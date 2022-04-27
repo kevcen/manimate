@@ -80,7 +80,7 @@ class Test(Scene):
             self.mouse_is_down = True
             self.mouse_point.move_to(point)
             mcopy = self.point_to_mobject(point)
-            if mcopy is None or self.handler.created_at_curr_state(mcopy):
+            if mcopy is None or self.handler.created_at_curr_state_with_anim(mcopy):
                 return
             self.handler.set_selected_mobject(mcopy)
 

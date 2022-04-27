@@ -19,11 +19,7 @@ class INode(IMobject):
 
     def child(self):
         child = INode(self.state_handler)
-        parentcpy = mh.getCopy(self)
-        child.mobject.move_to(np.array([parentcpy.get_x(), parentcpy.get_y() - 2, 0]))
-        child.parent = self 
-        child.parent_edge = IParentEdge(child)
-        child.parent_edge.continuously_update()
+        self.add_edge(self, child)
         return child
 
     def spawn_child(self):
@@ -37,13 +33,25 @@ class INode(IMobject):
             self.state_handler.instant_add_object_to_curr(self.parent_edge)
 
     def change_parent(self, parent):
+        if parent is None:
+            self.state_handler.instant_remove_obj_at_curr(self.parent_edge)
+        elif self.parent is None:
+            self.add_edge(parent, self)
+            self.state_handler.instant_add_object_to_curr(self.parent_edge)
+        
         self.parent = parent
         #parent edge should auto update through updater
+
+    def add_edge(self, parent, child):
+        parentcpy = mh.getCopy(parent)
+        child.mobject.move_to(np.array([parentcpy.get_x(), parentcpy.get_y() - 2, 0]))
+        child.parent = parent 
+        child.parent_edge = IParentEdge(child)
+        child.parent_edge.continuously_update()
 
 
 class IParentEdge(IMobject):
     def __init__(self, node):
-        print(node)
         self.node = node
 
         # Move connecting line

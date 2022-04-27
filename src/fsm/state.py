@@ -15,6 +15,7 @@ class State:
         self.transforms = {}
         self.changedTargetAttributes = defaultdict(lambda: {})
         self.added = set()
+        self.removed = set()
 
     def getTransform(self, imobject):
         """
