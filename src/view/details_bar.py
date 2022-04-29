@@ -94,11 +94,14 @@ class DetailsBar(QWidget):
         self.introCb.addItems(["None", "Create", "FadeIn"])
         self.introCb.currentIndexChanged.connect(self.introAnimationHandler)
 
+        removeBtn = QPushButton("remove mobject")
+        removeBtn.clicked.connect(lambda: state_handler.instant_remove_obj_at_curr(self.selectedImobject))
+
 
         self.emptyLabel = QLabel("nothing selected")
         self.layout.addWidget(self.emptyLabel)
 
-        self.all_widgets = (nameLbl, self.introCb,)
+        self.all_widgets = (nameLbl, self.introCb, removeBtn)
 
         # Tree widgets
         self.changeParentCb = QComboBox()

@@ -32,7 +32,6 @@ class StateHandler(QObject):
         
         self.curr = state # animations to play
         self.currIdx = 1 # curr idx
-
              
     def playForward(self, fast=True):
         self.currIdx += 1
@@ -51,8 +50,9 @@ class StateHandler(QObject):
         self.scene_handler.unselect_mobjects()
         self.is_running = True
         while self.curr.next != self.end and self.is_running:
-            self.stateChange.emit(self.currIdx + 1, self.numStates)
+            print(self.currIdx)
             self.playForward(fast=False)
+            self.stateChange.emit(self.currIdx, self.numStates)
             
         self.is_running = False
 
@@ -94,15 +94,22 @@ class StateHandler(QObject):
     def confirm_move(self, mcopy, point):
         imobject = mh.getOriginal(mcopy)
 
+        # Circle().get_center()
+        old_center = (imobject.mobject if imobject not in self.curr.targets else self.curr.targets[imobject]).get_center() 
+        if (old_center == mcopy.get_center()).all():
+            return
+
         target = mcopy.copy()
         target.set_color(self.scene_handler.selected[mcopy])
 
-
         # update animation
         if not self.created_at_curr_state(imobject):
-            self.curr.targets[imobject] = target 
+            self.curr.targets[imobject] = target
             self.curr.changedTargetAttributes[imobject]['move_to'] = str(point.tolist())
+
+            self.curr.addTransform(imobject)
         else:
+            self.curr.targets[imobject] = target
             imobject.mobject = target
 
 
@@ -132,26 +139,31 @@ class StateHandler(QObject):
         # self.curr.prev.added.add(imobject)
         self.scene_handler.playCopy(create, self.curr)
 
-    def instant_add(self, mobject):
-        # TODO: remove after line to connect nodes uses imobject
-        self.curr.added.add(mobject)
-        self.scene_handler.add(mobject)
 
     def instant_add_object_to_curr(self, imobject):
         self.curr.added.add(imobject)
         self.scene_handler.add(imobject)
+        self.curr.targets[imobject] = imobject.mobject
 
         imobject.addedState = self.curr
         imobject.introAnim = None
 
     def instant_remove_obj_at_curr(self, imobject):
         self.scene_handler.remove(imobject)
-        if imobject.addedState != self.curr:
+        if not self.created_at_curr_state(imobject):
+            print('removed at this state')
             self.curr.removed.add(imobject)
             imobject.removedState = self.curr
         else:
-            imobject.addedState = None 
-            self.curr.added.remove(imobject)
+            print('fully disappeared')
+            imobject.addedState = None
+            mh.removeCopy(mh.getCopy(imobject))
+            if imobject in self.curr.added:
+                self.curr.added.remove(imobject)
+            
+
+        if imobject in self.curr.targets:
+            del self.curr.targets[imobject]
 
 
     def add_transform_to_curr(self):

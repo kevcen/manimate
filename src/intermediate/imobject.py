@@ -6,13 +6,23 @@ class IMobject:
         self.addedState = None 
         self.removedState = None
         self.introAnim = None
+        self.movable = True
+
+    def copyWith(self, mobject):
+        return IMobject(mobject)
 
 class ICircle(IMobject):
     def __init__(self):
-        self.mobject = Circle()
+        super().__init__(Circle())
+
+    def copyWith(self, mobject):
+        return ICircle(mobject)
 
 
 class ISquare(IMobject):
     def __init__(self):
-        self.mobject = Square()
+        super().__init__(Square())
+
+    def copyWith(self, mobject):
+        return ISquare(mobject)
 

@@ -6,6 +6,7 @@ import models.mobject_helper as mh;
 class AnimationGenerator:
 
     def reverse(self, animation, state):
+        # print(animation, animation.imobject)
         match animation:
             case IFadeIn(imobject=imobj):
                 mcopy = mh.getCopy(imobj)
@@ -28,6 +29,7 @@ class AnimationGenerator:
                 return Uncreate(mcopy)
 
     def forward(self, animation, state):
+        # print(animation, animation.imobject)
         match animation:
             case ITransform(imobject=imobj):
                 mcopy = mh.getCopy(imobj)

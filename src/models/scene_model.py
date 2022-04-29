@@ -11,7 +11,6 @@ Handles any rendering on the manim scene
 """
 class SceneHandler(QObject):
     selectedMobjectChange = Signal(IMobject)
-
     def __init__(self, scene):
         super().__init__()
         self.scene = scene
@@ -30,20 +29,37 @@ class SceneHandler(QObject):
         forward_anim.run_time = 0
         self.scene.play(forward_anim)
 
-    def addMobjects(self, state):
-        for imobject in state.added:
+    def addMobjects(self, mobjects):
+        for imobject in mobjects:
             mcopy = mh.getCopy(imobject)
             self.scene.add(mcopy)
 
-    def removeMobjects(self, state):
-        print('added in this state', len(state.added))
-        for imobject in state.added:
+    def removeMobjects(self, mobjects):
+        for imobject in mobjects:
             mcopy = mh.getCopy(imobject)
             print(mcopy)
             self.scene.remove(mcopy)
 
+    def forwardAttributes(self, state):
+        for imobject in state.changedMobjectAttributes:
+            for attr_name, value in state.changedMobjectAttributes[imobject].items():
+                setattr(imobject, attr_name, value)
+
+    def reverseAttributes(self, state):
+        for imobject in state.changedMobjectAttributes:
+            for attr_name in state.changedMobjectAttributes[imobject]:
+                value = None
+                if attr_name in state.prev.changedMobjectAttributes[imobject]:
+                    value = state.prev.changedMobjectAttributes[imobject][attr_name] 
+                else:
+                    value = state.revAttributes[imobject][attr_name]
+                print(imobject, attr_name, value)
+                setattr(imobject, attr_name, value)
+
     def play(self, state):
-        self.addMobjects(state)
+        self.addMobjects(state.added)
+        self.removeMobjects(state.removed)
+        self.forwardAttributes(state)
         forward_anim = [self.generator.forward(anim, state) for anim in state.animations]
 
         if forward_anim:
@@ -52,7 +68,9 @@ class SceneHandler(QObject):
             self.scene.wait(1)
 
     def playFast(self, state):
-        self.addMobjects(state)
+        self.addMobjects(state.added)
+        self.removeMobjects(state.removed)
+        self.forwardAttributes(state)
         forward_anim = [self.generator.forward(anim, state) for anim in state.animations]
         for animation in forward_anim:
             animation.run_time = 0
@@ -61,14 +79,19 @@ class SceneHandler(QObject):
             self.scene.play(*forward_anim)
 
     def playRev(self, state):
-        self.removeMobjects(state)
         reversed_anim = [self.generator.reverse(instr, state) for instr in state.animations]
         
         for animation in reversed_anim:
+            print(animation, animation.mobject)
             animation.run_time = 0
 
         if reversed_anim:
             self.scene.play(*reversed_anim)
+
+        
+        self.addMobjects(state.removed)
+        self.removeMobjects(state.added)
+        self.reverseAttributes(state)
 
     ## debugging
     def replay(self, state):

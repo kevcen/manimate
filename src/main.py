@@ -41,7 +41,7 @@ if __name__ == "__main__":
     signal.signal(signal.SIGINT, signal.SIG_DFL)
     app = QApplication(sys.argv)
     with tempconfig( {
-        "input_file": Path("scene/manim_scene.py").absolute(), "renderer": "opengl", "preview": True, "write_to_movie": False, "format": None
+        "input_file": Path("scene/manim_scene.py").absolute(), "disable_caching": True, "renderer": "opengl", "preview": True, "write_to_movie": False, "format": None
     }):
 
         format = QSurfaceFormat()
