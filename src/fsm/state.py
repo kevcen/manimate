@@ -26,10 +26,12 @@ class State:
         """
         assert imobject in self.targets
 
-        print('add transform')
 
         if imobject not in self.transforms:
             self.transforms[imobject] = ITransform(imobject)
             self.animations.append(self.transforms[imobject])
+
+    def getTransform(self, imobject):
+        return self.transforms[imobject] if imobject in self.transforms else None
         
         

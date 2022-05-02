@@ -37,7 +37,6 @@ class SceneHandler(QObject):
     def removeMobjects(self, mobjects):
         for imobject in mobjects:
             mcopy = mh.getCopy(imobject)
-            print(mcopy)
             self.scene.remove(mcopy)
 
     def forwardAttributes(self, state):
@@ -60,32 +59,36 @@ class SceneHandler(QObject):
         self.addMobjects(state.added)
         self.removeMobjects(state.removed)
         self.forwardAttributes(state)
-        forward_anim = [self.generator.forward(anim, state) for anim in state.animations]
+        forward_anim = list(filter(None, map(lambda a: self.generator.forward(a, state), state.animations)))
 
-        if forward_anim:
+        if len(forward_anim) > 0:
             self.scene.play(*forward_anim)
         else:
             self.scene.wait(1)
 
     def playFast(self, state):
+        print(f"add {len(state.added)}, anim {len(state.animations)}")
         self.addMobjects(state.added)
         self.removeMobjects(state.removed)
         self.forwardAttributes(state)
-        forward_anim = [self.generator.forward(anim, state) for anim in state.animations]
+        forward_anim = list(filter(None, map(lambda a: self.generator.forward(a, state), state.animations)))
+
         for animation in forward_anim:
+            print('for', animation, animation.mobject)
             animation.run_time = 0
 
-        if forward_anim:
+        if len(forward_anim) > 0:
             self.scene.play(*forward_anim)
 
     def playRev(self, state):
-        reversed_anim = [self.generator.reverse(instr, state) for instr in state.animations]
+        print(f"rem {len(state.added)}, anim {len(state.animations)}")
+        reversed_anim = list(filter(None, map(lambda a: self.generator.reverse(a, state), state.animations)))
         
         for animation in reversed_anim:
-            print(animation, animation.mobject)
+            print('rev', animation, animation.mobject)
             animation.run_time = 0
 
-        if reversed_anim:
+        if len(reversed_anim) > 0:
             self.scene.play(*reversed_anim)
 
         
@@ -110,7 +113,7 @@ class SceneHandler(QObject):
         if forward_anim:
             self.scene.play(*forward_anim)
 
-    def add(self, imobject):
+    def addCopy(self, imobject):
         self.scene.add(mh.getCopy(imobject))
 
     def remove(self, imobject):
@@ -119,12 +122,18 @@ class SceneHandler(QObject):
     """ Selection functions """
     def set_selected_mobject(self, mobject):
         self.unselect_mobjects()
+        imobject = mh.getOriginal(mobject)
+        # print(mobject, imobject)
+        print('select', hex(id(mobject)))
+        if imobject.parentImobject is not None:
+            imobject = imobject.parentImobject 
+            mobject = mh.getCopy(imobject)
+        
         self.selected[mobject] = mobject.get_color()
 
         mobject.set_color(WHITE)
         self.state_handler.capture_prev(mobject)
 
-        imobject = mh.getOriginal(mobject)
         print(imobject)
         self.selectedMobjectChange.emit(imobject)
 

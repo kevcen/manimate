@@ -1,4 +1,4 @@
-from intermediate.imobject import IMobject
+from intermediate.imobject import ICircle, IMobject, IText
 from manim import *
 import models.mobject_helper as mh
 
@@ -8,11 +8,11 @@ class INode(IMobject):
         self.children = []
 
         # Manim mobjects
-        self.label = Text("t") 
-        self.label.set_color(RED)
-        self.container = Circle(radius=0.6, color=RED)
-        self.mobject = VGroup(self.label, self.container, color=RED)
+        self.label = IText("t", parentImobject=self)
+        self.container = ICircle(radius=0.6, color=RED, parentImobject=self)
+        self.mobject = VGroup(self.label.mobject, self.container.mobject, color=RED) #TODO: selected copy each child
         self.parent_edge = None
+        self.vgroup_children = [self.label, self.container]
         # TODO: fadein/create parent edge too when node has intro anim
 
         # Aux info
@@ -37,6 +37,27 @@ class INode(IMobject):
         if self.parent_edge is not None:
             self.state_handler.instant_add_object_to_curr(self.parent_edge)
 
+    def change_label_text(self, new_text_str):
+        curr_state = self.state_handler.curr
+
+        # create new text
+        new_text = Text(new_text_str)
+        new_text.match_color(mh.getCopy(self.label))
+        new_text.move_to(mh.getCopy(self.label).get_center())
+
+        # configure transforms
+        self.state_handler.capture_prev(mh.getCopy(self.label))
+        print('changed target text')
+        curr_state.targets[self.label] = new_text
+        curr_state.addTransform(self.label)
+
+        # setup current ui
+        self.state_handler.scene_handler.playCopy(curr_state.getTransform(self.label), curr_state)
+        mh.getCopy(self).add(mh.getCopy(self.label))
+        # mh.setCopy(self, self.mobject)
+
+
+
     def change_parent(self, new_parent):
         self.state_handler.curr.revAttributes[self]['parent'] = self.parent
         self.state_handler.curr.changedMobjectAttributes[self]['parent'] = new_parent
@@ -52,7 +73,6 @@ class INode(IMobject):
         #parent edge should auto update through updater
 
     def add_edge(self, parent, child):
-        parentcpy = mh.getCopy(parent)
         child.parent = parent 
         child.parent_edge = IParentEdge(child)
         child.parent_edge.continuously_update()

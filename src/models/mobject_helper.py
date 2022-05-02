@@ -1,5 +1,7 @@
 from collections import defaultdict
 from bidict import bidict
+import copy
+from manim import VGroup
 
 copies = bidict()
 names = bidict()
@@ -7,12 +9,17 @@ classCtr = defaultdict(int)
 
 def getCopy(imobject):
     if imobject not in copies:
-        print('new copy')
-        mcopy = imobject.mobject.copy()
-        setCopy(imobject, mcopy)
+        setCopy(imobject, generateNewCopy(imobject))
     
     return copies[imobject]
 
+def generateNewCopy(imobject):
+    if isinstance(imobject.mobject, VGroup):
+        vgroup_children = [getCopy(child) for child in imobject.vgroup_children]
+        return VGroup(*vgroup_children)
+    
+    mcopy = imobject.mobject.copy()
+    return mcopy
     
 def removeCopy(*mcopies):
     for mcopy in mcopies:

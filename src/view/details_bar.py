@@ -58,7 +58,7 @@ class DetailsBar(QWidget):
                     self.layout.addWidget(w)
                 
                 self.changeParentCb.setCurrentIndex(self.changeParentCb.findText(mh.getName(imobject.parent)) if imobject.parent is not None else 0)
-
+                self.changeNodeText.setText(mh.getCopy(imobject.label).text)
             
             nameLbl.setText(mh.getName(imobject))
             self.introCb.setCurrentIndex(self.introCb.findText(imobject.introAnim.__class__.__name__[1:]) if imobject.introAnim is not None else 0)
@@ -108,14 +108,21 @@ class DetailsBar(QWidget):
         self.changeParentCb.addItem("None")
         self.changeParentCb.currentIndexChanged.connect(self.changeParentHandler)
 
+        self.changeNodeText = QLineEdit()
+        self.changeNodeText.editingFinished.connect(self.changeNodeTextHandler)
+
         self.addChildBtn = QPushButton("add child")
 
-        self.tree_widgets = (self.changeParentCb, self.addChildBtn, )
+        self.tree_widgets = (self.changeNodeText, self.changeParentCb, self.addChildBtn, )
     
         scene_handler.selectedMobjectChange.connect(selectedMobjectHandler)
         
         self.setLayout(self.layout)
     
+    def changeNodeTextHandler(self):
+        text = self.changeNodeText.text
+        self.selectedImobject.change_label_text(text)
+
     def changeParentHandler(self, i):
         if self.changeParentCb.count == 0 or not isinstance(self.selectedImobject, INode):
             return 
@@ -150,4 +157,4 @@ class DetailsBar(QWidget):
             self.scene_handler.playCopy(imobject.introAnim, imobject.addedState)
         else:
             imobject.addedState.added.add(imobject)
-            self.scene_handler.add(imobject)
+            self.scene_handler.addCopy(imobject)

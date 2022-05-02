@@ -95,10 +95,19 @@ class StateHandler(QObject):
         imobject = mh.getOriginal(mcopy)
 
         # Circle().get_center()
-        old_center = (imobject.mobject if imobject not in self.curr.targets else self.curr.targets[imobject]).get_center() 
-        if (old_center == mcopy.get_center()).all():
-            return
+        past_mobject = None 
+        if imobject not in self.curr.targets:
+            print('imobject mobj')
+            past_mobject = imobject.mobject 
+        else:
+            print('targets mobj')
+            past_mobject = self.curr.targets[imobject]
 
+        print('conf move', past_mobject.get_center(), mcopy.get_center())
+        print(past_mobject, mcopy)
+        if (past_mobject.get_center() == mcopy.get_center()).all():
+            return
+            
         target = mcopy.copy()
         target.set_color(self.scene_handler.selected[mcopy])
 
@@ -109,19 +118,22 @@ class StateHandler(QObject):
 
             self.curr.addTransform(imobject)
         else:
+            print('new object no transform')
             self.curr.targets[imobject] = target
             imobject.mobject = target
 
 
+
     def capture_prev(self, mcopy):
+        print('try capture')
         # capture previous frame for reverse if editable
-        if mcopy not in self.curr.prev.targets.inverse:
-            imobject = mh.getOriginal(mcopy)
-            if imobject not in self.curr.prev.targets:
-                target = mcopy.copy()
+        imobject = mh.getOriginal(mcopy)
+        if imobject not in self.curr.rev_targets: #if not already captured
+            print('captured prev')
+            target = mcopy.copy()
+            if mcopy in self.scene_handler.selected:
                 target.set_color(self.scene_handler.selected[mcopy])
-                # self.curr.prev.targets[imobject] = target
-                self.curr.rev_targets[imobject] = target
+            self.curr.rev_targets[imobject] = target
 
     def created_at_curr_state(self, imobject):
         return imobject.addedState == self.curr
@@ -142,8 +154,8 @@ class StateHandler(QObject):
 
     def instant_add_object_to_curr(self, imobject):
         self.curr.added.add(imobject)
-        self.scene_handler.add(imobject)
         self.curr.targets[imobject] = imobject.mobject
+        self.scene_handler.addCopy(imobject)
 
         imobject.addedState = self.curr
         imobject.introAnim = None
@@ -161,9 +173,17 @@ class StateHandler(QObject):
             if imobject in self.curr.added:
                 self.curr.added.remove(imobject)
             
+            
 
+        if imobject in self.curr.transforms:
+            transform = self.curr.transforms[imobject]
+            self.curr.animations.remove(transform)
+            del self.curr.transforms[imobject]
         if imobject in self.curr.targets:
             del self.curr.targets[imobject]
+
+        print(len(self.curr.animations))
+
 
 
     def add_transform_to_curr(self):

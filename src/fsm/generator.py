@@ -2,11 +2,14 @@ from manim import *
 
 from intermediate.ianimation import ICreate, IFadeIn, ITransform
 import models.mobject_helper as mh;
+import copy
 
 class AnimationGenerator:
 
     def reverse(self, animation, state):
-        # print(animation, animation.imobject)
+        if animation.imobject.isDeleted:
+            return None
+
         match animation:
             case IFadeIn(imobject=imobj):
                 mcopy = mh.getCopy(imobj)
@@ -15,12 +18,16 @@ class AnimationGenerator:
             case ITransform(imobject=imobj):
                 mcopy = mh.getCopy(imobj)
 
+                print('mcopy is ', hex(id(mcopy)))
                 tcopy = None
                 if imobj in state.prev.targets:
+                    print('have target')
                     tcopy = state.prev.targets[imobj].copy()
                 else: 
+                    print('rev target')
                     tcopy = state.rev_targets[imobj].copy()
 
+                print('generate', mcopy.get_center(), tcopy.get_center())
                 mh.setCopy(imobj, tcopy)
                 return ReplacementTransform(mcopy, tcopy)
             case ICreate(imobject=imobj):
@@ -29,7 +36,9 @@ class AnimationGenerator:
                 return Uncreate(mcopy)
 
     def forward(self, animation, state):
-        # print(animation, animation.imobject)
+        if animation.imobject.isDeleted:
+            return None
+
         match animation:
             case ITransform(imobject=imobj):
                 mcopy = mh.getCopy(imobj)
