@@ -1,5 +1,6 @@
 import sys
 from intermediate.ianimation import ICreate, IFadeIn
+from intermediate.imobject import IMarkupText
 from intermediate.itree import INode
 from models.fsm_model import StateHandler
 import moderngl
@@ -18,7 +19,8 @@ from PySide6.QtWidgets import (
     QWidget,
     QSlider,
     QLineEdit,
-    QComboBox
+    QComboBox,
+    QTextEdit,
 )
 from __feature__ import true_property
 from pathlib import Path
@@ -50,15 +52,21 @@ class DetailsBar(QWidget):
             for w in self.all_widgets:
                 self.layout.addWidget(w)
 
-            if isinstance(imobject, INode):
-                self.addChildBtn.clicked.connect(imobject.spawn_child)
-                self.changeParentCb.addItem("None")
-                self.changeParentCb.addItems(filter(lambda name: name != mh.getName(imobject), map(mh.getName, mh.getImobjectsByClass(INode))))
-                for w in self.tree_widgets:
-                    self.layout.addWidget(w)
-                
-                self.changeParentCb.setCurrentIndex(self.changeParentCb.findText(mh.getName(imobject.parent)) if imobject.parent is not None else 0)
-                self.changeNodeText.setText(mh.getCopy(imobject.label).text)
+            match imobject:
+                case INode():
+                    self.addChildBtn.clicked.connect(imobject.spawn_child)
+                    self.changeParentCb.addItem("None")
+                    self.changeParentCb.addItems(filter(lambda name: name != mh.getName(imobject), map(mh.getName, mh.getImobjectsByClass(INode))))
+                    for w in self.tree_widgets:
+                        self.layout.addWidget(w)
+                    
+                    self.changeParentCb.setCurrentIndex(self.changeParentCb.findText(mh.getName(imobject.parent)) if imobject.parent is not None else 0)
+                    self.changeNodeText.setText(mh.getCopy(imobject.label).text)
+                case IMarkupText():
+                    for w in self.text_widgets:
+                        self.layout.addWidget(w)
+
+                    self.changeMarkupText.setText(imobject.text)
             
             nameLbl.setText(mh.getName(imobject))
             self.introCb.setCurrentIndex(self.introCb.findText(imobject.introAnim.__class__.__name__[1:]) if imobject.introAnim is not None else 0)
@@ -115,10 +123,27 @@ class DetailsBar(QWidget):
 
         self.tree_widgets = (self.changeNodeText, self.changeParentCb, self.addChildBtn, )
     
+
+        # Text widgets
+        self.changeMarkupText = QTextEdit()
+        self.changeMarkupText.textChanged.connect(self.changeMarkupTextHandler)
+
+        self.text_widgets = (self.changeMarkupText, )
+
+
+
         scene_handler.selectedMobjectChange.connect(selectedMobjectHandler)
+
         
         self.setLayout(self.layout)
     
+    def changeMarkupTextHandler(self):
+        if self.selectedImobject is None:
+            return
+            
+        text = self.changeMarkupText.plainText
+        self.selectedImobject.changeText(text)
+
     def changeNodeTextHandler(self):
         text = self.changeNodeText.text
         self.selectedImobject.change_label_text(text)

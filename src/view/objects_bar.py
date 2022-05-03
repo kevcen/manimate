@@ -1,5 +1,5 @@
 import sys
-from intermediate.imobject import ICircle, ISquare
+from intermediate.imobject import ICircle, IMarkupText, ISquare, IStar, ITriangle
 from intermediate.itree import INode
 from models.fsm_model import StateHandler
 import moderngl
@@ -37,28 +37,42 @@ class ObjectsBar(QWidget):
         self.setWindowTitle(" ")
 
         self.geometry = QRect(750, 250, 150, 600)
-        # button1 = QPushButton("manim it")
-        # button1.clicked.connect(lambda : self.manim_run())
+        
         layout = QVBoxLayout()
 
-        # lineCmd = QLineEdit()
+        addTree = QPushButton("add tree")
+        addTree.clicked.connect(self.add_tree)
 
-        button2 = QPushButton("add circle")
-        button2.clicked.connect(lambda : state_handler.instant_add_object_to_curr(ICircle()))
+        addCircle = QPushButton("add circle")
+        addCircle.clicked.connect(lambda : state_handler.instant_add_object_to_curr(ICircle()))
 
-        button4 = QPushButton("add tree")
-        button4.clicked.connect(self.add_tree)
-
-        button5 = QPushButton("add square")
-        button5.clicked.connect(lambda : state_handler.instant_add_object_to_curr(ISquare()))
-
-        button3 = QPushButton("debug")
-        button3.clicked.connect(lambda : self.debug())
-
+        addSquare = QPushButton("add square")
+        addSquare.clicked.connect(lambda : state_handler.instant_add_object_to_curr(ISquare()))
         
-        # self.manim.setFormat(format); # must be called before the widget or its parent window gets shown
+        addStar = QPushButton("add star")
+        addStar.clicked.connect(lambda : state_handler.instant_add_object_to_curr(IStar()))
 
-        for w in (button2, button4, button5 ,button3):
+        addTriangle = QPushButton("add triangle")
+        addTriangle.clicked.connect(lambda : state_handler.instant_add_object_to_curr(ITriangle()))
+
+        addMarkupText = QPushButton("add text")
+        addMarkupText.clicked.connect(lambda : state_handler.instant_add_object_to_curr(IMarkupText(
+            """
+            mergeHeaps :: Ord a => BinHeap a -> BinHeap a -> BinHeap a
+            mergeHeaps h1 []
+                = h1
+            mergeHeaps [] h2
+                = h2
+            mergeHeaps h1@(t1 : h) h2@(t2 : h')
+                | r < r'    = t1 : mergeHeaps h h2
+                | r' < r    = t2 : mergeHeaps h1 h'
+                | otherwise = mergeHeaps [combineTrees t1 t2] (mergeHeaps h h')
+                where
+                    r  = rank t1
+                    r' = rank t2"""
+        , state_handler=state_handler)))
+        
+        for w in (addTree, addCircle, addSquare, addTriangle, addStar, addMarkupText):
             layout.addWidget(w)
         
         self.setLayout(layout)
