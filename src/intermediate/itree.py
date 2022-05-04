@@ -46,7 +46,7 @@ class INode(IMobject):
         new_text.move_to(mh.getCopy(self.label).get_center())
 
         # configure transforms
-        self.state_handler.capture_prev(mh.getCopy(self.label))
+        self.state_handler.curr.capture_prev(mh.getCopy(self.label))
         print('changed target text')
         curr_state.targets[self.label] = new_text
         curr_state.addTransform(self.label)

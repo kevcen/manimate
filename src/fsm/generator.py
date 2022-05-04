@@ -23,7 +23,10 @@ class AnimationGenerator:
                 if imobj in state.prev.targets:
                     print('have target')
                     tcopy = state.prev.targets[imobj].copy()
-                else: 
+                else:
+                    if imobj.editedAt < state.idx:
+                        state.capture_prev(mcopy, bypass=True)
+                    
                     print('rev target')
                     tcopy = state.rev_targets[imobj].copy()
 

@@ -69,7 +69,7 @@ if __name__ == "__main__":
 
         scene_handler = SceneHandler(scene)
         state_handler = StateHandler(scene_handler)
-        scene_handler.state_handler = state_handler
+        scene_handler.setStateHandler(state_handler)
 
         objects_bar = ObjectsBar(state_handler)
         objects_bar.show()

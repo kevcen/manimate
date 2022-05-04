@@ -19,6 +19,9 @@ class SceneHandler(QObject):
         self.selected = {}
         self.state_handler = None #to set
 
+    def setStateHandler(self, state_handler):
+        self.state_handler = state_handler
+
     # For debugging purposes
     def playOne(self, anim, state):
         anim.run_time = 0
@@ -132,7 +135,7 @@ class SceneHandler(QObject):
         self.selected[mobject] = mobject.get_color()
 
         mobject.set_color(WHITE)
-        self.state_handler.capture_prev(mobject)
+        self.state_handler.curr.capture_prev(mobject)
 
         print(imobject)
         self.selectedMobjectChange.emit(imobject)

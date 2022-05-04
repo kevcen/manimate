@@ -20,9 +20,9 @@ class StateHandler(QObject):
         self.numStates = 1
         self.scene_handler = scene_handler
 
-        self.head = State()
-        self.end = State()
-        state = State()
+        self.head = State(None)
+        self.end = State(None)
+        state = State(1)
         self.head.next = state 
         state.next = self.end 
         state.prev = self.head
@@ -31,10 +31,8 @@ class StateHandler(QObject):
         self.is_running = False
         
         self.curr = state # animations to play
-        self.currIdx = 1 # curr idx
              
     def playForward(self, fast=True):
-        self.currIdx += 1
         self.curr = self.curr.next
         if fast:
             self.scene_handler.playFast(self.curr)
@@ -44,15 +42,14 @@ class StateHandler(QObject):
     def playBack(self):
         self.scene_handler.playRev(self.curr)
         self.curr = self.curr.prev 
-        self.currIdx -= 1
 
     def run(self):
         self.scene_handler.unselect_mobjects()
         self.is_running = True
         while self.curr.next != self.end and self.is_running:
-            print(self.currIdx)
+            print(self.curr.idx)
             self.playForward(fast=False)
-            self.stateChange.emit(self.currIdx, self.numStates)
+            self.stateChange.emit(self.curr.idx, self.numStates)
             
         self.is_running = False
 
@@ -61,20 +58,25 @@ class StateHandler(QObject):
         self.is_running = False
 
     def set_state_number(self, idx):
+        print('SET STATE NUMBER?', idx, self.curr.idx)
         if 1 <= idx <= self.numStates:
-            if idx < self.currIdx:
-                for _ in range(self.currIdx, idx, -1):
+            if idx < self.curr.idx:
+                for _ in range(self.curr.idx, idx, -1):
+                    print('move back')
                     self.playBack()
             else:
-                for _ in range(self.currIdx, idx):
+                for _ in range(self.curr.idx, idx):
+                    print('move fwd')
                     self.playForward()
 
     def add_state(self):
+        # print('idx before', self.curr.idx)
+        # print(hex(id(self.curr)))
         if self.is_running:
             return 
 
         #route new state within the state machine
-        new_state = State()
+        new_state = State(self.curr.idx + 1)
         temp = self.curr.next 
 
         self.curr.next = new_state
@@ -85,14 +87,24 @@ class StateHandler(QObject):
 
         #move to new state
         self.curr = new_state
+        # print('index is now', self.curr.idx)
+        # print(hex(id(self.curr)))
         self.numStates += 1
-        self.currIdx += 1
+        self.shift_above_idxs(self.curr.next)
 
         #emit signal for widgets
-        self.stateChange.emit(self.currIdx, self.numStates)
+        self.stateChange.emit(self.curr.idx, self.numStates)
+    
+    def shift_above_idxs(self, state):
+        if state == self.end:
+            return 
+
+        state.idx = state.prev.idx + 1
+        self.shift_above_idxs(state.next)
         
     def confirm_move(self, mcopy, point):
         imobject = mh.getOriginal(mcopy)
+        imobject.editedAt = self.curr.idx #need to capture after edit
 
         # Circle().get_center()
         past_mobject = None 
@@ -121,19 +133,6 @@ class StateHandler(QObject):
             print('new object no transform')
             self.curr.targets[imobject] = target
             imobject.mobject = target
-
-
-
-    def capture_prev(self, mcopy):
-        print('try capture')
-        # capture previous frame for reverse if editable
-        imobject = mh.getOriginal(mcopy)
-        if imobject not in self.curr.rev_targets: #if not already captured
-            print('captured prev')
-            target = mcopy.copy()
-            if mcopy in self.scene_handler.selected:
-                target.set_color(self.scene_handler.selected[mcopy])
-            self.curr.rev_targets[imobject] = target
 
     def created_at_curr_state(self, imobject):
         return imobject.addedState == self.curr

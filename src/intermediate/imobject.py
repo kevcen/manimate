@@ -11,6 +11,7 @@ class IMobject:
         self.movable = True
         self.isDeleted = False
         self.parentImobject = parentImobject
+        self.editedAt = None
 
     def copyWith(self, mobject):
         return IMobject(mobject)
@@ -78,7 +79,7 @@ class IMarkupText(IMobject):
         new_text.move_to(mh.getCopy(self).get_center())
 
         # configure transforms
-        self.state_handler.capture_prev(mh.getCopy(self))
+        self.state_handler.curr.capture_prev(mh.getCopy(self))
         curr_state.targets[self] = new_text
         curr_state.addTransform(self)
 
