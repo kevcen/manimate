@@ -7,6 +7,7 @@ copies = bidict()
 names = bidict()
 classCtr = defaultdict(int)
 
+
 def getCopy(imobject):
     if imobject not in copies:
         setCopy(imobject, generateNewCopy(imobject))

@@ -11,6 +11,7 @@ class IMobject:
         self.movable = True
         self.isDeleted = False
         self.parentImobject = parentImobject
+        self.captured = False
 
     def copyWith(self, mobject):
         return IMobject(mobject)

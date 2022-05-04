@@ -93,6 +93,7 @@ class StateHandler(QObject):
         
     def confirm_move(self, mcopy, point):
         imobject = mh.getOriginal(mcopy)
+        imobject.captured = False #need to capture after edit
 
         # Circle().get_center()
         past_mobject = None 
@@ -124,11 +125,11 @@ class StateHandler(QObject):
 
 
 
-    def capture_prev(self, mcopy):
+    def capture_prev(self, mcopy, bypass=False):
         print('try capture')
         # capture previous frame for reverse if editable
         imobject = mh.getOriginal(mcopy)
-        if imobject not in self.curr.rev_targets: #if not already captured
+        if bypass or imobject not in self.curr.rev_targets: #if not already captured
             print('captured prev')
             target = mcopy.copy()
             if mcopy in self.scene_handler.selected:
