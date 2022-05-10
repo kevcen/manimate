@@ -4,6 +4,7 @@ from manim import *
 from PySide6.QtCore import (Signal, QObject)
 
 from intermediate.imobject import IMobject
+from intermediate.itext import IMarkupText
 import models.mobject_helper as mh
 
 """
@@ -134,7 +135,9 @@ class SceneHandler(QObject):
         
         self.selected[mobject] = mobject.get_color()
 
-        mobject.set_color(WHITE)
+        if not isinstance(imobject, IMarkupText):
+            mobject.set_color(WHITE)
+            
         self.state_handler.curr.capture_prev(mobject)
 
         print(imobject)
@@ -143,7 +146,8 @@ class SceneHandler(QObject):
 
     def unselect_mobjects(self, signal=True):
         for mobject, color in self.selected.items():
-            mobject.set_color(color)
+            if not isinstance(mobject, MarkupText):
+                mobject.set_color(color)
 
         self.selected = {}
 

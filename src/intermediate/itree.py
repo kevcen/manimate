@@ -1,5 +1,6 @@
-from intermediate.imobject import ICircle, IMobject, IText
+from intermediate.imobject import ICircle, IMobject
 from manim import *
+from intermediate.itext import IText
 import models.mobject_helper as mh
 
 class INode(IMobject):

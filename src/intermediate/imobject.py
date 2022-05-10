@@ -46,47 +46,5 @@ class IRegularPolygon(IMobject):
         super().__init__(RegularPolygon(n))
 
 
-class IText(IMobject):
-    def __init__(self, text, parentImobject=None):
-        self.label = Text(text)
-        super().__init__(self.label, parentImobject=parentImobject)
-
-        self.label.set_color(RED)
-        self.text = text
-
-    def copyWith(self, mobject):
-        pass
-
-class IMarkupText(IMobject):
-    def __init__(self, text, parentImobject=None, font_size=12, state_handler=None):
-        self.label = MarkupText(self.formatText(text), font_size=font_size)
-        super().__init__(self.label, parentImobject=parentImobject)
-
-        self.label.set_color(GREY_B)
-        self.text = text
-        self.state_handler = state_handler
-        self.font_size = font_size
-
-    def formatText(self, text):
-        return '<span font_family="Consolas">{}</span>'.format(html.escape(text))
-
-    def changeText(self, new_text_str):
-        curr_state = self.state_handler.curr
-
-        # create new text
-        new_text = MarkupText(self.formatText(new_text_str), font_size=self.font_size)
-        new_text.match_color(mh.getCopy(self))
-        new_text.move_to(mh.getCopy(self).get_center())
-
-        # configure transforms
-        self.state_handler.curr.capture_prev(mh.getCopy(self))
-        curr_state.targets[self] = new_text
-        curr_state.addTransform(self)
-
-        # setup current ui
-        self.state_handler.scene_handler.playCopy(curr_state.getTransform(self), curr_state)
-
-        # update field
-        self.text = new_text_str
 
 

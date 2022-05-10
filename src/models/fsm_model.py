@@ -104,6 +104,9 @@ class StateHandler(QObject):
         
     def confirm_move(self, mcopy, point):
         imobject = mh.getOriginal(mcopy)
+        if imobject is None:
+            return #selected item is old, before transform 
+            
         imobject.editedAt = self.curr.idx #need to capture after edit
 
         # Circle().get_center()
@@ -121,7 +124,8 @@ class StateHandler(QObject):
             return
             
         target = mcopy.copy()
-        target.set_color(self.scene_handler.selected[mcopy])
+        if not isinstance(target, MarkupText):
+            target.set_color(self.scene_handler.selected[mcopy])
 
         # update animation
         if not self.created_at_curr_state(imobject):

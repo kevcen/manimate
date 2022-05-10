@@ -1,6 +1,6 @@
 import sys
 from intermediate.ianimation import ICreate, IFadeIn
-from intermediate.imobject import IMarkupText
+from intermediate.itext import Highlight, IMarkupText
 from intermediate.itree import INode
 from models.fsm_model import StateHandler
 import moderngl
@@ -21,6 +21,7 @@ from PySide6.QtWidgets import (
     QLineEdit,
     QComboBox,
     QTextEdit,
+    QHBoxLayout,
 )
 from __feature__ import true_property
 from pathlib import Path
@@ -30,6 +31,14 @@ from moderngl_window.timers.clock import Timer
 import models.mobject_helper as mh
 
 
+class MarkupTextEdit(QTextEdit):
+    def __init__(self, details_bar):
+        super().__init__()
+        self.details_bar = details_bar
+        
+    def focusOutEvent(self, e):
+        super().focusOutEvent(e)
+        self.details_bar.changeMarkupTextHandler()
 
 class DetailsBar(QWidget):
     def __init__(self, scene_handler, state_handler):
@@ -65,6 +74,11 @@ class DetailsBar(QWidget):
                 case IMarkupText():
                     for w in self.text_widgets:
                         self.layout.addWidget(w)
+                    
+                    self.textEditLayout = QHBoxLayout()
+                    for w in self.text_edits:
+                        self.textEditLayout.addWidget(w)
+                    self.layout.addLayout(self.textEditLayout)
 
                     self.changeMarkupText.setText(imobject.text)
             
@@ -73,8 +87,14 @@ class DetailsBar(QWidget):
         
         def clearItems():
             for i in reversed(range(self.layout.count())): 
-                self.layout.itemAt(i).widget().setParent(None)
-                
+                print(i)
+                child = self.layout.itemAt(i).widget()
+                if child is None:
+                    child = self.layout.itemAt(i).layout()
+                child.setParent(None)
+
+            for i in reversed(range(self.textEditLayout.count())): 
+                child = self.textEditLayout.itemAt(i).widget().setParent(None)
             if isinstance(self.selectedImobject, INode):
                 self.addChildBtn.clicked.disconnect(self.selectedImobject.spawn_child)
                 self.changeParentCb.clear()
@@ -125,10 +145,28 @@ class DetailsBar(QWidget):
     
 
         # Text widgets
-        self.changeMarkupText = QTextEdit()
-        self.changeMarkupText.textChanged.connect(self.changeMarkupTextHandler)
+        self.changeMarkupText = MarkupTextEdit(self)
+        # self.changeMarkupText.focusOutEvent.connect(self.changeMarkupTextHandler)
 
+
+        self.boldMarkupText = QPushButton("b")
+        self.boldMarkupText.clicked.connect(lambda: self.highlightMarkupText(Highlight.BOLD))
+        
+        self.italicMarkupText = QPushButton("i")
+        self.italicMarkupText.clicked.connect(lambda: self.highlightMarkupText(Highlight.ITALICS))
+        
+        self.underlineMarkupText = QPushButton("u")
+        self.underlineMarkupText.clicked.connect(lambda: self.highlightMarkupText(Highlight.UNDERLINE))
+        
+        self.bigMarkupText = QPushButton("big")
+        self.bigMarkupText.clicked.connect(lambda: self.highlightMarkupText(Highlight.BIG))
+        
+        self.colorMarkupText = QPushButton("red")
+        self.colorMarkupText.clicked.connect(lambda: self.highlightMarkupText(Highlight.COLOR_CHANGE))
+
+        self.text_edits = (self.boldMarkupText, self.italicMarkupText, self.underlineMarkupText, self.bigMarkupText, self.colorMarkupText)
         self.text_widgets = (self.changeMarkupText, )
+        self.textEditLayout = QHBoxLayout()
 
 
 
@@ -136,6 +174,15 @@ class DetailsBar(QWidget):
 
         
         self.setLayout(self.layout)
+
+    def highlightMarkupText(self, highlight):
+        if self.selectedImobject is None:
+            return
+
+        cursor = self.changeMarkupText.textCursor()
+        self.selectedImobject.handleBold(cursor.selectionStart(), cursor.selectionEnd(), highlight)
+
+
     
     def changeMarkupTextHandler(self):
         if self.selectedImobject is None:

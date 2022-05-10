@@ -1,5 +1,6 @@
 import sys
-from intermediate.imobject import ICircle, IMarkupText, ISquare, IStar, ITriangle
+from intermediate.imobject import ICircle, ISquare, IStar, ITriangle
+from intermediate.itext import IMarkupText
 from intermediate.itree import INode
 from models.fsm_model import StateHandler
 import moderngl
@@ -57,19 +58,18 @@ class ObjectsBar(QWidget):
 
         addMarkupText = QPushButton("add text")
         addMarkupText.clicked.connect(lambda : state_handler.instant_add_object_to_curr(IMarkupText(
-            """
-            mergeHeaps :: Ord a => BinHeap a -> BinHeap a -> BinHeap a
-            mergeHeaps h1 []
-                = h1
-            mergeHeaps [] h2
-                = h2
-            mergeHeaps h1@(t1 : h) h2@(t2 : h')
-                | r < r'    = t1 : mergeHeaps h h2
-                | r' < r    = t2 : mergeHeaps h1 h'
-                | otherwise = mergeHeaps [combineTrees t1 t2] (mergeHeaps h h')
-                where
-                    r  = rank t1
-                    r' = rank t2"""
+            """mergeHeaps :: Ord a => BinHeap a -> BinHeap a -> BinHeap a
+mergeHeaps h1 []
+    = h1
+mergeHeaps [] h2
+    = h2"""
+            # mergeHeaps h1@(t1 : h) h2@(t2 : h')
+            #     | r < r'    = t1 : mergeHeaps h h2
+            #     | r' < r    = t2 : mergeHeaps h1 h'
+            #     | otherwise = mergeHeaps [combineTrees t1 t2] (mergeHeaps h h')
+            #     where
+            #         r  = rank t1
+            #         r' = rank t2"""
         , state_handler=state_handler)))
         
         for w in (addTree, addCircle, addSquare, addTriangle, addStar, addMarkupText):
