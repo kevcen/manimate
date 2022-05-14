@@ -1,5 +1,5 @@
 import sys
-from models.fsm_model import StateHandler
+from models.fsm_model import FsmModel
 import moderngl
 from manim import *
 from manim.opengl import *
@@ -25,11 +25,11 @@ from moderngl_window.timers.clock import Timer
 
 
 class StateWidget(QWidget):
-    def __init__(self, scene_handler, state_handler):
+    def __init__(self, scene_model, fsm_model):
         def timeChangeHandler(value):
-            scene_handler.unselect_mobjects()
+            scene_model.unselect_mobjects()
             label.setText(f"{value}/{timeSlider.maximum}")
-            state_handler.set_state_number(value)
+            fsm_model.set_state_number(value)
 
         def stateChangeHandler(value, length):
             timeSlider.maximum = length
@@ -50,17 +50,17 @@ class StateWidget(QWidget):
 
 
         runBtn = QPushButton("run")
-        runBtn.clicked.connect(lambda : state_handler.run())
+        runBtn.clicked.connect(lambda : fsm_model.run())
 
         stopBtn = QPushButton("stop")
-        stopBtn.clicked.connect(lambda : state_handler.stop())
+        stopBtn.clicked.connect(lambda : fsm_model.stop())
 
 
         frameBtn = QPushButton("new frame")
-        frameBtn.clicked.connect(lambda : state_handler.add_state())
+        frameBtn.clicked.connect(lambda : fsm_model.add_state())
 
         exportBtn = QPushButton("export")
-        exportBtn.clicked.connect(lambda : state_handler.export())
+        exportBtn.clicked.connect(lambda : fsm_model.export())
 
         timeSlider = QSlider()
         timeSlider.setOrientation(Qt.Horizontal)
@@ -73,7 +73,7 @@ class StateWidget(QWidget):
 
         label = QLabel("1/1")
 
-        state_handler.stateChange.connect(stateChangeHandler)
+        fsm_model.stateChange.connect(stateChangeHandler)
 
         for w in (timeSlider, label, runBtn, stopBtn, frameBtn, exportBtn):
             layout.addWidget(w)

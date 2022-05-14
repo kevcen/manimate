@@ -23,9 +23,9 @@ class IText(IMobject):
         pass
 
 class IMathTex(IMobject):
-    def __init__(self, text, parentImobject=None, font_size=50, state_handler=None):
+    def __init__(self, text, parentImobject=None, font_size=50, fsm_model=None):
         self.text = text
-        self.state_handler = state_handler
+        self.fsm_model = fsm_model
         self.font_size = font_size
         self.label = MathTex(r"{}".format(text), font_size=font_size)
         self.label.set_color(WHITE)
@@ -34,7 +34,7 @@ class IMathTex(IMobject):
     def changeText(self, new_text_str):
         # update field
         self.text = new_text_str
-        curr_state = self.state_handler.curr
+        curr_state = self.fsm_model.curr
         
         # create new text
         try:
@@ -43,19 +43,19 @@ class IMathTex(IMobject):
             new_text.move_to(mh.getCopy(self).get_center())
 
             # configure transforms
-            self.state_handler.curr.capture_prev(mh.getCopy(self))
+            self.fsm_model.curr.capture_prev(mh.getCopy(self))
             curr_state.targets[self] = new_text
             curr_state.addTransform(self)
 
             # setup current ui
-            self.state_handler.scene_handler.playCopy(curr_state.getTransform(self), curr_state)
+            self.fsm_model.scene_model.playCopy(curr_state.getTransform(self), curr_state)
         except:
             print("latex compile error")
 
 class IMarkupText(IMobject):
-    def __init__(self, text, parentImobject=None, font_size=14, state_handler=None):
+    def __init__(self, text, parentImobject=None, font_size=14, fsm_model=None):
         self.text = text
-        self.state_handler = state_handler
+        self.fsm_model = fsm_model
         self.font_size = font_size
         self.boldAreas = []
         self.highlight = Highlight.BOLD
@@ -103,8 +103,8 @@ class IMarkupText(IMobject):
         
         print(newBoldAreas)
 
-        self.state_handler.curr.revAttributes[self]['boldAreas'] = self.boldAreas
-        self.state_handler.curr.changedMobjectAttributes[self]['boldAreas'] = newBoldAreas
+        self.fsm_model.curr.revAttributes[self]['boldAreas'] = self.boldAreas
+        self.fsm_model.curr.changedMobjectAttributes[self]['boldAreas'] = newBoldAreas
 
         self.boldAreas = newBoldAreas
         print(self.formatBolds(html.escape(self.text)))
@@ -153,7 +153,7 @@ class IMarkupText(IMobject):
         
 
     def updateMarkupText(self, markupText):
-        curr_state = self.state_handler.curr
+        curr_state = self.fsm_model.curr
         
         # create new text
         new_text = MarkupText(markupText, font_size=self.font_size, font="Consolas")
@@ -161,9 +161,9 @@ class IMarkupText(IMobject):
         new_text.move_to(mh.getCopy(self).get_center())
 
         # configure transforms
-        self.state_handler.curr.capture_prev(mh.getCopy(self))
+        self.fsm_model.curr.capture_prev(mh.getCopy(self))
         curr_state.targets[self] = new_text
         curr_state.addTransform(self)
 
         # setup current ui
-        self.state_handler.scene_handler.playCopy(curr_state.getTransform(self), curr_state)
+        self.fsm_model.scene_model.playCopy(curr_state.getTransform(self), curr_state)

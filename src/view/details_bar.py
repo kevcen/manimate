@@ -2,7 +2,7 @@ import sys
 from intermediate.ianimation import ICreate, IFadeIn
 from intermediate.itext import Highlight, IMarkupText, IMathTex
 from intermediate.itree import INode
-from models.fsm_model import StateHandler
+from models.fsm_model import FsmModel
 import moderngl
 from manim import *
 from manim.opengl import *
@@ -41,11 +41,11 @@ class MarkupTextEdit(QTextEdit):
         self.details_bar.changeMarkupTextHandler()
 
 class DetailsBar(QWidget):
-    def __init__(self, scene_handler, state_handler):
+    def __init__(self, scene_model, fsm_model):
         super().__init__()
 
-        self.scene_handler = scene_handler
-        self.state_handler = state_handler
+        self.scene_model = scene_model
+        self.fsm_model = fsm_model
 
         self.selectedImobject = None
 
@@ -58,14 +58,14 @@ class DetailsBar(QWidget):
         self.nameLbl = QLabel(self.selectedImobject.__class__.__name__)
 
         # transformBtn = QPushButton("add transform")
-        # transformBtn.clicked.connect(state_handler.add_transform_to_curr)
+        # transformBtn.clicked.connect(fsm_model.add_transform_to_curr)
 
 
         self.animationRunTime = QLineEdit()
         validator = QDoubleValidator()
         validator.bottom = 0
         self.animationRunTime.setValidator(validator)
-        print("run time is " + str(state_handler.curr.run_time))
+        print("run time is " + str(fsm_model.curr.run_time))
         self.animationRunTime.editingFinished.connect(self.changeAnimationRunTimeHandler)
 
         self.introCb = QComboBox()
@@ -73,11 +73,11 @@ class DetailsBar(QWidget):
         self.introCb.currentIndexChanged.connect(self.introAnimationHandler)
 
         removeBtn = QPushButton("remove mobject")
-        removeBtn.clicked.connect(lambda: state_handler.instant_remove_obj_at_curr(self.selectedImobject))
+        removeBtn.clicked.connect(lambda: fsm_model.instant_remove_obj_at_curr(self.selectedImobject))
         
-        self.stateLabel = QLabel(f"State {state_handler.curr.idx}")
+        self.stateLabel = QLabel(f"State {fsm_model.curr.idx}")
         self.layout.addWidget(self.stateLabel)
-        self.animationRunTime.setText(str(state_handler.curr.run_time))
+        self.animationRunTime.setText(str(fsm_model.curr.run_time))
         self.layout.addWidget(self.animationRunTime)
         self.layout.addStretch()
         self.emptyLabel = QLabel("nothing selected")
@@ -128,19 +128,19 @@ class DetailsBar(QWidget):
 
 
 
-        scene_handler.selectedMobjectChange.connect(lambda mob: self.refresh(mob))
-        state_handler.stateChange.connect(lambda: self.refresh())
+        scene_model.selectedMobjectChange.connect(lambda mob: self.refresh(mob))
+        fsm_model.stateChange.connect(lambda: self.refresh())
 
         
         self.setLayout(self.layout)
 
     def refresh(self, imobject=None):
         print('REFRESH')
-        if imobject == self.selectedImobject and self.currIdx == self.state_handler.curr.idx:
+        if imobject == self.selectedImobject and self.currIdx == self.fsm_model.curr.idx:
             return #nothing happened 
         if imobject is None:
             imobject = self.selectedImobject
-        self.currIdx = self.state_handler.curr.idx
+        self.currIdx = self.fsm_model.curr.idx
         self.clearItems()
         self.addItems(imobject)
 
@@ -148,13 +148,13 @@ class DetailsBar(QWidget):
 
 
     def addItems(self, imobject):
-        # self.layout.insertWidget(self.layout.count()-1, QLabel(f"State {self.state_handler.curr.idx}"))
-        # self.animationRunTime.setText(str(self.state_handler.curr.run_time))
+        # self.layout.insertWidget(self.layout.count()-1, QLabel(f"State {self.fsm_model.curr.idx}"))
+        # self.animationRunTime.setText(str(self.fsm_model.curr.run_time))
         # self.layout.insertWidget(self.layout.count()-1, self.animationRunTime)
         # self.layout.addStretch()
 
-        self.stateLabel.setText(f"State {self.state_handler.curr.idx}")
-        self.animationRunTime.setText(str(self.state_handler.curr.run_time))
+        self.stateLabel.setText(f"State {self.fsm_model.curr.idx}")
+        self.animationRunTime.setText(str(self.fsm_model.curr.run_time))
         if imobject is None:
             self.layout.insertWidget(self.layout.count()-1, QLabel("nothing selected"))
             return
@@ -230,7 +230,7 @@ class DetailsBar(QWidget):
 
     def changeAnimationRunTimeHandler(self):
         time = float(self.animationRunTime.text)
-        self.state_handler.curr.run_time = time
+        self.fsm_model.curr.run_time = time
 
     def changeParentHandler(self, i):
         if self.changeParentCb.count == 0 or not isinstance(self.selectedImobject, INode):
@@ -252,7 +252,7 @@ class DetailsBar(QWidget):
         else:
             imobject.addedState.added.remove(imobject)
 
-        self.scene_handler.remove(imobject)
+        self.scene_model.remove(imobject)
         match i:
             case 0:
                 imobject.introAnim = None
@@ -263,7 +263,7 @@ class DetailsBar(QWidget):
 
         if imobject.introAnim is not None:
             imobject.addedState.animations.append(imobject.introAnim)
-            self.scene_handler.playCopy(imobject.introAnim, imobject.addedState)
+            self.scene_model.playCopy(imobject.introAnim, imobject.addedState)
         else:
             imobject.addedState.added.add(imobject)
-            self.scene_handler.addCopy(imobject)
+            self.scene_model.addCopy(imobject)

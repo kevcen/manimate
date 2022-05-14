@@ -4,7 +4,7 @@ from intermediate.itext import IText
 import models.mobject_helper as mh
 
 class INode(IMobject):
-    def __init__(self, state_handler):
+    def __init__(self, fsm_model):
         self.parent = None
         self.children = []
 
@@ -17,12 +17,12 @@ class INode(IMobject):
         # TODO: fadein/create parent edge too when node has intro anim
 
         # Aux info
-        self.state_handler = state_handler
+        self.fsm_model = fsm_model
 
         super().__init__(self.mobject)
 
     def child(self):
-        child = INode(self.state_handler)
+        child = INode(self.fsm_model)
         parentcpy = mh.getCopy(self)
         child.mobject.move_to(np.array([parentcpy.get_x(), parentcpy.get_y() - 2, 0]))
         self.add_edge(self, child)
@@ -34,12 +34,12 @@ class INode(IMobject):
         child.show_node()
 
     def show_node(self):
-        self.state_handler.instant_add_object_to_curr(self)
+        self.fsm_model.instant_add_object_to_curr(self)
         if self.parent_edge is not None:
-            self.state_handler.instant_add_object_to_curr(self.parent_edge)
+            self.fsm_model.instant_add_object_to_curr(self.parent_edge)
 
     def change_label_text(self, new_text_str):
-        curr_state = self.state_handler.curr
+        curr_state = self.fsm_model.curr
 
         # create new text
         new_text = Text(new_text_str)
@@ -47,28 +47,28 @@ class INode(IMobject):
         new_text.move_to(mh.getCopy(self.label).get_center())
 
         # configure transforms
-        self.state_handler.curr.capture_prev(mh.getCopy(self.label))
+        self.fsm_model.curr.capture_prev(mh.getCopy(self.label))
         print('changed target text')
         curr_state.targets[self.label] = new_text
         curr_state.addTransform(self.label)
 
         # setup current ui
-        self.state_handler.scene_handler.playCopy(curr_state.getTransform(self.label), curr_state)
+        self.fsm_model.scene_model.playCopy(curr_state.getTransform(self.label), curr_state)
         mh.getCopy(self).add(mh.getCopy(self.label))
         # mh.setCopy(self, self.mobject)
 
 
 
     def change_parent(self, new_parent):
-        self.state_handler.curr.revAttributes[self]['parent'] = self.parent
-        self.state_handler.curr.changedMobjectAttributes[self]['parent'] = new_parent
+        self.fsm_model.curr.revAttributes[self]['parent'] = self.parent
+        self.fsm_model.curr.changedMobjectAttributes[self]['parent'] = new_parent
         
         if new_parent is None:
-            self.state_handler.instant_remove_obj_at_curr(self.parent_edge)
+            self.fsm_model.instant_remove_obj_at_curr(self.parent_edge)
             self.parent_edge = None
         elif self.parent is None:
             self.add_edge(new_parent, self)
-            self.state_handler.instant_add_object_to_curr(self.parent_edge)
+            self.fsm_model.instant_add_object_to_curr(self.parent_edge)
         
         self.parent = new_parent
         #parent edge should auto update through updater
@@ -80,7 +80,7 @@ class INode(IMobject):
 
 
     def copyWith(self, mobject):
-        node = INode(self.state_handler)
+        node = INode(self.fsm_model)
         node.mobject = mobject 
         return node
 

@@ -22,8 +22,8 @@ from PySide6.QtGui import QImage
 import pygame
 from __feature__ import true_property
 from file.reader import Reader
-from models.fsm_model import StateHandler
-from models.scene_model import SceneHandler
+from models.fsm_model import FsmModel
+from models.scene_model import SceneModel
 import scene.manim_scene as manim_scene 
 from pathlib import Path
 import moderngl_window as mglw
@@ -67,18 +67,18 @@ if __name__ == "__main__":
         scene = manim_scene.Test(renderer)
         renderer.scene = scene
 
-        scene_handler = SceneHandler(scene)
-        state_handler = StateHandler(scene_handler)
-        scene_handler.setStateHandler(state_handler)
+        scene_model = SceneModel(scene)
+        fsm_model = FsmModel(scene_model)
+        scene_model.setFsmModel(fsm_model)
 
-        objects_bar = ObjectsBar(state_handler)
+        objects_bar = ObjectsBar(fsm_model)
         objects_bar.show()
 
-        state_bar = StateWidget(scene_handler, state_handler)
+        state_bar = StateWidget(scene_model, fsm_model)
         state_bar.show()
 
 
-        details_bar = DetailsBar(scene_handler, state_handler)
+        details_bar = DetailsBar(scene_model, fsm_model)
         details_bar.show()
 
         # window._widget.hide()

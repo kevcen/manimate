@@ -11,14 +11,14 @@ import models.mobject_helper as mh
 
 
 
-class StateHandler(QObject):
+class FsmModel(QObject):
     stateChange = Signal(int, int)
 
-    def __init__(self, scene_handler):
+    def __init__(self, scene_model):
         super().__init__()
 
         self.numStates = 1
-        self.scene_handler = scene_handler
+        self.scene_model = scene_model
 
         self.head = State(None)
         self.end = State(None)
@@ -35,16 +35,16 @@ class StateHandler(QObject):
     def playForward(self, fast=True):
         self.curr = self.curr.next
         if fast:
-            self.scene_handler.playFast(self.curr)
+            self.scene_model.playFast(self.curr)
         else:
-            self.scene_handler.play(self.curr)
+            self.scene_model.play(self.curr)
 
     def playBack(self):
-        self.scene_handler.playRev(self.curr)
+        self.scene_model.playRev(self.curr)
         self.curr = self.curr.prev 
 
     def run(self):
-        self.scene_handler.unselect_mobjects()
+        self.scene_model.unselect_mobjects()
         self.is_running = True
         while self.curr.next != self.end and self.is_running:
             print(self.curr.idx)
@@ -54,7 +54,7 @@ class StateHandler(QObject):
         self.is_running = False
 
     def stop(self):
-        self.scene_handler.unselect_mobjects()
+        self.scene_model.unselect_mobjects()
         self.is_running = False
 
     def set_state_number(self, idx):
@@ -125,7 +125,7 @@ class StateHandler(QObject):
             
         target = mcopy.copy()
         if not isinstance(target, MarkupText):
-            target.set_color(self.scene_handler.selected[mcopy])
+            target.set_color(self.scene_model.selected[mcopy])
 
         # update animation
         if not self.created_at_curr_state(imobject):
@@ -152,19 +152,19 @@ class StateHandler(QObject):
         imobject.addedState = self.curr
         imobject.introAnim = create
         # self.curr.prev.added.add(imobject)
-        self.scene_handler.playCopy(create, self.curr)
+        self.scene_model.playCopy(create, self.curr)
 
 
     def instant_add_object_to_curr(self, imobject):
         self.curr.added.add(imobject)
         self.curr.targets[imobject] = imobject.mobject
-        self.scene_handler.addCopy(imobject)
+        self.scene_model.addCopy(imobject)
 
         imobject.addedState = self.curr
         imobject.introAnim = None
 
     def instant_remove_obj_at_curr(self, imobject):
-        self.scene_handler.remove(imobject)
+        self.scene_model.remove(imobject)
         if not self.created_at_curr_state(imobject):
             print('removed at this state')
             self.curr.removed.add(imobject)
