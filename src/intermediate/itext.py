@@ -22,6 +22,36 @@ class IText(IMobject):
     def copyWith(self, mobject):
         pass
 
+class IMathTex(IMobject):
+    def __init__(self, text, parentImobject=None, font_size=50, state_handler=None):
+        self.text = text
+        self.state_handler = state_handler
+        self.font_size = font_size
+        self.label = MathTex(r"{}".format(text), font_size=font_size)
+        self.label.set_color(WHITE)
+        super().__init__(self.label, parentImobject=parentImobject)
+
+    def changeText(self, new_text_str):
+        # update field
+        self.text = new_text_str
+        curr_state = self.state_handler.curr
+        
+        # create new text
+        try:
+            new_text = MathTex(r"{}".format(new_text_str), font_size=self.font_size, font="Consolas")
+            # new_text.match_color(mh.getCopy(self))
+            new_text.move_to(mh.getCopy(self).get_center())
+
+            # configure transforms
+            self.state_handler.curr.capture_prev(mh.getCopy(self))
+            curr_state.targets[self] = new_text
+            curr_state.addTransform(self)
+
+            # setup current ui
+            self.state_handler.scene_handler.playCopy(curr_state.getTransform(self), curr_state)
+        except:
+            print("latex compile error")
+
 class IMarkupText(IMobject):
     def __init__(self, text, parentImobject=None, font_size=14, state_handler=None):
         self.text = text

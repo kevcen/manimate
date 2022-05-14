@@ -1,6 +1,6 @@
 import sys
 from intermediate.imobject import ICircle, ISquare, IStar, ITriangle
-from intermediate.itext import IMarkupText
+from intermediate.itext import IMarkupText, IMathTex
 from intermediate.itree import INode
 from models.fsm_model import StateHandler
 import moderngl
@@ -71,8 +71,11 @@ mergeHeaps [] h2
             #         r  = rank t1
             #         r' = rank t2"""
         , state_handler=state_handler)))
+
+        addMathTex = QPushButton("add latex")
+        addMathTex.clicked.connect(lambda : state_handler.instant_add_object_to_curr(IMathTex(r"\xrightarrow{x^6y^8}", state_handler=state_handler)))
         
-        for w in (addTree, addCircle, addSquare, addTriangle, addStar, addMarkupText):
+        for w in (addTree, addCircle, addSquare, addTriangle, addStar, addMarkupText, addMathTex):
             layout.addWidget(w)
         
         self.setLayout(layout)

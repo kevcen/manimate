@@ -65,6 +65,9 @@ class SceneHandler(QObject):
         self.forwardAttributes(state)
         forward_anim = list(filter(None, map(lambda a: self.generator.forward(a, state), state.animations)))
 
+        for animation in forward_anim:
+            animation.run_time = state.run_time
+
         if len(forward_anim) > 0:
             self.scene.play(*forward_anim)
         else:

@@ -6,6 +6,8 @@ from collections import defaultdict
 from intermediate.ianimation import ITransform
 import models.mobject_helper as mh
 
+# from manim.animation.animation import DEFAULT_ANIMATION_RUN_TIME
+
 class State:
     def __init__(self, idx, animations=None):
         self.next = None #next state
@@ -21,6 +23,7 @@ class State:
         self.added = set()
         self.removed = set()
         self.idx = idx
+        self.run_time = 1.0
 
     def addTransform(self, imobject):
         """
