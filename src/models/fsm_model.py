@@ -47,7 +47,6 @@ class FsmModel(QObject):
         self.scene_model.unselect_mobjects()
         self.is_running = True
         while self.curr.next != self.end and self.is_running:
-            print(self.curr.idx)
             self.playForward(fast=False)
             self.stateChange.emit(self.curr.idx, self.numStates)
             
@@ -58,15 +57,12 @@ class FsmModel(QObject):
         self.is_running = False
 
     def set_state_number(self, idx):
-        print('SET STATE NUMBER?', idx, self.curr.idx)
         if 1 <= idx <= self.numStates:
             if idx < self.curr.idx:
                 for _ in range(self.curr.idx, idx, -1):
-                    print('move back')
                     self.playBack()
             else:
                 for _ in range(self.curr.idx, idx):
-                    print('move fwd')
                     self.playForward()
 
     def add_state(self):

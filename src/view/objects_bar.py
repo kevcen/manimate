@@ -37,7 +37,7 @@ class ObjectsBar(QWidget):
 
         self.setWindowTitle(" ")
 
-        self.geometry = QRect(750, 250, 150, 600)
+        self.geometry = QRect(450, 250, 150, 600)
         
         layout = QVBoxLayout()
 

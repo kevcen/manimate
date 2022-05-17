@@ -51,7 +51,7 @@ class DetailsBar(QWidget):
 
         self.setWindowTitle(" ")
 
-        self.geometry = QRect(1800, 250, 150, 600)
+        self.geometry = QRect(1500, 250, 150, 600)
 
         self.layout = QVBoxLayout()
 
@@ -142,9 +142,9 @@ class DetailsBar(QWidget):
             imobject = self.selectedImobject
         self.currIdx = self.fsm_model.curr.idx
         self.clearItems()
+        self.selectedImobject = imobject
         self.addItems(imobject)
 
-        self.selectedImobject = imobject
 
 
     def addItems(self, imobject):
@@ -186,6 +186,7 @@ class DetailsBar(QWidget):
 
         
         self.nameLbl.setText(mh.getName(imobject))
+        print("REFRESHED INTRO", imobject.introAnim.__class__.__name__ if imobject.introAnim is not None else 'None')
         self.introCb.setCurrentIndex(self.introCb.findText(imobject.introAnim.__class__.__name__[1:]) if imobject.introAnim is not None else 0)
 
 
@@ -245,6 +246,8 @@ class DetailsBar(QWidget):
     def introAnimationHandler(self, i):
         if self.selectedImobject is None:
             return 
+
+        print('CHANGE INTRO', self.selectedImobject.__class__.__name__, i)
 
         imobject = self.selectedImobject
         if imobject.introAnim is not None:
