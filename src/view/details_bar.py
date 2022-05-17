@@ -55,34 +55,43 @@ class DetailsBar(QWidget):
 
         self.layout = QVBoxLayout()
 
-        self.nameLbl = QLabel(self.selectedImobject.__class__.__name__)
-
-        # transformBtn = QPushButton("add transform")
-        # transformBtn.clicked.connect(fsm_model.add_transform_to_curr)
-
-
         self.animationRunTime = QLineEdit()
-        validator = QDoubleValidator()
-        validator.bottom = 0
-        self.animationRunTime.setValidator(validator)
+        doubleValidator = QDoubleValidator()
+        doubleValidator.bottom = 0
+        self.animationRunTime.setValidator(doubleValidator)
         print("run time is " + str(fsm_model.curr.run_time))
         self.animationRunTime.editingFinished.connect(self.changeAnimationRunTimeHandler)
+        self.stateLabel = QLabel(f"State {fsm_model.curr.idx}")
 
+        self.loopCb = QComboBox()
+        self.loopCb.addItem("None")
+        self.loopCb.addItems([f"State {n}" for n in range(1, fsm_model.end.idx)])
+        self.loopCb.currentIndexChanged.connect(self.loopStateChangeHandler)
+
+        self.loopTimes = QLineEdit()
+        intValidator = QIntValidator()
+        intValidator.bottom = 0
+        self.loopTimes.setValidator(intValidator)
+        self.loopTimes.editingFinished.connect(self.changeLoopTimes)
+
+        self.layout.addWidget(self.stateLabel)
+        self.animationRunTime.setText(str(fsm_model.curr.run_time))
+        self.layout.addWidget(self.animationRunTime)
+        self.layout.addWidget(self.loopCb)
+        self.layout.addWidget(self.loopTimes)
+        self.layout.addStretch()
+        self.emptyLabel = QLabel("nothing selected")
+        self.layout.addWidget(self.emptyLabel)
+        self.layout.addStretch()
+
+        self.nameLbl = QLabel(self.selectedImobject.__class__.__name__)
+        
         self.introCb = QComboBox()
         self.introCb.addItems(["None", "Create", "FadeIn"])
         self.introCb.currentIndexChanged.connect(self.introAnimationHandler)
 
         removeBtn = QPushButton("remove mobject")
         removeBtn.clicked.connect(lambda: fsm_model.instant_remove_obj_at_curr(self.selectedImobject))
-        
-        self.stateLabel = QLabel(f"State {fsm_model.curr.idx}")
-        self.layout.addWidget(self.stateLabel)
-        self.animationRunTime.setText(str(fsm_model.curr.run_time))
-        self.layout.addWidget(self.animationRunTime)
-        self.layout.addStretch()
-        self.emptyLabel = QLabel("nothing selected")
-        self.layout.addWidget(self.emptyLabel)
-        self.layout.addStretch()
         
 
         self.all_widgets = (self.nameLbl, self.introCb, removeBtn)
@@ -155,6 +164,8 @@ class DetailsBar(QWidget):
 
         self.stateLabel.setText(f"State {self.fsm_model.curr.idx}")
         self.animationRunTime.setText(str(self.fsm_model.curr.run_time))
+        self.loopCb.addItem("None")
+        self.loopCb.addItems([f"State {n}" for n in range(1, self.fsm_model.end.idx)])
         if imobject is None:
             self.layout.insertWidget(self.layout.count()-1, QLabel("nothing selected"))
             return
@@ -187,26 +198,26 @@ class DetailsBar(QWidget):
         
         self.nameLbl.setText(mh.getName(imobject))
         self.introCb.setCurrentIndex(self.introCb.findText(imobject.introAnim.__class__.__name__[1:]) if imobject.introAnim is not None else 0)
+        
 
 
         # self.layout.addStretch()
     
     def clearItems(self):
         for i in range(self.layout.count()-2, 2, -1): 
-            print(i)
             child = self.layout.itemAt(i).widget()
             if child is None:
                 child = self.layout.itemAt(i).layout()
-            print(child.__class__.__name__)
-            # if child is None:
-            #     continue
             child.setParent(None)
 
         for i in reversed(range(self.textEditLayout.count())): 
             child = self.textEditLayout.itemAt(i).widget().setParent(None)
+
         if isinstance(self.selectedImobject, INode):
             self.addChildBtn.clicked.disconnect(self.selectedImobject.spawn_child)
             self.changeParentCb.clear()
+
+        self.loopCb.clear()
 
     def highlightMarkupText(self, highlight):
         if self.selectedImobject is None:
@@ -215,8 +226,25 @@ class DetailsBar(QWidget):
         cursor = self.changeMarkupText.textCursor()
         self.selectedImobject.handleBold(cursor.selectionStart(), cursor.selectionEnd(), highlight)
 
+    def loopStateChangeHandler(self, i):
+        if self.changeParentCb.count == 0 or not self.loopCb.currentText:
+            return 
 
-    
+        print('loop', self.loopCb.currentText)
+        if self.loopCb.currentText == "None":
+            self.fsm_model.curr.loop = None
+        else:
+            state_num = int(self.loopCb.currentText[6:])
+            if not self.loopTimes.text:
+                self.loopTimes.setText('1')
+
+            self.fsm_model.curr.loop = (state_num, 1)
+            self.fsm_model.curr.loopCnt = 1
+
+    def changeLoopTimes(self):
+        num = int(self.loopTimes.text)
+        self.fsm_model.curr.loopCnt = num
+
     def changeMarkupTextHandler(self):
         if self.selectedImobject is None:
             return

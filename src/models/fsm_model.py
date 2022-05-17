@@ -20,8 +20,8 @@ class FsmModel(QObject):
         self.numStates = 1
         self.scene_model = scene_model
 
-        self.head = State(None)
-        self.end = State(None)
+        self.head = State(0)
+        self.end = State(2)
         state = State(1)
         self.head.next = state 
         state.next = self.end 
@@ -43,12 +43,20 @@ class FsmModel(QObject):
         self.scene_model.playRev(self.curr)
         self.curr = self.curr.prev 
 
+    def hasLoop(self):
+        return self.curr.loop is not None and self.curr.loopCnt > 0
+
     def run(self):
         self.scene_model.unselect_mobjects()
         self.is_running = True
-        while self.curr.next != self.end and self.is_running:
+        while (self.curr.next != self.end or self.hasLoop()) and self.is_running:
             print(self.curr.idx)
-            self.playForward(fast=False)
+            if self.hasLoop():
+                self.curr.loopCnt -= 1
+                self.set_state_number(self.curr.loop[0].idx, False)
+                # TODO: reverse all the stuff
+            else:
+                self.playForward(fast=False)
             self.stateChange.emit(self.curr.idx, self.numStates)
             
         self.is_running = False
@@ -57,11 +65,13 @@ class FsmModel(QObject):
         self.scene_model.unselect_mobjects()
         self.is_running = False
 
-    def set_state_number(self, idx):
+    def set_state_number(self, idx, userCalled=True):
         print('SET STATE NUMBER?', idx, self.curr.idx)
         if 1 <= idx <= self.numStates:
             if idx < self.curr.idx:
                 for _ in range(self.curr.idx, idx, -1):
+                    if not userCalled:
+                        self.curr.loopCnt = self.curr.loop[1]
                     print('move back')
                     self.playBack()
             else:
@@ -96,11 +106,9 @@ class FsmModel(QObject):
         self.stateChange.emit(self.curr.idx, self.numStates)
     
     def shift_above_idxs(self, state):
-        if state == self.end:
-            return 
-
         state.idx = state.prev.idx + 1
-        self.shift_above_idxs(state.next)
+        if state != self.end:
+            self.shift_above_idxs(state.next)
         
     def confirm_move(self, mcopy, point):
         imobject = mh.getOriginal(mcopy)

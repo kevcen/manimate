@@ -24,6 +24,8 @@ class State:
         self.removed = set()
         self.idx = idx
         self.run_time = 1.0
+        self.loop = None # in form of (state, times)
+        self.loopCnt = None
 
     def addTransform(self, imobject):
         """
