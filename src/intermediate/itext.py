@@ -101,13 +101,13 @@ class IMarkupText(IMobject):
         #     else:
         #         newBoldAreas.append((cs, max(be, ce)))
         
-        print(newBoldAreas)
+        # print(newBoldAreas)
 
         self.fsm_model.curr.revAttributes[self]['boldAreas'] = self.boldAreas
         self.fsm_model.curr.changedMobjectAttributes[self]['boldAreas'] = newBoldAreas
 
         self.boldAreas = newBoldAreas
-        print(self.formatBolds(html.escape(self.text)))
+        # print(self.formatBolds(html.escape(self.text)))
         self.updateMarkupText(self.formatText(self.text))
 
     def getHighlightTags(self):
@@ -141,7 +141,7 @@ class IMarkupText(IMobject):
         html_text_arr = list(map(html.escape, text_arr))
         bolded_text_arr = self.formatBolds(html_text_arr)
         res = ''.join(bolded_text_arr)
-        print(res)
+        # print(res)
         return res
 
     def changeText(self, new_text_str):

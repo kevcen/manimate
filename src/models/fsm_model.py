@@ -53,7 +53,7 @@ class FsmModel(QObject):
             print(self.curr.idx)
             if self.hasLoop():
                 self.curr.loopCnt -= 1
-                self.set_state_number(self.curr.loop[0].idx, False)
+                self.set_state_number(self.curr.loop[0], False)
                 # TODO: reverse all the stuff
             else:
                 self.playForward(fast=False)
@@ -70,13 +70,12 @@ class FsmModel(QObject):
         if 1 <= idx <= self.numStates:
             if idx < self.curr.idx:
                 for _ in range(self.curr.idx, idx, -1):
-                    if not userCalled:
+                    if userCalled and self.curr.loop is not None:
                         self.curr.loopCnt = self.curr.loop[1]
-                    print('move back')
+                    # print('move back')
                     self.playBack()
             else:
                 for _ in range(self.curr.idx, idx):
-                    print('move fwd')
                     self.playForward()
 
     def add_state(self):
@@ -120,14 +119,14 @@ class FsmModel(QObject):
         # Circle().get_center()
         past_mobject = None 
         if imobject not in self.curr.targets:
-            print('imobject mobj')
+            # print('imobject mobj')
             past_mobject = imobject.mobject 
         else:
-            print('targets mobj')
+            # print('targets mobj')
             past_mobject = self.curr.targets[imobject]
 
-        print('conf move', past_mobject.get_center(), mcopy.get_center())
-        print(past_mobject, mcopy)
+        # print('conf move', past_mobject.get_center(), mcopy.get_center())
+        # print(past_mobject, mcopy)
         if (past_mobject.get_center() == mcopy.get_center()).all():
             return
             
@@ -142,7 +141,7 @@ class FsmModel(QObject):
 
             self.curr.addTransform(imobject)
         else:
-            print('new object no transform')
+            # print('new object no transform')
             self.curr.targets[imobject] = target
             imobject.mobject = target
 
@@ -193,7 +192,7 @@ class FsmModel(QObject):
         if imobject in self.curr.targets:
             del self.curr.targets[imobject]
 
-        print(len(self.curr.animations))
+        # print(len(self.curr.animations))
 
 
 

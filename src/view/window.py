@@ -32,7 +32,7 @@ from moderngl_window.timers.clock import Timer
 class QTWindow(PySideWindow):
     def __init__(self, app, renderer) -> None:
         super().__init__()
-        self._widget.setGeometry(900, 250, 900, 500)
+        self._widget.setGeometry(600, 250, 900, 500)
         self.title = f"Manimate"
 
         button_action = QAction("Your button")

@@ -40,6 +40,7 @@ class MarkupTextEdit(QTextEdit):
         super().focusOutEvent(e)
         self.details_bar.changeMarkupTextHandler()
 
+TOP_WIDGETS_NUM = 4
 class DetailsBar(QWidget):
     def __init__(self, scene_model, fsm_model):
         super().__init__()
@@ -51,7 +52,7 @@ class DetailsBar(QWidget):
 
         self.setWindowTitle(" ")
 
-        self.geometry = QRect(1800, 250, 150, 600)
+        self.geometry = QRect(1500, 250, 150, 600)
 
         self.layout = QVBoxLayout()
 
@@ -151,9 +152,9 @@ class DetailsBar(QWidget):
             imobject = self.selectedImobject
         self.currIdx = self.fsm_model.curr.idx
         self.clearItems()
+        self.selectedImobject = imobject
         self.addItems(imobject)
 
-        self.selectedImobject = imobject
 
 
     def addItems(self, imobject):
@@ -166,6 +167,8 @@ class DetailsBar(QWidget):
         self.animationRunTime.setText(str(self.fsm_model.curr.run_time))
         self.loopCb.addItem("None")
         self.loopCb.addItems([f"State {n}" for n in range(1, self.fsm_model.end.idx)])
+        self.loopCb.setCurrentIndex(self.loopCb.findText(f"State {self.fsm_model.curr.loop[0]}") if self.fsm_model.curr.loop is not None else 0)
+        self.loopCb.blockSignals(False)
         if imobject is None:
             self.layout.insertWidget(self.layout.count()-1, QLabel("nothing selected"))
             return
@@ -182,7 +185,9 @@ class DetailsBar(QWidget):
                 for w in self.tree_widgets:
                     self.layout.insertWidget(self.layout.count()-1, w)
                 
+                print("SET PARENT", mh.getName(imobject.parent) if imobject.parent is not None else "None")
                 self.changeParentCb.setCurrentIndex(self.changeParentCb.findText(mh.getName(imobject.parent)) if imobject.parent is not None else 0)
+                self.changeParentCb.blockSignals(False)
                 self.changeNodeText.setText(mh.getCopy(imobject.label).text)
             case IMarkupText() | IMathTex():
                 for w in self.text_widgets:
@@ -197,26 +202,31 @@ class DetailsBar(QWidget):
 
         
         self.nameLbl.setText(mh.getName(imobject))
+        # print("REFRESHED INTRO", imobject.introAnim.__class__.__name__ if imobject.introAnim is not None else 'None')
+        self.introCb.blockSignals(True)
         self.introCb.setCurrentIndex(self.introCb.findText(imobject.introAnim.__class__.__name__[1:]) if imobject.introAnim is not None else 0)
-        
+        self.introCb.blockSignals(False)
 
 
         # self.layout.addStretch()
     
     def clearItems(self):
-        for i in range(self.layout.count()-2, 2, -1): 
+        for i in range(self.layout.count()-2, TOP_WIDGETS_NUM, -1): 
             child = self.layout.itemAt(i).widget()
             if child is None:
                 child = self.layout.itemAt(i).layout()
-            child.setParent(None)
+            if child is not None:
+                child.setParent(None)
 
         for i in reversed(range(self.textEditLayout.count())): 
             child = self.textEditLayout.itemAt(i).widget().setParent(None)
 
         if isinstance(self.selectedImobject, INode):
             self.addChildBtn.clicked.disconnect(self.selectedImobject.spawn_child)
+            self.changeParentCb.blockSignals(True)
             self.changeParentCb.clear()
 
+        self.loopCb.blockSignals(True)
         self.loopCb.clear()
 
     def highlightMarkupText(self, highlight):
@@ -230,7 +240,7 @@ class DetailsBar(QWidget):
         if self.changeParentCb.count == 0 or not self.loopCb.currentText:
             return 
 
-        print('loop', self.loopCb.currentText)
+        print('CHANGE LOOP TIMES', self.loopCb.currentText)
         if self.loopCb.currentText == "None":
             self.fsm_model.curr.loop = None
         else:
@@ -248,7 +258,7 @@ class DetailsBar(QWidget):
     def changeMarkupTextHandler(self):
         if self.selectedImobject is None:
             return
-            
+        
         text = self.changeMarkupText.plainText
         self.selectedImobject.changeText(text)
 
@@ -264,7 +274,9 @@ class DetailsBar(QWidget):
         if self.changeParentCb.count == 0 or not isinstance(self.selectedImobject, INode):
             return 
 
+        # print("CHANGE PARENT")
         imobj_name = self.changeParentCb.currentText
+        print("CHANGE PARENT", imobj_name, "cb count", self.changeParentCb.count)
         imobj = mh.getImobjectByName(imobj_name) if imobj_name is not None else None
 
         self.selectedImobject.change_parent(imobj)
@@ -273,6 +285,8 @@ class DetailsBar(QWidget):
     def introAnimationHandler(self, i):
         if self.selectedImobject is None:
             return 
+
+        # print('CHANGE INTRO', self.selectedImobject.__class__.__name__, i)
 
         imobject = self.selectedImobject
         if imobject.introAnim is not None:

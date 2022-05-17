@@ -56,7 +56,7 @@ class SceneModel(QObject):
                     value = state.prev.changedMobjectAttributes[imobject][attr_name] 
                 else:
                     value = state.revAttributes[imobject][attr_name]
-                print(imobject, attr_name, value)
+                # print(imobject, attr_name, value)
                 setattr(imobject, attr_name, value)
 
     def play(self, state):
@@ -74,25 +74,25 @@ class SceneModel(QObject):
             self.scene.wait(1)
 
     def playFast(self, state):
-        print(f"add {len(state.added)}, anim {len(state.animations)}")
+        # print(f"add {len(state.added)}, anim {len(state.animations)}")
         self.addMobjects(state.added)
         self.removeMobjects(state.removed)
         self.forwardAttributes(state)
         forward_anim = list(filter(None, map(lambda a: self.generator.forward(a, state), state.animations)))
 
         for animation in forward_anim:
-            print('for', animation, animation.mobject)
+            # print('for', animation, animation.mobject)
             animation.run_time = 0
 
         if len(forward_anim) > 0:
             self.scene.play(*forward_anim)
 
     def playRev(self, state):
-        print(f"rem {len(state.added)}, anim {len(state.animations)}")
+        # print(f"rem {len(state.added)}, anim {len(state.animations)}")
         reversed_anim = list(filter(None, map(lambda a: self.generator.reverse(a, state), state.animations)))
         
         for animation in reversed_anim:
-            print('rev', animation, animation.mobject)
+            # print('rev', animation, animation.mobject)
             animation.run_time = 0
 
         if len(reversed_anim) > 0:
@@ -131,7 +131,7 @@ class SceneModel(QObject):
         self.unselect_mobjects()
         imobject = mh.getOriginal(mobject)
         # print(mobject, imobject)
-        print('select', hex(id(mobject)))
+        # print('select', hex(id(mobject)))
         if imobject.parentImobject is not None:
             imobject = imobject.parentImobject 
             mobject = mh.getCopy(imobject)
@@ -143,7 +143,7 @@ class SceneModel(QObject):
             
         self.fsm_model.curr.capture_prev(mobject)
 
-        print(imobject)
+        # print(imobject)
         self.selectedMobjectChange.emit(imobject)
 
 

@@ -43,14 +43,14 @@ class State:
         
     
     def capture_prev(self, mcopy, bypass=False):
-        print('try capture', hex(id(self)))
+        # print('try capture', hex(id(self)))
         # capture previous frame for reverse if editable
         imobject = mh.getOriginal(mcopy)
         if bypass or imobject not in self.rev_targets: #if not already captured
             print('captured prev')
             target = self.find_prev_target(self.prev, imobject)
             if target is None:
-                print('head state')
+                # print('head state')
                 return #we are in head state
                 
             self.rev_targets[imobject] = target
