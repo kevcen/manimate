@@ -18,19 +18,19 @@ class AnimationGenerator:
             case ITransform(imobject=imobj):
                 mcopy = mh.getCopy(imobj)
 
-                print('mcopy is ', hex(id(mcopy)))
+                # print('mcopy is ', hex(id(mcopy)))
                 tcopy = None
                 if imobj in state.prev.targets:
-                    print('have target')
+                    # print('have target')
                     tcopy = state.prev.targets[imobj].copy()
                 else:
                     if imobj.editedAt < state.idx:
                         state.capture_prev(mcopy, bypass=True)
                     
-                    print('rev target')
+                    # print('rev target')
                     tcopy = state.rev_targets[imobj].copy()
 
-                print('generate', mcopy.get_center(), tcopy.get_center())
+                # print('generate', mcopy.get_center(), tcopy.get_center())
                 mh.setCopy(imobj, tcopy)
                 return ReplacementTransform(mcopy, tcopy)
             case ICreate(imobject=imobj):
