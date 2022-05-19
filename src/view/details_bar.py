@@ -22,6 +22,10 @@ from PySide6.QtWidgets import (
     QComboBox,
     QTextEdit,
     QHBoxLayout,
+    QGroupBox,
+    QFormLayout,
+    QSpinBox,
+    QDoubleSpinBox,
 )
 from __feature__ import true_property
 from pathlib import Path
@@ -40,7 +44,7 @@ class MarkupTextEdit(QTextEdit):
         super().focusOutEvent(e)
         self.details_bar.changeMarkupTextHandler()
 
-TOP_WIDGETS_NUM = 4
+TOP_WIDGETS_NUM = 1 #stretch n groupbox
 class DetailsBar(QWidget):
     def __init__(self, scene_model, fsm_model):
         super().__init__()
@@ -56,36 +60,40 @@ class DetailsBar(QWidget):
 
         self.layout = QVBoxLayout()
 
-        self.animationRunTime = QLineEdit()
-        doubleValidator = QDoubleValidator()
-        doubleValidator.bottom = 0
-        self.animationRunTime.setValidator(doubleValidator)
-        print("run time is " + str(fsm_model.curr.run_time))
-        self.animationRunTime.editingFinished.connect(self.changeAnimationRunTimeHandler)
-        self.stateLabel = QLabel(f"State {fsm_model.curr.idx}")
+        self.animationRunTime = QDoubleSpinBox()
+        self.animationRunTime.minimum = 0
+        self.animationRunTime.suffix = "s"
+        self.animationRunTime.valueChanged.connect(self.changeAnimationRunTimeHandler)
+        self.animationRunTime.setValue(fsm_model.curr.run_time)
+        # self.stateLabel = QLabel(f"State {fsm_model.curr.idx}")
 
         self.loopCb = QComboBox()
         self.loopCb.addItem("None")
         self.loopCb.addItems([f"State {n}" for n in range(1, fsm_model.end.idx)])
         self.loopCb.currentIndexChanged.connect(self.loopStateChangeHandler)
 
-        self.loopTimes = QLineEdit()
-        intValidator = QIntValidator()
-        intValidator.bottom = 0
-        self.loopTimes.setValidator(intValidator)
-        self.loopTimes.editingFinished.connect(self.changeLoopTimes)
+        self.loopTimes = QSpinBox()
+        self.loopTimes.minimum = 0
+        self.loopTimes.suffix = " times"
+        self.loopTimes.valueChanged.connect(self.changeLoopTimesHandler)
 
-        self.layout.addWidget(self.stateLabel)
-        self.animationRunTime.setText(str(fsm_model.curr.run_time))
-        self.layout.addWidget(self.animationRunTime)
-        self.layout.addWidget(self.loopCb)
-        self.layout.addWidget(self.loopTimes)
+        self.stateGroupBox = QGroupBox(f"State {fsm_model.curr.idx}")
+        stateLayout = QFormLayout()
+        stateLayout.addRow(QLabel("Run time:"), self.animationRunTime)
+        stateLayout.addRow(QLabel("Loop to:"), self.loopCb)
+        stateLayout.addRow(QLabel("for:"), self.loopTimes)
+        # self.layout.addWidget(self.stateLabel)
+        # self.layout.addWidget(self.animationRunTime)
+        # self.layout.addWidget(self.loopCb)
+        # self.layout.addWidget(self.loopTimes)
+        self.stateGroupBox.setLayout(stateLayout)
+        self.layout.addWidget(self.stateGroupBox)
         self.layout.addStretch()
         self.emptyLabel = QLabel("nothing selected")
         self.layout.addWidget(self.emptyLabel)
         self.layout.addStretch()
 
-        self.nameLbl = QLabel(self.selectedImobject.__class__.__name__)
+        # self.nameLbl = QLabel(self.selectedImobject.__class__.__name__)
         
         self.introCb = QComboBox()
         self.introCb.addItems(["None", "Create", "FadeIn"])
@@ -95,7 +103,16 @@ class DetailsBar(QWidget):
         removeBtn.clicked.connect(lambda: fsm_model.instant_remove_obj_at_curr(self.selectedImobject))
         
 
-        self.all_widgets = (self.nameLbl, self.introCb, removeBtn)
+        # self.all_widgets = (self.nameLbl, self.introCb, removeBtn)
+
+        
+        self.mobjGroupBox = QGroupBox(f"Selected: {self.selectedImobject.__class__.__name__}")
+        mobjLayout = QFormLayout()
+        mobjLayout.addRow(QLabel("Intro animation:"), self.introCb)
+        mobjLayout.addRow(QLabel("Remove:"), removeBtn)
+        self.mobjGroupBox.setLayout(mobjLayout)
+
+        self.all_widgets = (self.mobjGroupBox, )
 
         # Tree widgets
         self.changeParentCb = QComboBox()
@@ -107,7 +124,17 @@ class DetailsBar(QWidget):
 
         self.addChildBtn = QPushButton("add child")
 
-        self.tree_widgets = (self.changeNodeText, self.changeParentCb, self.addChildBtn, )
+        
+        self.treeGroupBox = QGroupBox("Tree attributes")
+        treeLayout = QFormLayout()
+        treeLayout.addRow(QLabel("Node text:"), self.changeNodeText)
+        treeLayout.addRow(QLabel("Parent:"), self.changeParentCb)
+        treeLayout.addRow(QLabel("Add child:"), self.addChildBtn)
+        self.treeGroupBox.setLayout(treeLayout)
+
+
+        # self.tree_widgets = (self.changeNodeText, self.changeParentCb, self.addChildBtn, )
+        self.tree_widgets = (self.treeGroupBox, )
     
 
         # Text widgets
@@ -158,18 +185,14 @@ class DetailsBar(QWidget):
 
 
     def addItems(self, imobject):
-        # self.layout.insertWidget(self.layout.count()-1, QLabel(f"State {self.fsm_model.curr.idx}"))
-        # self.animationRunTime.setText(str(self.fsm_model.curr.run_time))
-        # self.layout.insertWidget(self.layout.count()-1, self.animationRunTime)
-        # self.layout.addStretch()
-
-        self.stateLabel.setText(f"State {self.fsm_model.curr.idx}")
-        self.animationRunTime.setText(str(self.fsm_model.curr.run_time))
+        self.stateGroupBox.title = f"State {self.fsm_model.curr.idx}"
+        self.animationRunTime.setValue(self.fsm_model.curr.run_time)
         self.loopCb.addItem("None")
         self.loopCb.addItems([f"State {n}" for n in range(1, self.fsm_model.end.idx)])
         self.loopCb.setCurrentIndex(self.loopCb.findText(f"State {self.fsm_model.curr.loop[0]}") if self.fsm_model.curr.loop is not None else 0)
         self.loopCb.blockSignals(False)
         if imobject is None:
+            print('add nothing sel text')
             self.layout.insertWidget(self.layout.count()-1, QLabel("nothing selected"))
             return
 
@@ -188,14 +211,12 @@ class DetailsBar(QWidget):
                 print("SET PARENT", mh.getName(imobject.parent) if imobject.parent is not None else "None")
                 self.changeParentCb.setCurrentIndex(self.changeParentCb.findText(mh.getName(imobject.parent)) if imobject.parent is not None else 0)
                 self.changeParentCb.blockSignals(False)
-                self.changeNodeText.blockSignals(True)
                 self.changeNodeText.setText(mh.getCopy(imobject.label).text)
                 self.changeNodeText.blockSignals(False)
             case IMarkupText() | IMathTex():
                 for w in self.text_widgets:
                     self.layout.insertWidget(self.layout.count()-1, w)
                     
-                self.changeMarkupText.blockSignals(True)
                 self.changeMarkupText.setText(imobject.text)
                 self.changeMarkupText.blockSignals(True)
                 
@@ -207,7 +228,7 @@ class DetailsBar(QWidget):
                     self.layout.insertLayout(self.layout.count()-1, self.textEditLayout)
 
         
-        self.nameLbl.setText(mh.getName(imobject))
+        self.mobjGroupBox.title = f"Selected: {mh.getName(imobject)}"
         # print("REFRESHED INTRO", imobject.introAnim.__class__.__name__ if imobject.introAnim is not None else 'None')
         self.introCb.blockSignals(True)
         self.introCb.setCurrentIndex(self.introCb.findText(imobject.introAnim.__class__.__name__[1:]) if imobject.introAnim is not None else 0)
@@ -217,15 +238,21 @@ class DetailsBar(QWidget):
         # self.layout.addStretch()
     
     def clearItems(self):
+        self.changeNodeText.blockSignals(True)
+        self.changeMarkupText.blockSignals(True)
+        self.loopCb.blockSignals(True)
         for i in range(self.layout.count()-2, TOP_WIDGETS_NUM, -1): 
             child = self.layout.itemAt(i).widget()
+            print("clearing " + child.__class__.__name__ if child is not None else "NONE")
             if child is None:
                 child = self.layout.itemAt(i).layout()
             if child is not None:
                 child.setParent(None)
 
+        #clear sublayout
         for i in reversed(range(self.textEditLayout.count())): 
             child = self.textEditLayout.itemAt(i).widget().setParent(None)
+
 
         if isinstance(self.selectedImobject, INode):
             self.addChildBtn.clicked.disconnect(self.selectedImobject.spawn_child)
@@ -252,14 +279,13 @@ class DetailsBar(QWidget):
         else:
             state_num = int(self.loopCb.currentText[6:])
             if not self.loopTimes.text:
-                self.loopTimes.setText('1')
+                self.loopTimes.setValue(1)
 
             self.fsm_model.curr.loop = (state_num, 1)
             self.fsm_model.curr.loopCnt = 1
 
-    def changeLoopTimes(self):
-        num = int(self.loopTimes.text)
-        self.fsm_model.curr.loopCnt = num
+    def changeLoopTimesHandler(self, value):
+        self.fsm_model.curr.loopCnt = value
 
     def changeMarkupTextHandler(self):
         if self.selectedImobject is None:
@@ -274,9 +300,8 @@ class DetailsBar(QWidget):
         self.selectedImobject.change_label_text(text)
         self.selectedImobject.editedAt = self.fsm_model.curr.idx 
 
-    def changeAnimationRunTimeHandler(self):
-        time = float(self.animationRunTime.text)
-        self.fsm_model.curr.run_time = time
+    def changeAnimationRunTimeHandler(self, value):
+        self.fsm_model.curr.run_time = value
 
     def changeParentHandler(self, i):
         if self.changeParentCb.count == 0 or not isinstance(self.selectedImobject, INode):
