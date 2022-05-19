@@ -188,11 +188,17 @@ class DetailsBar(QWidget):
                 print("SET PARENT", mh.getName(imobject.parent) if imobject.parent is not None else "None")
                 self.changeParentCb.setCurrentIndex(self.changeParentCb.findText(mh.getName(imobject.parent)) if imobject.parent is not None else 0)
                 self.changeParentCb.blockSignals(False)
+                self.changeNodeText.blockSignals(True)
                 self.changeNodeText.setText(mh.getCopy(imobject.label).text)
+                self.changeNodeText.blockSignals(False)
             case IMarkupText() | IMathTex():
                 for w in self.text_widgets:
                     self.layout.insertWidget(self.layout.count()-1, w)
+                    
+                self.changeMarkupText.blockSignals(True)
                 self.changeMarkupText.setText(imobject.text)
+                self.changeMarkupText.blockSignals(True)
+                
 
                 if isinstance(imobject, IMarkupText):
                     self.textEditLayout = QHBoxLayout()
@@ -261,10 +267,12 @@ class DetailsBar(QWidget):
         
         text = self.changeMarkupText.plainText
         self.selectedImobject.changeText(text)
+        self.selectedImobject.editedAt = self.fsm_model.curr.idx 
 
     def changeNodeTextHandler(self):
         text = self.changeNodeText.text
         self.selectedImobject.change_label_text(text)
+        self.selectedImobject.editedAt = self.fsm_model.curr.idx 
 
     def changeAnimationRunTimeHandler(self):
         time = float(self.animationRunTime.text)

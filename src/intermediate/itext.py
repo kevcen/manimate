@@ -167,3 +167,5 @@ class IMarkupText(IMobject):
 
         # setup current ui
         self.fsm_model.scene_model.playCopy(curr_state.getTransform(self), curr_state)
+
+        self.editedAt = curr_state.idx

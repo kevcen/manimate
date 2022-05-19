@@ -58,11 +58,7 @@ class ObjectsBar(QWidget):
 
         addMarkupText = QPushButton("add text")
         addMarkupText.clicked.connect(lambda : fsm_model.instant_add_object_to_curr(IMarkupText(
-            """mergeHeaps :: Ord a => BinHeap a -> BinHeap a -> BinHeap a
-mergeHeaps h1 []
-    = h1
-mergeHeaps [] h2
-    = h2"""
+            """click to add text"""
             # mergeHeaps h1@(t1 : h) h2@(t2 : h')
             #     | r < r'    = t1 : mergeHeaps h h2
             #     | r' < r    = t2 : mergeHeaps h1 h'

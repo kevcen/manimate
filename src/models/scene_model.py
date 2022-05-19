@@ -139,7 +139,7 @@ class SceneModel(QObject):
         self.selected[mobject] = mobject.get_color()
 
         if not isinstance(imobject, IMarkupText):
-            mobject.set_color(WHITE)
+            mobject.set_color(BLUE_A)
             
         self.fsm_model.curr.capture_prev(mobject)
 

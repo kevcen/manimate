@@ -49,6 +49,9 @@ class FsmModel(QObject):
     def run(self):
         self.scene_model.unselect_mobjects()
         self.is_running = True
+        if self.curr.next == self.end:
+            self.set_state_number(1, False) #go back to start
+
         while (self.curr.next != self.end or self.hasLoop()) and self.is_running:
             print(self.curr.idx)
             if self.hasLoop():
