@@ -32,15 +32,13 @@ from moderngl_window.timers.clock import Timer
 class QTWindow(PySideWindow):
     def __init__(self, app, renderer) -> None:
         super().__init__()
-        self._widget.setGeometry(600, 250, 900, 500)
+        self._widget.setGeometry(600, 250, 900, 520)
         self.title = f"Manimate"
 
         button_action = QAction("Your button")
         button_action.triggered.connect(self.export)
 
-        menu = QMenuBar()
-        file_menu = menu.addMenu("&File")
-        file_menu.addAction(button_action)
+        # file_menu.addAction(button_action)
 
         # self._widget.layout().setMenuBar(menu)
 

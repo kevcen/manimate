@@ -82,18 +82,13 @@ class DetailsBar(QWidget):
         stateLayout.addRow(QLabel("Run time:"), self.animationRunTime)
         stateLayout.addRow(QLabel("Loop to:"), self.loopCb)
         stateLayout.addRow(QLabel("for:"), self.loopTimes)
-        # self.layout.addWidget(self.stateLabel)
-        # self.layout.addWidget(self.animationRunTime)
-        # self.layout.addWidget(self.loopCb)
-        # self.layout.addWidget(self.loopTimes)
+        
         self.stateGroupBox.setLayout(stateLayout)
         self.layout.addWidget(self.stateGroupBox)
         self.layout.addStretch()
         self.emptyLabel = QLabel("nothing selected")
         self.layout.addWidget(self.emptyLabel)
         self.layout.addStretch()
-
-        # self.nameLbl = QLabel(self.selectedImobject.__class__.__name__)
         
         self.introCb = QComboBox()
         self.introCb.addItems(["None", "Create", "FadeIn"])
@@ -101,10 +96,6 @@ class DetailsBar(QWidget):
 
         removeBtn = QPushButton("remove mobject")
         removeBtn.clicked.connect(lambda: fsm_model.instant_remove_obj_at_curr(self.selectedImobject))
-        
-
-        # self.all_widgets = (self.nameLbl, self.introCb, removeBtn)
-
         
         self.mobjGroupBox = QGroupBox(f"Selected: {self.selectedImobject.__class__.__name__}")
         mobjLayout = QFormLayout()
@@ -139,8 +130,6 @@ class DetailsBar(QWidget):
 
         # Text widgets
         self.changeMarkupText = MarkupTextEdit(self)
-        # self.changeMarkupText.focusOutEvent.connect(self.changeMarkupTextHandler)
-
 
         self.boldMarkupText = QPushButton("b")
         self.boldMarkupText.clicked.connect(lambda: self.highlightMarkupText(Highlight.BOLD))

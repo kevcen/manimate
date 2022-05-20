@@ -13,6 +13,7 @@ from PySide6.QtWidgets import (
     QLabel,
     QPushButton,
     QHBoxLayout,
+    QVBoxLayout,
     QWidget,
     QSlider,
     QLineEdit
@@ -46,20 +47,28 @@ class StateWidget(QWidget):
 
         # button1 = QPushButton("manim it")
         # button1.clicked.connect(lambda : self.manim_run())
-        layout = QHBoxLayout()
+        layout = QVBoxLayout()
 
+        videoButtons = QHBoxLayout()
+        sliderButtons = QHBoxLayout()
 
-        runBtn = QPushButton("run")
+        runBtn = QPushButton("Play")
         runBtn.clicked.connect(lambda : fsm_model.run())
 
-        stopBtn = QPushButton("stop")
+        stopBtn = QPushButton("Pause")
         stopBtn.clicked.connect(lambda : fsm_model.stop())
 
+        videoButtons.addStretch()
+        videoButtons.addWidget(runBtn)
+        videoButtons.addWidget(stopBtn)
+        videoButtons.addStretch()
 
-        frameBtn = QPushButton("new frame")
-        frameBtn.clicked.connect(lambda : fsm_model.add_state())
+        addframeBtn = QPushButton("+")
+        addframeBtn.clicked.connect(lambda : fsm_model.add_state())
+        delframeBtn = QPushButton("-")
+        delframeBtn.clicked.connect(lambda : fsm_model.del_state())
 
-        exportBtn = QPushButton("export")
+        exportBtn = QPushButton("Export")
         exportBtn.clicked.connect(lambda : fsm_model.export())
 
         timeSlider = QSlider()
@@ -75,7 +84,11 @@ class StateWidget(QWidget):
 
         fsm_model.stateChange.connect(stateChangeHandler)
 
-        for w in (timeSlider, label, runBtn, stopBtn, frameBtn, exportBtn):
-            layout.addWidget(w)
+        for w in (timeSlider, label, addframeBtn, delframeBtn, exportBtn):
+            sliderButtons.addWidget(w)
         
+
+        
+        layout.addLayout(videoButtons)
+        layout.addLayout(sliderButtons)
         self.setLayout(layout)

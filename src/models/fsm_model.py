@@ -81,6 +81,21 @@ class FsmModel(QObject):
                 for _ in range(self.curr.idx, idx):
                     self.playForward()
 
+    def del_state(self):
+        if self.is_running or self.numStates <= 1:
+            return
+
+        prev = self.curr.prev
+        next = self.curr.next
+        prev.next = next
+        next.prev = prev
+        self.curr = prev
+
+        self.numStates -= 1
+        self.shift_above_idxs(self.curr.next, -1)
+
+        self.stateChange.emit(self.curr.idx, self.numStates)
+
     def add_state(self):
         # print('idx before', self.curr.idx)
         # print(hex(id(self.curr)))
@@ -102,13 +117,13 @@ class FsmModel(QObject):
         # print('index is now', self.curr.idx)
         # print(hex(id(self.curr)))
         self.numStates += 1
-        self.shift_above_idxs(self.curr.next)
+        self.shift_above_idxs(self.curr.next, 1)
 
         #emit signal for widgets
         self.stateChange.emit(self.curr.idx, self.numStates)
     
-    def shift_above_idxs(self, state):
-        state.idx = state.prev.idx + 1
+    def shift_above_idxs(self, state, inc):
+        state.idx = state.prev.idx + inc
         if state != self.end:
             self.shift_above_idxs(state.next)
         

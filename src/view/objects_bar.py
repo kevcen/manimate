@@ -18,7 +18,8 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
     QSlider,
-    QLineEdit
+    QLineEdit,
+    QTabWidget,
 )
 from __feature__ import true_property
 from pathlib import Path
@@ -29,7 +30,7 @@ from moderngl_window.timers.clock import Timer
 
 
 
-class ObjectsBar(QWidget):
+class ObjectsBar(QTabWidget):
     def __init__(self, fsm_model):
         super().__init__()
 
@@ -37,27 +38,66 @@ class ObjectsBar(QWidget):
 
         self.setWindowTitle(" ")
 
-        self.geometry = QRect(450, 250, 150, 600)
-        
+        self.geometry = QRect(300, 250, 300, 600)
+
+        self.addTab(self.file_tab(), "File")
+        self.addTab(self.object_tab(), "Add Objects")
+        self.addTab(self.animation_tab(), "Animation")
+
+        self.tabPosition = QTabWidget.West
+        self.setCurrentIndex(1)
+
+    def file_tab(self): 
+        tab = QWidget()
+        layout = QVBoxLayout()
+
+        exit = QPushButton("Exit")
+        save = QPushButton("Save As Python Script")
+        export = QPushButton("Export As MP4")
+        importBtn = QPushButton("Import Python Script As Frame")
+        # addTree.clicked.connect(self.add_tree)
+
+        for w in (save, export, importBtn, export, exit):
+            layout.addWidget(w)
+
+        tab.setLayout(layout)
+        return tab
+
+    def animation_tab(self):
+        tab = QWidget()
+        layout = QVBoxLayout()
+
+        addFrame = QPushButton("New Frame (+)")
+        delFrame = QPushButton("Delete Current Frame (-)")
+
+        for w in (addFrame, delFrame):
+            layout.addWidget(w)
+
+        tab.setLayout(layout)
+        return tab
+
+
+    def object_tab(self):
+        tab = QWidget()
         layout = QVBoxLayout()
 
         addTree = QPushButton("add tree")
         addTree.clicked.connect(self.add_tree)
 
         addCircle = QPushButton("add circle")
-        addCircle.clicked.connect(lambda : fsm_model.instant_add_object_to_curr(ICircle()))
+        addCircle.clicked.connect(lambda : self.fsm_model.instant_add_object_to_curr(ICircle()))
 
         addSquare = QPushButton("add square")
-        addSquare.clicked.connect(lambda : fsm_model.instant_add_object_to_curr(ISquare()))
+        addSquare.clicked.connect(lambda : self.fsm_model.instant_add_object_to_curr(ISquare()))
         
         addStar = QPushButton("add star")
-        addStar.clicked.connect(lambda : fsm_model.instant_add_object_to_curr(IStar()))
+        addStar.clicked.connect(lambda : self.fsm_model.instant_add_object_to_curr(IStar()))
 
         addTriangle = QPushButton("add triangle")
-        addTriangle.clicked.connect(lambda : fsm_model.instant_add_object_to_curr(ITriangle()))
+        addTriangle.clicked.connect(lambda : self.fsm_model.instant_add_object_to_curr(ITriangle()))
 
         addMarkupText = QPushButton("add text")
-        addMarkupText.clicked.connect(lambda : fsm_model.instant_add_object_to_curr(IMarkupText(
+        addMarkupText.clicked.connect(lambda : self.fsm_model.instant_add_object_to_curr(IMarkupText(
             """click to add text"""
             # mergeHeaps h1@(t1 : h) h2@(t2 : h')
             #     | r < r'    = t1 : mergeHeaps h h2
@@ -66,15 +106,16 @@ class ObjectsBar(QWidget):
             #     where
             #         r  = rank t1
             #         r' = rank t2"""
-        , fsm_model=fsm_model)))
+        , fsm_model=self.fsm_model)))
 
         addMathTex = QPushButton("add latex")
-        addMathTex.clicked.connect(lambda : fsm_model.instant_add_object_to_curr(IMathTex(r"\xrightarrow{x^6y^8}", fsm_model=fsm_model)))
+        addMathTex.clicked.connect(lambda : self.fsm_model.instant_add_object_to_curr(IMathTex(r"\xrightarrow{x^6y^8}", fsm_model=fsm_model)))
         
         for w in (addTree, addCircle, addSquare, addTriangle, addStar, addMarkupText, addMathTex):
             layout.addWidget(w)
         
-        self.setLayout(layout)
+        tab.setLayout(layout)
+        return tab
 
     def add_tree(self):
         node = INode(self.fsm_model)
