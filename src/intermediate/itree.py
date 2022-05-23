@@ -53,7 +53,7 @@ class INode(IMobject):
         curr_state.addTransform(self.label)
 
         # setup current ui
-        self.fsm_model.scene_model.playCopy(curr_state.getTransform(self.label), curr_state)
+        curr_state.playCopy(curr_state.getTransform(self.label), self.fsm_model.scene_model.scene)
         mh.getCopy(self).add(mh.getCopy(self.label))
         # mh.setCopy(self, self.mobject)
 

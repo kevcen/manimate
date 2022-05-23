@@ -5,6 +5,7 @@ from fsm.state import State
 from manim import *
 import time
 from intermediate.ianimation import ICreate
+from intermediate.imobject import IMobject
 from models import scene_model
 import numpy as np
 import models.mobject_helper as mh
@@ -13,7 +14,7 @@ import models.mobject_helper as mh
 
 class FsmModel(QObject):
     stateChange = Signal(int, int)
-
+    # selectedMobjectChange = Signal(IMobject)
     def __init__(self, scene_model):
         super().__init__()
 
@@ -34,13 +35,10 @@ class FsmModel(QObject):
              
     def playForward(self, fast=True):
         self.curr = self.curr.next
-        if fast:
-            self.scene_model.playFast(self.curr)
-        else:
-            self.scene_model.play(self.curr)
+        self.curr.play(self.scene_model.scene, fast)
 
     def playBack(self):
-        self.scene_model.playRev(self.curr)
+        self.curr.playRev(self.scene_model.scene)
         self.curr = self.curr.prev 
 
     def hasLoop(self):
@@ -125,7 +123,7 @@ class FsmModel(QObject):
     def shift_above_idxs(self, state, inc):
         state.idx = state.prev.idx + inc
         if state != self.end:
-            self.shift_above_idxs(state.next)
+            self.shift_above_idxs(state.next, inc)
         
     def confirm_move(self, mcopy, point):
         imobject = mh.getOriginal(mcopy)
@@ -177,7 +175,7 @@ class FsmModel(QObject):
         imobject.addedState = self.curr
         imobject.introAnim = create
         # self.curr.prev.added.add(imobject)
-        self.scene_model.playCopy(create, self.curr)
+        self.curr.playCopy(create, self.scene_model.scene)
 
 
     def instant_add_object_to_curr(self, imobject):
@@ -187,6 +185,8 @@ class FsmModel(QObject):
 
         imobject.addedState = self.curr
         imobject.introAnim = None
+
+        self.scene_model.set_selected_imobject(imobject)
 
     def instant_remove_obj_at_curr(self, imobject):
         self.scene_model.remove(imobject)
@@ -199,10 +199,8 @@ class FsmModel(QObject):
             imobject.addedState = None
             mh.removeCopy(mh.getCopy(imobject))
             if imobject in self.curr.added:
-                self.curr.added.remove(imobject)
-            
-            
-
+                self.curr.added.remove(imobject)     
+        
         if imobject in self.curr.transforms:
             transform = self.curr.transforms[imobject]
             self.curr.animations.remove(transform)
@@ -210,7 +208,7 @@ class FsmModel(QObject):
         if imobject in self.curr.targets:
             del self.curr.targets[imobject]
 
-        # print(len(self.curr.animations))
+        self.scene_model.unselect_mobjects()
 
 
 

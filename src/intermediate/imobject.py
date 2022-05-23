@@ -2,6 +2,7 @@ from manim import *
 import html
 import models.mobject_helper as mh
 
+
 class IMobject:
     def __init__(self, mobject, parentImobject=None):
         self.mobject = mobject
@@ -15,6 +16,11 @@ class IMobject:
 
     def copyWith(self, mobject):
         return IMobject(mobject)
+
+# Class representing no selected object
+class INone(IMobject):
+    def __init__(self):
+        super().__init__(None)
 
 class ICircle(IMobject):
     def __init__(self, color=RED, radius=None, parentImobject=None):

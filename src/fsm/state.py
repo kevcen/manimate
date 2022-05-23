@@ -4,6 +4,7 @@ from bidict import bidict
 from collections import defaultdict
 
 from intermediate.ianimation import ITransform
+import fsm.generator as generator
 import models.mobject_helper as mh
 
 # from manim.animation.animation import DEFAULT_ANIMATION_RUN_TIME
@@ -41,7 +42,7 @@ class State:
     def getTransform(self, imobject):
         return self.transforms[imobject] if imobject in self.transforms else None
         
-    
+    # Capturing states for reverse
     def capture_prev(self, mcopy, bypass=False):
         # print('try capture', hex(id(self)))
         # capture previous frame for reverse if editable
@@ -64,3 +65,86 @@ class State:
         if imobject in state.targets:
             return state.targets[imobject].copy()
         return self.find_prev_target(state.prev, imobject)
+
+    # Scene related functions
+    def playOne(self, anim, scene):
+        anim.run_time = 0
+        scene.play(anim)
+
+    def playCopy(self, anim, scene):
+        forward_anim = generator.forward(anim, self)
+        forward_anim.run_time = 0
+        scene.play(forward_anim)
+
+    def addMobjects(self, mobjects, scene):
+        for imobject in mobjects:
+            mcopy = mh.getCopy(imobject)
+            scene.add(mcopy)
+
+    def removeMobjects(self, mobjects, scene):
+        for imobject in mobjects:
+            mcopy = mh.getCopy(imobject)
+            scene.remove(mcopy)
+
+    def forwardAttributes(self):
+        for imobject in self.changedMobjectAttributes:
+            for attr_name, value in self.changedMobjectAttributes[imobject].items():
+                setattr(imobject, attr_name, value)
+
+    def reverseAttributes(self):
+        for imobject in self.changedMobjectAttributes:
+            for attr_name in self.changedMobjectAttributes[imobject]:
+                value = None
+                if attr_name in self.prev.changedMobjectAttributes[imobject]:
+                    value = self.prev.changedMobjectAttributes[imobject][attr_name] 
+                else:
+                    value = self.revAttributes[imobject][attr_name]
+                # print(imobject, attr_name, value)
+                setattr(imobject, attr_name, value)
+
+    def play(self, scene, fast=False):
+        self.addMobjects(self.added, scene)
+        self.removeMobjects(self.removed, scene)
+        self.forwardAttributes()
+        forward_anim = list(filter(None, map(lambda a: generator.forward(a, self), self.animations)))
+
+        for animation in forward_anim:
+            animation.run_time = self.run_time if not fast else 0
+
+        if len(forward_anim) > 0:
+            scene.play(*forward_anim)
+        elif not fast:
+            scene.wait(1)
+
+    def playRev(self, scene):
+        # print(f"rem {len(state.added)}, anim {len(state.animations)}")
+        reversed_anim = list(filter(None, map(lambda a: generator.reverse(a, self), self.animations)))
+        
+        for animation in reversed_anim:
+            # print('rev', animation, animation.mobject)
+            animation.run_time = 0
+
+        if len(reversed_anim) > 0:
+            scene.play(*reversed_anim)
+
+        
+        self.addMobjects(self.removed, scene)
+        self.removeMobjects(self.added, scene)
+        self.reverseAttributes()
+
+    ## debugging
+    def replay(self, scene):
+        reversed_anim = [generator.reverse(instr, self) for instr in self.animations]
+
+        for animation in reversed_anim:
+            animation.run_time = 0
+
+        if reversed_anim:
+            scene.play(*reversed_anim)
+
+        forward_anim = [generator.forward(anim, self) for anim in self.animations]
+        for animation in forward_anim:
+            animation.run_time = 0
+
+        if forward_anim:
+            scene.play(*forward_anim)

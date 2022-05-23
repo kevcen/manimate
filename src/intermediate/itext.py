@@ -48,7 +48,7 @@ class IMathTex(IMobject):
             curr_state.addTransform(self)
 
             # setup current ui
-            self.fsm_model.scene_model.playCopy(curr_state.getTransform(self), curr_state)
+            curr_state.playCopy(curr_state.getTransform(self), self.fsm_model.scene_model.scene)
         except:
             print("latex compile error")
 
@@ -166,6 +166,6 @@ class IMarkupText(IMobject):
         curr_state.addTransform(self)
 
         # setup current ui
-        self.fsm_model.scene_model.playCopy(curr_state.getTransform(self), curr_state)
+        curr_state.playCopy(curr_state.getTransform(self), self.fsm_model.scene_model.scene)
 
         self.editedAt = curr_state.idx

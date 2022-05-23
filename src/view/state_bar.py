@@ -43,7 +43,7 @@ class StateWidget(QWidget):
         super().__init__()
 
         self.setWindowTitle(" ")
-        self.geometry = QRect(600, 800, 900, 100)
+        self.geometry = QRect(550, 800, 900, 100)
 
         # button1 = QPushButton("manim it")
         # button1.clicked.connect(lambda : self.manim_run())

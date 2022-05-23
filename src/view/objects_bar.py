@@ -1,5 +1,5 @@
 import sys
-from intermediate.imobject import ICircle, ISquare, IStar, ITriangle
+from intermediate.imobject import ICircle, IMobject, ISquare, IStar, ITriangle
 from intermediate.itext import IMarkupText, IMathTex
 from intermediate.itree import INode
 from models.fsm_model import FsmModel
@@ -10,7 +10,7 @@ from manim.renderer.opengl_renderer import OpenGLRenderer
 
 from PySide6.QtGui import QOpenGLContext, QSurfaceFormat
 from PySide6.QtOpenGLWidgets import QOpenGLWidget
-from PySide6.QtCore import Qt, Slot, QRect
+from PySide6.QtCore import Qt, Slot, QRect, Signal
 from PySide6.QtWidgets import (
     QApplication,
     QLabel,
@@ -38,7 +38,7 @@ class ObjectsBar(QTabWidget):
 
         self.setWindowTitle(" ")
 
-        self.geometry = QRect(300, 250, 300, 600)
+        self.geometry = QRect(250, 250, 300, 600)
 
         self.addTab(self.file_tab(), "File")
         self.addTab(self.object_tab(), "Add Objects")
@@ -109,7 +109,7 @@ class ObjectsBar(QTabWidget):
         , fsm_model=self.fsm_model)))
 
         addMathTex = QPushButton("add latex")
-        addMathTex.clicked.connect(lambda : self.fsm_model.instant_add_object_to_curr(IMathTex(r"\xrightarrow{x^6y^8}", fsm_model=fsm_model)))
+        addMathTex.clicked.connect(lambda : self.fsm_model.instant_add_object_to_curr(IMathTex(r"\xrightarrow{x^6y^8}", fsm_model=self.fsm_model)))
         
         for w in (addTree, addCircle, addSquare, addTriangle, addStar, addMarkupText, addMathTex):
             layout.addWidget(w)

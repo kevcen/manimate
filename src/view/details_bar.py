@@ -1,5 +1,6 @@
 import sys
 from intermediate.ianimation import ICreate, IFadeIn
+from intermediate.imobject import INone
 from intermediate.itext import Highlight, IMarkupText, IMathTex
 from intermediate.itree import INode
 from models.fsm_model import FsmModel
@@ -52,11 +53,11 @@ class DetailsBar(QWidget):
         self.scene_model = scene_model
         self.fsm_model = fsm_model
 
-        self.selectedImobject = None
+        self.selectedImobject = INone()
 
         self.setWindowTitle(" ")
 
-        self.geometry = QRect(1500, 250, 150, 600)
+        self.geometry = QRect(1450, 250, 150, 600)
 
         self.layout = QVBoxLayout()
 
@@ -95,7 +96,7 @@ class DetailsBar(QWidget):
         self.introCb.currentIndexChanged.connect(self.introAnimationHandler)
 
         removeBtn = QPushButton("remove mobject")
-        removeBtn.clicked.connect(lambda: fsm_model.instant_remove_obj_at_curr(self.selectedImobject))
+        removeBtn.clicked.connect(self.removeMobjectHandler)
         
         self.mobjGroupBox = QGroupBox(f"Selected: {self.selectedImobject.__class__.__name__}")
         mobjLayout = QFormLayout()
@@ -156,12 +157,12 @@ class DetailsBar(QWidget):
 
         scene_model.selectedMobjectChange.connect(lambda mob: self.refresh(mob))
         fsm_model.stateChange.connect(lambda: self.refresh())
-
+        # fsm_model.selectedMobjectChange.connect()
         
         self.setLayout(self.layout)
 
     def refresh(self, imobject=None):
-        print('REFRESH')
+        print('REFRESH', imobject)
         if imobject == self.selectedImobject and self.currIdx == self.fsm_model.curr.idx:
             return #nothing happened 
         if imobject is None:
@@ -180,7 +181,7 @@ class DetailsBar(QWidget):
         self.loopCb.addItems([f"State {n}" for n in range(1, self.fsm_model.end.idx)])
         self.loopCb.setCurrentIndex(self.loopCb.findText(f"State {self.fsm_model.curr.loop[0]}") if self.fsm_model.curr.loop is not None else 0)
         self.loopCb.blockSignals(False)
-        if imobject is None:
+        if isinstance(imobject, INone):
             print('add nothing sel text')
             self.layout.insertWidget(self.layout.count()-1, QLabel("nothing selected"))
             return
@@ -327,7 +328,11 @@ class DetailsBar(QWidget):
 
         if imobject.introAnim is not None:
             imobject.addedState.animations.append(imobject.introAnim)
-            self.scene_model.playCopy(imobject.introAnim, imobject.addedState)
+            imobject.addedState.addedState.playCopy(imobject.introAnim, self.scene_model.scene)
         else:
             imobject.addedState.added.add(imobject)
             self.scene_model.addCopy(imobject)
+
+    def removeMobjectHandler(self):
+        self.fsm_model.instant_remove_obj_at_curr(self.selectedImobject)
+        self.refresh(None)

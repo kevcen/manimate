@@ -1,9 +1,9 @@
-from fsm.generator import AnimationGenerator
+import fsm.generator as generator
 from manim.utils.color import *
 from manim import *
 from PySide6.QtCore import (Signal, QObject)
 
-from intermediate.imobject import IMobject
+from intermediate.imobject import IMobject, INone
 from intermediate.itext import IMarkupText
 import models.mobject_helper as mh
 
@@ -16,7 +16,7 @@ class SceneModel(QObject):
         super().__init__()
         self.scene = scene
         scene.handler = self
-        self.generator = AnimationGenerator()
+        # generator = AnimationGenerator()
         self.selected = {}
         self.fsm_model = None #to set
 
@@ -24,101 +24,6 @@ class SceneModel(QObject):
         self.fsm_model = fsm_model
 
     # For debugging purposes
-    def playOne(self, anim, state):
-        anim.run_time = 0
-        self.scene.play(anim)
-
-    def playCopy(self, anim, state):
-        forward_anim = self.generator.forward(anim, state)
-        forward_anim.run_time = 0
-        self.scene.play(forward_anim)
-
-    def addMobjects(self, mobjects):
-        for imobject in mobjects:
-            mcopy = mh.getCopy(imobject)
-            self.scene.add(mcopy)
-
-    def removeMobjects(self, mobjects):
-        for imobject in mobjects:
-            mcopy = mh.getCopy(imobject)
-            self.scene.remove(mcopy)
-
-    def forwardAttributes(self, state):
-        for imobject in state.changedMobjectAttributes:
-            for attr_name, value in state.changedMobjectAttributes[imobject].items():
-                setattr(imobject, attr_name, value)
-
-    def reverseAttributes(self, state):
-        for imobject in state.changedMobjectAttributes:
-            for attr_name in state.changedMobjectAttributes[imobject]:
-                value = None
-                if attr_name in state.prev.changedMobjectAttributes[imobject]:
-                    value = state.prev.changedMobjectAttributes[imobject][attr_name] 
-                else:
-                    value = state.revAttributes[imobject][attr_name]
-                # print(imobject, attr_name, value)
-                setattr(imobject, attr_name, value)
-
-    def play(self, state):
-        self.addMobjects(state.added)
-        self.removeMobjects(state.removed)
-        self.forwardAttributes(state)
-        forward_anim = list(filter(None, map(lambda a: self.generator.forward(a, state), state.animations)))
-
-        for animation in forward_anim:
-            animation.run_time = state.run_time
-
-        if len(forward_anim) > 0:
-            self.scene.play(*forward_anim)
-        else:
-            self.scene.wait(1)
-
-    def playFast(self, state):
-        # print(f"add {len(state.added)}, anim {len(state.animations)}")
-        self.addMobjects(state.added)
-        self.removeMobjects(state.removed)
-        self.forwardAttributes(state)
-        forward_anim = list(filter(None, map(lambda a: self.generator.forward(a, state), state.animations)))
-
-        for animation in forward_anim:
-            # print('for', animation, animation.mobject)
-            animation.run_time = 0
-
-        if len(forward_anim) > 0:
-            self.scene.play(*forward_anim)
-
-    def playRev(self, state):
-        # print(f"rem {len(state.added)}, anim {len(state.animations)}")
-        reversed_anim = list(filter(None, map(lambda a: self.generator.reverse(a, state), state.animations)))
-        
-        for animation in reversed_anim:
-            # print('rev', animation, animation.mobject)
-            animation.run_time = 0
-
-        if len(reversed_anim) > 0:
-            self.scene.play(*reversed_anim)
-
-        
-        self.addMobjects(state.removed)
-        self.removeMobjects(state.added)
-        self.reverseAttributes(state)
-
-    ## debugging
-    def replay(self, state):
-        reversed_anim = [self.generator.reverse(instr, state) for instr in state.animations]
-
-        for animation in reversed_anim:
-            animation.run_time = 0
-
-        if reversed_anim:
-            self.scene.play(*reversed_anim)
-
-        forward_anim = [self.generator.forward(anim, state) for anim in state.animations]
-        for animation in forward_anim:
-            animation.run_time = 0
-
-        if forward_anim:
-            self.scene.play(*forward_anim)
 
     def addCopy(self, imobject):
         self.scene.add(mh.getCopy(imobject))
@@ -132,9 +37,14 @@ class SceneModel(QObject):
         imobject = mh.getOriginal(mobject)
         # print(mobject, imobject)
         # print('select', hex(id(mobject)))
+        self.set_selected_imobject(imobject)
+        
+    def set_selected_imobject(self, imobject):
+        print("SELECT NEW OBJ")
         if imobject.parentImobject is not None:
-            imobject = imobject.parentImobject 
-            mobject = mh.getCopy(imobject)
+            imobject = imobject.parentImobject
+        
+        mobject = mh.getCopy(imobject)
         
         self.selected[mobject] = mobject.get_color()
 
@@ -146,16 +56,15 @@ class SceneModel(QObject):
         # print(imobject)
         self.selectedMobjectChange.emit(imobject)
 
-
-    def unselect_mobjects(self, signal=True):
+    def unselect_mobjects(self):
+        print("UNSELECT")
         for mobject, color in self.selected.items():
             if not isinstance(mobject, MarkupText):
                 mobject.set_color(color)
 
         self.selected = {}
 
-        if signal: # emit signal for widgets
-            self.selectedMobjectChange.emit(None)
+        self.selectedMobjectChange.emit(INone())
 
     """" Movement functions """
     # TODO: refactor non-scene related functions out
