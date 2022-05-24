@@ -81,9 +81,13 @@ if __name__ == "__main__":
         details_bar = DetailsBar(scene_model, fsm_model)
         details_bar.show()
 
-        # window._widget.hide()
-        # window._widget.show()
+
+        with open("view/styles.qss", "r") as f:
+            _style = f.read()
+            for w in (objects_bar, details_bar, state_bar):
+                w.setStyleSheet(_style)
 
         scene.render()
+
 
     sys.exit(app.exec())

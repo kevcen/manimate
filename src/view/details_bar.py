@@ -328,7 +328,7 @@ class DetailsBar(QWidget):
 
         if imobject.introAnim is not None:
             imobject.addedState.animations.append(imobject.introAnim)
-            imobject.addedState.addedState.playCopy(imobject.introAnim, self.scene_model.scene)
+            imobject.addedState.playCopy(imobject.introAnim, self.scene_model.scene)
         else:
             imobject.addedState.added.add(imobject)
             self.scene_model.addCopy(imobject)

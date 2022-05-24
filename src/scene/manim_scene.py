@@ -38,6 +38,8 @@ def point_to_mobject(self, point, search_set=None):
     # under a given point
     if search_set is None:
         search_set = self.mobjects
+
+    print("SELECT OBJECTS NUMBER", len(search_set))
     for mobject in reversed(search_set):
         if mobject.is_point_touching(point):
             return mobject
