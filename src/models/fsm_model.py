@@ -159,7 +159,7 @@ class FsmModel(QObject):
         else:
             # print('new object no transform')
             self.curr.targets[imobject] = target
-            imobject.mobject = target
+            # imobject.mobject = target
 
     def created_at_curr_state(self, imobject):
         return imobject.addedState == self.curr
@@ -178,7 +178,7 @@ class FsmModel(QObject):
         self.curr.playCopy(create, self.scene_model.scene)
 
 
-    def instant_add_object_to_curr(self, imobject):
+    def instant_add_object_to_curr(self, imobject, select=True):
         self.curr.added.add(imobject)
         self.curr.targets[imobject] = imobject.mobject
         self.scene_model.addCopy(imobject)
@@ -186,7 +186,8 @@ class FsmModel(QObject):
         imobject.addedState = self.curr
         imobject.introAnim = None
 
-        self.scene_model.set_selected_imobject(imobject)
+        if select:
+            self.scene_model.set_selected_imobject(imobject)
 
     def instant_remove_obj_at_curr(self, imobject):
         self.scene_model.remove(imobject)

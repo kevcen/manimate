@@ -1,6 +1,6 @@
 import sys
 from intermediate.ianimation import ICreate, IFadeIn
-from intermediate.imobject import INone
+from intermediate.imobject import IGroup, INone
 from intermediate.itext import Highlight, IMarkupText, IMathTex
 from intermediate.itree import INode
 from models.fsm_model import FsmModel
@@ -97,10 +97,21 @@ class DetailsBar(QWidget):
 
         removeBtn = QPushButton("remove mobject")
         removeBtn.clicked.connect(self.removeMobjectHandler)
+
+        self.groupCb = QComboBox()
+        self.groupCb.currentIndexChanged.connect(self.groupCbHandler)
+
+        self.newGroupBtn = QPushButton("+")
+        self.newGroupBtn.clicked.connect(self.newGroupBtnHandler)
+
+        self.groupRow = QHBoxLayout()
+        self.groupRow.addWidget(self.groupCb)
+        self.groupRow.addWidget(self.newGroupBtn)
         
         self.mobjGroupBox = QGroupBox(f"Selected: {self.selectedImobject.__class__.__name__}")
         mobjLayout = QFormLayout()
         mobjLayout.addRow(QLabel("Intro animation:"), self.introCb)
+        mobjLayout.addRow(QLabel("Grouping:"), self.groupRow)
         mobjLayout.addRow(QLabel("Remove:"), removeBtn)
         self.mobjGroupBox.setLayout(mobjLayout)
 
@@ -224,13 +235,17 @@ class DetailsBar(QWidget):
         self.introCb.setCurrentIndex(self.introCb.findText(imobject.introAnim.__class__.__name__[1:]) if imobject.introAnim is not None else 0)
         self.introCb.blockSignals(False)
 
-
+        self.groupCb.addItem("None")
+        self.groupCb.addItems([mh.getName(im) for im in mh.getGroups()])
+        self.groupCb.setCurrentIndex(self.groupCb.findText(mh.getName(imobject.group) if imobject.group is not None else "None"))
+        self.groupCb.blockSignals(False)
         # self.layout.addStretch()
     
     def clearItems(self):
         self.changeNodeText.blockSignals(True)
         self.changeMarkupText.blockSignals(True)
         self.loopCb.blockSignals(True)
+        self.groupCb.blockSignals(True)
         for i in range(self.layout.count()-2, TOP_WIDGETS_NUM, -1): 
             child = self.layout.itemAt(i).widget()
             print("clearing " + child.__class__.__name__ if child is not None else "NONE")
@@ -249,11 +264,11 @@ class DetailsBar(QWidget):
             self.changeParentCb.blockSignals(True)
             self.changeParentCb.clear()
 
-        self.loopCb.blockSignals(True)
         self.loopCb.clear()
+        self.groupCb.clear()
 
     def highlightMarkupText(self, highlight):
-        if self.selectedImobject is None:
+        if isinstance(self.selectedImobject, INone):
             return
 
         cursor = self.changeMarkupText.textCursor()
@@ -278,7 +293,7 @@ class DetailsBar(QWidget):
         self.fsm_model.curr.loopCnt = value
 
     def changeMarkupTextHandler(self):
-        if self.selectedImobject is None:
+        if isinstance(self.selectedImobject, INone):
             return
         
         text = self.changeMarkupText.plainText
@@ -306,7 +321,7 @@ class DetailsBar(QWidget):
 
 
     def introAnimationHandler(self, i):
-        if self.selectedImobject is None:
+        if isinstance(self.selectedImobject, INone):
             return 
 
         # print('CHANGE INTRO', self.selectedImobject.__class__.__name__, i)
@@ -335,4 +350,38 @@ class DetailsBar(QWidget):
 
     def removeMobjectHandler(self):
         self.fsm_model.instant_remove_obj_at_curr(self.selectedImobject)
-        self.refresh(None)
+        self.refresh()
+
+    def newGroupBtnHandler(self):
+        group = IGroup()
+        self.fsm_model.instant_add_object_to_curr(group, select=False)
+        mh.groups.add(group)
+
+        self.refresh() # show new igroup in combobox
+
+    def groupCbHandler(self, i):
+        if isinstance(self.selectedImobject, INone):
+            return
+
+        imobject = self.selectedImobject
+        mobject = mh.getCopy(imobject)
+        if imobject.group is not None:
+            mh.getCopy(imobject.group).remove(mobject)
+            self.scene_model.scene.add(mobject)
+
+        group_name = self.groupCb.currentText
+        print("CHANGE GROUP", group_name, "cb count", self.groupCb.count)
+        if group_name != "None":
+            igroup = mh.getImobjectByName(group_name)
+            group = mh.getCopy(igroup)
+
+            igroup.add(imobject)
+
+            self.scene_model.set_selected_mobject(group)
+        else:
+            pass # TODO: tabs for each child
+            
+        
+        
+        
+        

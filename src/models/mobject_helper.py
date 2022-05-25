@@ -6,7 +6,10 @@ from manim import VGroup
 copies = bidict()
 names = bidict()
 classCtr = defaultdict(int)
+groups = set()
 
+def getGroups():
+    return groups
 
 def getCopy(imobject):
     if imobject not in copies:
@@ -58,5 +61,5 @@ def getImobjectsByClass(cls):
     for imobj in copies:
         if isinstance(imobj, cls):
             yield imobj 
-    
+
 

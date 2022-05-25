@@ -5,7 +5,7 @@ import models.mobject_helper as mh
 
 class IMobject:
     def __init__(self, mobject, parentImobject=None):
-        self.mobject = mobject
+        self.mobject = mobject #mobject to be only used as a initial target
         self.addedState = None 
         self.removedState = None
         self.introAnim = None
@@ -13,6 +13,7 @@ class IMobject:
         self.isDeleted = False
         self.parentImobject = parentImobject
         self.editedAt = None
+        self.group = None
 
     def copyWith(self, mobject):
         return IMobject(mobject)
@@ -21,6 +22,17 @@ class IMobject:
 class INone(IMobject):
     def __init__(self):
         super().__init__(None)
+
+class IGroup(IMobject):
+    def __init__(self):
+        super().__init__(VGroup())
+        self.vgroup_children = set()
+    
+    def add(self, imobject):
+        mobject, group = mh.getCopy(imobject), mh.getCopy(self)
+        imobject.group = self
+        self.vgroup_children.add(imobject)
+        group.add(mobject)
 
 class ICircle(IMobject):
     def __init__(self, color=RED, radius=None, parentImobject=None):

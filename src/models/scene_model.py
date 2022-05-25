@@ -43,6 +43,9 @@ class SceneModel(QObject):
         print("SELECT NEW OBJ")
         if imobject.parentImobject is not None:
             imobject = imobject.parentImobject
+
+        if imobject.group is not None:
+            imobject = imobject.group
         
         mobject = mh.getCopy(imobject)
         
