@@ -178,6 +178,9 @@ class FsmModel(QObject):
 
 
     def instant_add_object_to_curr(self, imobject, select=True):
+        if not imobject.allowed_to_select:
+            return
+            
         self.curr.added.add(imobject)
         self.curr.targets[imobject] = imobject.mobject
         self.scene_model.addCopy(imobject)

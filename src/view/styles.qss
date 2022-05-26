@@ -1,3 +1,23 @@
+QWidget {
+    background-color: #262626;
+    color: #FFFFFF;
+}
 
-background-color: #262626;
-color: #FFFFFF;
+QSlider::groove {
+
+}
+
+QSlider::handle {
+    height: 10px;
+    background: seagreen;
+}
+
+QSlider::handle:hover {
+    height: 10px;
+    background: green;
+}
+
+
+QSlider::sub-page {
+    background: darkseagreen;
+}

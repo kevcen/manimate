@@ -19,11 +19,9 @@ class SceneModel(QObject):
         # generator = AnimationGenerator()
         self.selected = {}
         self.fsm_model = None #to set
-        
+
     def setFsmModel(self, fsm_model):
         self.fsm_model = fsm_model
-
-    # For debugging purposes
 
     def addCopy(self, imobject):
         self.scene.add(mh.getCopy(imobject))
@@ -32,11 +30,11 @@ class SceneModel(QObject):
         self.scene.remove(mh.getCopy(imobject))
 
     """ Selection functions """
-    def set_selected_mobject(self, mobject):
+    def set_selected_mobject(self, mobject, ctrldown=False):
+        # if not ctrldown: TODO
         self.unselect_mobjects()
+
         imobject = mh.getOriginal(mobject)
-        # print(mobject, imobject)
-        # print('select', hex(id(mobject)))
         self.set_selected_imobject(imobject)
         
     def set_selected_imobject(self, imobject):

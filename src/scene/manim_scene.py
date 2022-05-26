@@ -29,7 +29,10 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
-import threading 
+import threading
+
+from intermediate.itree import IParentEdge 
+import models.mobject_helper as mh
    
 
 
@@ -41,7 +44,8 @@ def point_to_mobject(self, point, search_set=None):
 
     print("SELECT OBJECTS NUMBER", len(search_set))
     for mobject in reversed(search_set):
-        if mobject.is_point_touching(point):
+        imobject = mh.getOriginal(mobject)
+        if mobject.is_point_touching(point) and imobject.allowed_to_select:
             return mobject
     return None
 
@@ -84,7 +88,8 @@ class Test(Scene):
             mcopy = self.point_to_mobject(point)
             if mcopy is None:
                 return
-            self.handler.set_selected_mobject(mcopy)
+            ctrldown = modifiers & Qt.ControlModifier != 0
+            self.handler.set_selected_mobject(mcopy, ctrldown)
 
         if mouse_button == "RIGHT":
             self.handler.unselect_mobjects()

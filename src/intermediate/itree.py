@@ -21,15 +21,11 @@ class INode(IMobject):
 
         super().__init__(self.mobject)
 
-    def child(self):
+    def spawn_child(self):
         child = INode(self.fsm_model)
         parentcpy = mh.getCopy(self)
         child.mobject.move_to(np.array([parentcpy.get_x(), parentcpy.get_y() - 2, 0]))
         self.add_edge(self, child)
-        return child
-
-    def spawn_child(self):
-        child = self.child()
         self.children.append(child)
         child.show_node()
 
@@ -95,7 +91,7 @@ class IParentEdge(IMobject):
                         cn.get_top(), color=RED)
 
         super().__init__(self.mobject)
-        self.movable = False
+        self.allowed_to_select = False
 
 
 

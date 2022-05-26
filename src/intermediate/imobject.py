@@ -9,11 +9,11 @@ class IMobject:
         self.addedState = None 
         self.removedState = None
         self.introAnim = None
-        self.movable = True
         self.isDeleted = False
         self.parentImobject = parentImobject
         self.editedAt = None
         self.group = None
+        self.allowed_to_select = True
 
     def copyWith(self, mobject):
         return IMobject(mobject)
