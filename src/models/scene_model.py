@@ -19,7 +19,7 @@ class SceneModel(QObject):
         # generator = AnimationGenerator()
         self.selected = {}
         self.fsm_model = None #to set
-
+        
     def setFsmModel(self, fsm_model):
         self.fsm_model = fsm_model
 

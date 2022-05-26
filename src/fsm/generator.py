@@ -1,6 +1,6 @@
 from manim import *
 
-from intermediate.ianimation import ICreate, IFadeIn, ITransform
+from intermediate.ianimation import IApplyMethod, ICreate, IFadeIn, ITransform
 import models.mobject_helper as mh;
 import copy
 
@@ -13,7 +13,7 @@ def reverse(animation, state):
             mcopy = mh.getCopy(imobj)
             mh.removeCopy(mcopy)
             return FadeOut(mcopy)
-        case ITransform(imobject=imobj):
+        case ITransform(imobject=imobj) | IApplyMethod(imobject=imobj):
             mcopy = mh.getCopy(imobj)
 
             # print('mcopy is ', hex(id(mcopy)))
@@ -29,8 +29,8 @@ def reverse(animation, state):
                 tcopy = state.rev_targets[imobj].copy()
 
             # print('generate', mcopy.get_center(), tcopy.get_center())
-            mh.setCopy(imobj, tcopy)
-            return ReplacementTransform(mcopy, tcopy)
+            # mh.setCopy(imobj, tcopy)
+            return Transform(mcopy, tcopy)
         case ICreate(imobject=imobj):
             mcopy = mh.getCopy(imobj)
             mh.removeCopy(mcopy)
@@ -44,8 +44,8 @@ def forward(animation, state):
         case ITransform(imobject=imobj):
             mcopy = mh.getCopy(imobj)
             tcopy = state.targets[imobj].copy()
-            mh.setCopy(imobj, tcopy)
-            return ReplacementTransform(mcopy, tcopy)
+            # mh.setCopy(imobj, tcopy)
+            return Transform(mcopy, tcopy)
         case IFadeIn(imobject=imobj):
             mcopy = state.targets[imobj].copy() #target[obj] == obj for introducers
             mh.setCopy(imobj, mcopy)
@@ -54,9 +54,13 @@ def forward(animation, state):
             mcopy = state.targets[imobj].copy()
             mh.setCopy(imobj, mcopy)
             return Create(mcopy)
-            
-            
-    
-def matchPosition(self, mobject, target_mobject):
+        case IApplyMethod(imobject=imobj):
+            mcopy = mh.getCopy(imobj)
+            tcopy = state.targets[imobj].copy()
+            # mh.setCopy(imobj, tcopy)
+            # return Transform(mcopy, tcopy)
+            return ApplyFunction(animation.custom_method, mcopy)
+
+def matchPosition(mobject, target_mobject):
     mobject.match_x(target_mobject)
     mobject.match_y(target_mobject)

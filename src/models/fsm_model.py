@@ -132,30 +132,29 @@ class FsmModel(QObject):
             
         imobject.editedAt = self.curr.idx #need to capture after edit
 
-        # Circle().get_center()
         past_mobject = None 
         if imobject not in self.curr.targets:
-            # print('imobject mobj')
             past_mobject = imobject.mobject 
         else:
-            # print('targets mobj')
             past_mobject = self.curr.targets[imobject]
 
-        # print('conf move', past_mobject.get_center(), mcopy.get_center())
-        # print(past_mobject, mcopy)
         if (past_mobject.get_center() == mcopy.get_center()).all():
             return
-            
+
         target = mcopy.copy()
         if not isinstance(target, MarkupText):
             target.set_color(self.scene_model.selected[mcopy])
+
+        #-------------
 
         # update animation
         if not self.created_at_curr_state(imobject):
             self.curr.targets[imobject] = target
             self.curr.changedTargetAttributes[imobject]['move_to'] = str(point.tolist())
 
-            self.curr.addTransform(imobject)
+            # self.curr.addTransform(imobject)
+            imethod = self.curr.addApplyMethod(imobject)
+            imethod.move_to = point
         else:
             # print('new object no transform')
             self.curr.targets[imobject] = target

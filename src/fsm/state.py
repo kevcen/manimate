@@ -3,7 +3,7 @@ from manim import *
 from bidict import bidict
 from collections import defaultdict
 
-from intermediate.ianimation import ITransform
+from intermediate.ianimation import IApplyMethod, ITransform
 import fsm.generator as generator
 import models.mobject_helper as mh
 
@@ -17,6 +17,7 @@ class State:
         self.targets = bidict() # what the mobjects look like at this state at the end
         self.rev_targets = bidict()
         self.transforms = {}
+        self.applymethods = {}
         ## TODO: replace transforms by using prepare_anim on changedtargetattributes
         self.changedTargetAttributes = defaultdict(lambda: {})
         self.revAttributes = defaultdict(lambda: {})
@@ -39,9 +40,21 @@ class State:
             self.transforms[imobject] = ITransform(imobject)
             self.animations.append(self.transforms[imobject])
 
+        return self.transforms[imobject]
+
     def getTransform(self, imobject):
         return self.transforms[imobject] if imobject in self.transforms else None
         
+    def addApplyMethod(self, imobject):
+        if imobject not in self.applymethods:
+            self.applymethods[imobject] = IApplyMethod(imobject)
+            self.animations.append(self.applymethods[imobject])
+
+        return self.applymethods[imobject]
+
+    def getApplyMethod(self, imobject):
+        return self.applymethods[imobject] if imobject in self.applymethods else None
+
     # Capturing states for reverse
     def capture_prev(self, mcopy, bypass=False):
         # print('try capture', hex(id(self)))
