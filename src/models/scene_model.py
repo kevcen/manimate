@@ -38,7 +38,6 @@ class SceneModel(QObject):
         self.set_selected_imobject(imobject)
         
     def set_selected_imobject(self, imobject):
-        print("SELECT NEW OBJ")
         if imobject.parentImobject is not None:
             imobject = imobject.parentImobject
 

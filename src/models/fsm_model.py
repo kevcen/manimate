@@ -130,7 +130,6 @@ class FsmModel(QObject):
         if imobject is None:
             return #selected item is old, before transform 
             
-        imobject.editedAt = self.curr.idx #need to capture after edit
 
         past_mobject = None 
         if imobject not in self.curr.targets:
@@ -142,23 +141,50 @@ class FsmModel(QObject):
             return
 
         target = mcopy.copy()
+
         if not isinstance(target, MarkupText):
             target.set_color(self.scene_model.selected[mcopy])
+
+        self.edit_apply_method(imobject, target, move_to=point)
+
+    def edit_apply_method(self, imobject, target, color=None, move_to=None, scale=None):
+        imobject.editedAt = self.curr.idx #need to capture after edit
 
         #-------------
 
         # update animation
         if not self.created_at_curr_state(imobject):
             self.curr.targets[imobject] = target
-            self.curr.changedTargetAttributes[imobject]['move_to'] = str(point.tolist())
-
-            # self.curr.addTransform(imobject)
             imethod = self.curr.addApplyMethod(imobject)
-            imethod.move_to = point
+
+            if move_to is not None:
+                self.curr.changedTargetAttributes[imobject]['move_to'] = str(move_to.tolist())
+                imethod.move_to = move_to
+            
+            if color is not None:
+                imethod.color = color
+            if scale is not None:
+                imethod.scale = scale
         else:
-            # print('new object no transform')
             self.curr.targets[imobject] = target
+            
+            if scale is not None:
+                imobject.scale = scale # used for tracking old scale to do a proportionate scaling
+            if move_to is not None:
+                imobject.move_to = move_to
             # imobject.mobject = target
+
+    def get_curr_scale(self, imobject):
+        res = imobject.scale
+        
+        if not self.created_at_curr_state(imobject):
+            imethod = self.curr.getApplyMethod(imobject)
+            res = (imethod.scale if imethod is not None else 1) or 1
+        
+        return res
+    
+    def clean_scale(self, scale):
+        return scale if scale > 0 else 0.000001 #something small to prevent div zero error
 
     def created_at_curr_state(self, imobject):
         return imobject.addedState == self.curr

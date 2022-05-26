@@ -47,6 +47,7 @@ class State:
         
     def addApplyMethod(self, imobject):
         if imobject not in self.applymethods:
+            print("ADDED NEW METHOD")
             self.applymethods[imobject] = IApplyMethod(imobject)
             self.animations.append(self.applymethods[imobject])
 

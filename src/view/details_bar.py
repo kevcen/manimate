@@ -27,6 +27,7 @@ from PySide6.QtWidgets import (
     QFormLayout,
     QSpinBox,
     QDoubleSpinBox,
+    QColorDialog,
 )
 from __feature__ import true_property
 from pathlib import Path
@@ -95,6 +96,13 @@ class DetailsBar(QWidget):
         self.introCb.addItems(["None", "Create", "FadeIn"])
         self.introCb.currentIndexChanged.connect(self.introAnimationHandler)
 
+        self.changeColorBtn = QPushButton("change colour")
+        self.changeColorBtn.clicked.connect(self.changeColourBtnHandler)
+
+        self.scaleBox = QDoubleSpinBox()
+        self.scaleBox.minimum = 0
+        self.scaleBox.valueChanged.connect(self.scaleBoxHandler)
+
         removeBtn = QPushButton("remove mobject")
         removeBtn.clicked.connect(self.removeMobjectHandler)
 
@@ -110,7 +118,9 @@ class DetailsBar(QWidget):
         
         self.mobjGroupBox = QGroupBox(f"Selected: {self.selectedImobject.__class__.__name__}")
         mobjLayout = QFormLayout()
-        mobjLayout.addRow(QLabel("Intro animation:"), self.introCb)
+        mobjLayout.addRow(QLabel("Appear animation:"), self.introCb)
+        mobjLayout.addRow(QLabel("Colour:"), self.changeColorBtn)
+        mobjLayout.addRow(QLabel("Scale:"), self.scaleBox)
         mobjLayout.addRow(QLabel("Grouping:"), self.groupRow)
         mobjLayout.addRow(QLabel("Remove:"), removeBtn)
         self.mobjGroupBox.setLayout(mobjLayout)
@@ -173,7 +183,7 @@ class DetailsBar(QWidget):
         self.setLayout(self.layout)
 
     def refresh(self, imobject=None):
-        print('REFRESH', imobject)
+        # print('REFRESH', imobject)
         if imobject == self.selectedImobject and self.currIdx == self.fsm_model.curr.idx:
             return #nothing happened 
         if imobject is None:
@@ -239,6 +249,11 @@ class DetailsBar(QWidget):
         self.groupCb.addItems([mh.getName(im) for im in mh.getGroups()])
         self.groupCb.setCurrentIndex(self.groupCb.findText(mh.getName(imobject.group) if imobject.group is not None else "None"))
         self.groupCb.blockSignals(False)
+
+        self.scaleBox.blockSignals(True)
+        self.scaleBox.value = self.fsm_model.get_curr_scale(imobject)
+        self.scaleBox.blockSignals(False)
+
         # self.layout.addStretch()
     
     def clearItems(self):
@@ -248,7 +263,7 @@ class DetailsBar(QWidget):
         self.groupCb.blockSignals(True)
         for i in range(self.layout.count()-2, TOP_WIDGETS_NUM, -1): 
             child = self.layout.itemAt(i).widget()
-            print("clearing " + child.__class__.__name__ if child is not None else "NONE")
+            # print("clearing " + child.__class__.__name__ if child is not None else "NONE")
             if child is None:
                 child = self.layout.itemAt(i).layout()
             if child is not None:
@@ -381,7 +396,28 @@ class DetailsBar(QWidget):
         else:
             pass # TODO: tabs for each child
             
+    def changeColourBtnHandler(self):
+        color = QColorDialog.getColor()
+
+        if color.isValid():
+            imobject = self.selectedImobject
+            mcopy = mh.getCopy(imobject)
+
+            mcopy.set_color(color.name())
+            self.scene_model.selected[mcopy] = color.name()
+            target = mcopy.copy()
+            
+            self.fsm_model.edit_apply_method(imobject, target, color=color.name())
+
+    def scaleBoxHandler(self, value):
+        imobject = self.selectedImobject
+        mcopy = mh.getCopy(imobject)
+
+        old_scale = self.fsm_model.get_curr_scale(imobject)
+        new_scale = self.fsm_model.clean_scale(value)
+        print("OLD SCALE ", old_scale, new_scale/old_scale)
+        mcopy.scale(new_scale / old_scale)
+        target = mcopy.copy()
         
-        
-        
-        
+        self.fsm_model.edit_apply_method(imobject, target, scale=new_scale)
+

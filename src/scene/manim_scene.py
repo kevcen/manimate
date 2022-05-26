@@ -45,7 +45,7 @@ def point_to_mobject(self, point, search_set=None):
     print("SELECT OBJECTS NUMBER", len(search_set))
     for mobject in reversed(search_set):
         imobject = mh.getOriginal(mobject)
-        if mobject.is_point_touching(point) and imobject.allowed_to_select:
+        if imobject is not None and mobject.is_point_touching(point) and imobject.allowed_to_select:
             return mobject
     return None
 

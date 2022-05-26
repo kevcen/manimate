@@ -14,6 +14,7 @@ class IMobject:
         self.editedAt = None
         self.group = None
         self.allowed_to_select = True
+        self.scale = 1.0
 
     def copyWith(self, mobject):
         return IMobject(mobject)
