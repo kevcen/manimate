@@ -178,8 +178,6 @@ class FsmModel(QObject):
 
 
     def instant_add_object_to_curr(self, imobject, select=True):
-        if not imobject.allowed_to_select:
-            return
             
         self.curr.added.add(imobject)
         self.curr.targets[imobject] = imobject.mobject
@@ -188,7 +186,7 @@ class FsmModel(QObject):
         imobject.addedState = self.curr
         imobject.introAnim = None
 
-        if select:
+        if select and imobject.allowed_to_select:
             self.scene_model.set_selected_imobject(imobject)
 
     def instant_remove_obj_at_curr(self, imobject):
