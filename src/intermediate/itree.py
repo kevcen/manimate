@@ -1,3 +1,4 @@
+from intermediate.ianimation import ITransform
 from intermediate.imobject import ICircle, IMobject
 from manim import *
 from intermediate.itext import IText
@@ -46,10 +47,15 @@ class INode(IMobject):
         self.fsm_model.curr.capture_prev(mh.getCopy(self.label))
         print('changed target text')
         curr_state.targets[self.label] = new_text
-        curr_state.addTransform(self.label)
+        if not self.fsm_model.created_at_curr_state(self):
+            curr_state.addTransform(self.label)
+
+        #TODO: store for writer 
+        curr_state.targetDeclStr[self] = self.declStr()
 
         # setup current ui
-        curr_state.playCopy(curr_state.getTransform(self.label), self.fsm_model.scene_model.scene)
+        curr_state.playCopy(ITransform(self.label), self.fsm_model.scene_model.scene)
+        
         mh.getCopy(self).add(mh.getCopy(self.label))
         # mh.setCopy(self, self.mobject)
 
@@ -74,11 +80,8 @@ class INode(IMobject):
         child.parent_edge = IParentEdge(child)
         child.parent_edge.continuously_update()
 
-
-    def copyWith(self, mobject):
-        node = INode(self.fsm_model)
-        node.mobject = mobject 
-        return node
+    def declStr(self):
+        return f"Tree({self.text})" # TODO: flesh out
 
 
 class IParentEdge(IMobject):
@@ -107,5 +110,8 @@ class IParentEdge(IMobject):
         line.put_start_and_end_on(mh.getCopy(self.node.parent).get_bottom(),
                     mh.getCopy(self.node).get_top())
 
+
+    def declStr(self):
+        return f"Tree({self.text})" # TODO: flesh out
 
     

@@ -145,41 +145,48 @@ class FsmModel(QObject):
         if not isinstance(target, MarkupText):
             target.set_color(self.scene_model.selected[mcopy])
 
-        self.edit_apply_method(imobject, target, move_to=point)
+        self.edit_transform_target(imobject, target, move_to=point)
 
-    def edit_apply_method(self, imobject, target, color=None, move_to=None, scale=None):
+    def edit_transform_target(self, imobject, target, color=None, move_to=None, scale=None):
         imobject.editedAt = self.curr.idx #need to capture after edit
 
         #-------------
 
+        self.curr.targets[imobject] = target
+        self.curr.targetDeclStr[imobject] = imobject.declStr()  
+
+        if color is not None:
+            self.curr.calledTargetFunctions[imobject]['set_color'] = [f"\"{color}\""]
+        if scale is not None:
+            imobject.scale = scale # used for tracking old scale to do a proportionate scaling
+            self.curr.calledTargetFunctions[imobject]['scale'] = [str(scale)]
+        if move_to is not None:
+            imobject.move_to = move_to
+            self.curr.calledTargetFunctions[imobject]['move_to'] = [str(move_to.tolist())]
+
         # update animation
         if not self.created_at_curr_state(imobject):
-            self.curr.targets[imobject] = target
-            imethod = self.curr.addApplyMethod(imobject)
+            # self.curr.targets[imobject] = target
+            self.curr.addTransform(imobject)
+            self.curr.targetDeclStr[imobject] = f"{mh.getName(imobject)}.copy()"
 
-            if move_to is not None:
-                self.curr.changedTargetAttributes[imobject]['move_to'] = str(move_to.tolist())
-                imethod.move_to = move_to
+            # if move_to is not None:
+            #     imethod.move_to = move_to
             
-            if color is not None:
-                imethod.color = color
-            if scale is not None:
-                imethod.scale = scale
-        else:
-            self.curr.targets[imobject] = target
-            
-            if scale is not None:
-                imobject.scale = scale # used for tracking old scale to do a proportionate scaling
-            if move_to is not None:
-                imobject.move_to = move_to
-            # imobject.mobject = target
+            # if color is not None:
+            #     imethod.color = color
+            # if scale is not None:
+            #     imethod.scale = scale
+        # else:
+
+
 
     def get_curr_scale(self, imobject):
         res = imobject.scale
         
-        if not self.created_at_curr_state(imobject):
-            imethod = self.curr.getApplyMethod(imobject)
-            res = (imethod.scale if imethod is not None else 1) or 1
+        # if not self.created_at_curr_state(imobject):
+        #     imethod = self.curr.getApplyFunction(imobject)
+        #     res = (imethod.scale if imethod is not None else 1) or 1
         
         return res
     
@@ -207,6 +214,7 @@ class FsmModel(QObject):
             
         self.curr.added.add(imobject)
         self.curr.targets[imobject] = imobject.mobject
+        self.curr.targetDeclStr[imobject] = imobject.declStr()
         self.scene_model.addCopy(imobject)
 
         imobject.addedState = self.curr
@@ -228,12 +236,20 @@ class FsmModel(QObject):
             if imobject in self.curr.added:
                 self.curr.added.remove(imobject)     
         
+        #remove dependent animations
         if imobject in self.curr.transforms:
             transform = self.curr.transforms[imobject]
             self.curr.animations.remove(transform)
             del self.curr.transforms[imobject]
+
+        if imobject in self.curr.applyfunctions:
+            applyfunction = self.curr.applyfunctions[imobject]
+            self.curr.animations.remove(applyfunction)
+            del self.curr.applyfunctions[imobject]
+
         if imobject in self.curr.targets:
             del self.curr.targets[imobject]
+            del self.curr.targetDeclStr[imobject]
 
         self.scene_model.unselect_mobjects()
 

@@ -3,7 +3,7 @@ from manim import *
 from bidict import bidict
 from collections import defaultdict
 
-from intermediate.ianimation import IApplyMethod, ITransform
+from intermediate.ianimation import IApplyFunction, ITransform
 import fsm.generator as generator
 import models.mobject_helper as mh
 
@@ -17,9 +17,10 @@ class State:
         self.targets = bidict() # what the mobjects look like at this state at the end
         self.rev_targets = bidict()
         self.transforms = {}
-        self.applymethods = {}
-        ## TODO: replace transforms by using prepare_anim on changedtargetattributes
-        self.changedTargetAttributes = defaultdict(lambda: {})
+        self.applyfunctions = {}
+        ## TODO: replace transforms by using prepare_anim on calledTargetFunctions
+        self.calledTargetFunctions = defaultdict(lambda: {})
+        self.targetDeclStr = {}
         self.revAttributes = defaultdict(lambda: {})
         self.changedMobjectAttributes = defaultdict(lambda: {})
         self.added = set()
@@ -28,6 +29,7 @@ class State:
         self.run_time = 1.0
         self.loop = None # in form of (state, times)
         self.loopCnt = None
+
 
     def addTransform(self, imobject):
         """
@@ -45,16 +47,16 @@ class State:
     def getTransform(self, imobject):
         return self.transforms[imobject] if imobject in self.transforms else None
         
-    def addApplyMethod(self, imobject):
-        if imobject not in self.applymethods:
+    def addApplyFunction(self, imobject):
+        if imobject not in self.applyfunctions:
             print("ADDED NEW METHOD")
-            self.applymethods[imobject] = IApplyMethod(imobject)
-            self.animations.append(self.applymethods[imobject])
+            self.applyfunctions[imobject] = IApplyFunction(imobject)
+            self.animations.append(self.applyfunctions[imobject])
 
-        return self.applymethods[imobject]
+        return self.applyfunctions[imobject]
 
-    def getApplyMethod(self, imobject):
-        return self.applymethods[imobject] if imobject in self.applymethods else None
+    def getApplyFunction(self, imobject):
+        return self.applyfunctions[imobject] if imobject in self.applyfunctions else None
 
     # Capturing states for reverse
     def capture_prev(self, mcopy, bypass=False):
@@ -65,7 +67,7 @@ class State:
             print('captured prev')
             target = self.find_prev_target(self.prev, imobject)
             if target is None:
-                # print('head state')
+                print('head state NO TARGET')
                 return #we are in head state
                 
             self.rev_targets[imobject] = target

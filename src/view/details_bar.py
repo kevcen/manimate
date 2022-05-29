@@ -369,7 +369,7 @@ class DetailsBar(QWidget):
 
         if imobject.introAnim is not None:
             imobject.addedState.animations.append(imobject.introAnim)
-            imobject.addedState.playCopy(imobject.introAnim, self.scene_model.scene)
+            # imobject.addedState.playCopy(imobject.introAnim, self.scene_model.scene)
         else:
             imobject.addedState.added.add(imobject)
             self.scene_model.addCopy(imobject)
@@ -418,7 +418,7 @@ class DetailsBar(QWidget):
             self.scene_model.selected[mcopy] = color.name()
             target = mcopy.copy()
             
-            self.fsm_model.edit_apply_method(imobject, target, color=color.name())
+            self.fsm_model.edit_transform_target(imobject, target, color=color.name())
 
     def scaleBoxHandler(self, value):
         imobject = self.selectedImobject
@@ -430,7 +430,7 @@ class DetailsBar(QWidget):
         mcopy.scale(new_scale / old_scale)
         target = mcopy.copy()
         
-        self.fsm_model.edit_apply_method(imobject, target, scale=new_scale)
+        self.fsm_model.edit_transform_target(imobject, target, scale=new_scale)
 
     def nameEditHandler(self):
 

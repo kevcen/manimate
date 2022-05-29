@@ -16,8 +16,9 @@ class IMobject:
         self.allowed_to_select = True
         self.scale = 1.0
 
-    def copyWith(self, mobject):
-        return IMobject(mobject)
+    def declStr(self):
+        return f"{self.mobject.__class__.__name__}()"
+
 
 # Class representing no selected object
 class INone(IMobject):
@@ -35,22 +36,28 @@ class IGroup(IMobject):
         self.vgroup_children.add(imobject)
         group.add(mobject)
 
+    def childrenStr(self):
+        childnames = []
+        for imobject in self.vgroup_children:
+            childnames.append(mh.getName(imobject))
+        
+        return ', '.join(childnames)
+
+    def declStr(self):
+        return f"VGroup({self.childrenStr})"
+
 class ICircle(IMobject):
     def __init__(self, color=RED, radius=None, parentImobject=None):
         super().__init__(Circle(color=color, radius=radius), parentImobject=parentImobject)
-        
+        self.color = color
+        self.radius = radius
 
-    def copyWith(self, mobject):
-        return ICircle(mobject)
-
+    def declStr(self):
+        return f"Circle(color={self.color}, radius={self.radius})"
 
 class ISquare(IMobject):
     def __init__(self):
         super().__init__(Square())
-
-    def copyWith(self, mobject):
-        return ISquare(mobject)
-
 
 class IStar(IMobject):
     def __init__(self):
@@ -59,11 +66,6 @@ class IStar(IMobject):
 class ITriangle(IMobject):
     def __init__(self):
         super().__init__(Triangle())
-
-class IRegularPolygon(IMobject):
-    def __init__(self, n=5):
-        super().__init__(RegularPolygon(n))
-
 
 
 

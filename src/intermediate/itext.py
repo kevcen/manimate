@@ -1,5 +1,6 @@
 import html
 from manim import *
+from intermediate.ianimation import ITransform
 from intermediate.imobject import IMobject
 import models.mobject_helper as mh
 from enum import Enum
@@ -19,15 +20,15 @@ class IText(IMobject):
         self.label.set_color(RED)
         self.text = text
 
-    def copyWith(self, mobject):
-        pass
+    def declStr(self):
+        return f"Text({self.text})"
 
 class IMathTex(IMobject):
     def __init__(self, text, parentImobject=None, font_size=50, fsm_model=None):
         self.text = text
         self.fsm_model = fsm_model
         self.font_size = font_size
-        self.label = MathTex(r"{}".format(text), font_size=font_size)
+        self.label = MathTex(r"{}".format(text), font_size=font_size, font="Consolas")
         self.label.set_color(WHITE)
         super().__init__(self.label, parentImobject=parentImobject)
 
@@ -45,12 +46,21 @@ class IMathTex(IMobject):
             # configure transforms
             self.fsm_model.curr.capture_prev(mh.getCopy(self))
             curr_state.targets[self] = new_text
-            curr_state.addTransform(self)
+
+            if not self.fsm_model.created_at_curr_state(self):
+                curr_state.addTransform(self)
 
             # setup current ui
-            curr_state.playCopy(curr_state.getTransform(self), self.fsm_model.scene_model.scene)
+            curr_state.playCopy(ITransform(self), self.fsm_model.scene_model.scene)
+
+            #store for writer 
+            curr_state.targetDeclStr[self] = self.declStr()
+
         except:
             print("latex compile error")
+
+    def declStr(self):
+        return f"MathTex(r\"{{}}\".format({self.text}), font_size={self.font_size}, font=\"Consolas\")"
 
 class IMarkupText(IMobject):
     def __init__(self, text, parentImobject=None, font_size=14, fsm_model=None):
@@ -112,10 +122,11 @@ class IMarkupText(IMobject):
 
     def changeText(self, new_text_str):
         # update field
-        self.text = new_text_str
 
         self.fsm_model.curr.revAttributes[self]['text'] = self.text
         self.fsm_model.curr.changedMobjectAttributes[self]['text'] = new_text_str
+
+        self.text = new_text_str
 
         self.updateMarkupText(self.formatText(new_text_str))
 
@@ -133,9 +144,17 @@ class IMarkupText(IMobject):
         # configure transforms
         self.fsm_model.curr.capture_prev(mh.getCopy(self))
         curr_state.targets[self] = new_text
-        curr_state.addTransform(self)
+
+        if not self.fsm_model.created_at_curr_state(self):
+            curr_state.addTransform(self)
+
+        #store for writer 
+        curr_state.targetDeclStr[self] = self.declStr()
 
         # setup current ui
-        curr_state.playCopy(curr_state.getTransform(self), self.fsm_model.scene_model.scene)
+        curr_state.playCopy(ITransform(self), self.fsm_model.scene_model.scene)
 
         self.editedAt = curr_state.idx
+
+    def declStr(self):
+        return f"MarkupText(\"{self.formatText(self.text)}\", font_size={self.font_size}, font=\"Consolas\")"

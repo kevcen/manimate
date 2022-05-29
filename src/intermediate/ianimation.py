@@ -13,7 +13,7 @@ class ITransform(IAnimation):
 class ICreate(IAnimation):
     pass
 
-class IApplyMethod(IAnimation):
+class IApplyFunction(IAnimation):
     def __init__(self, imobject):
         self.imobject = imobject
         self.color = None

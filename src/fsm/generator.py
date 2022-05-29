@@ -1,6 +1,6 @@
 from manim import *
 
-from intermediate.ianimation import IApplyMethod, ICreate, IFadeIn, ITransform
+from intermediate.ianimation import IApplyFunction, ICreate, IFadeIn, ITransform
 import models.mobject_helper as mh;
 import copy
 
@@ -13,16 +13,18 @@ def reverse(animation, state):
             mcopy = mh.getCopy(imobj)
             mh.removeCopy(mcopy)
             return FadeOut(mcopy)
-        case ITransform(imobject=imobj) | IApplyMethod(imobject=imobj):
+        case ITransform(imobject=imobj) | IApplyFunction(imobject=imobj):
             mcopy = mh.getCopy(imobj)
 
             # print('mcopy is ', hex(id(mcopy)))
             tcopy = None
             if imobj in state.prev.targets:
-                # print('have target')
+                print('YES TARGET')
                 tcopy = state.prev.targets[imobj].copy()
             else:
+                print("NO TARGET")
                 if imobj.editedAt < state.idx:
+                    print("CAPTURE NEW PREV")
                     state.capture_prev(mcopy, bypass=True)
                 
                 # print('rev target')
@@ -54,9 +56,9 @@ def forward(animation, state):
             mcopy = state.targets[imobj].copy()
             mh.setCopy(imobj, mcopy)
             return Create(mcopy)
-        case IApplyMethod(imobject=imobj):
+        case IApplyFunction(imobject=imobj):
             mcopy = mh.getCopy(imobj)
-            tcopy = state.targets[imobj].copy()
+            # tcopy = state.targets[imobj].copy()
             # mh.setCopy(imobj, tcopy)
             # return Transform(mcopy, tcopy)
             return ApplyFunction(animation.custom_method, mcopy)
