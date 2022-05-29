@@ -15,6 +15,8 @@ class IMobject:
         self.group = None
         self.allowed_to_select = True
         self.scale = 1.0
+        self.move_to = None
+        self.colorChanged = False
 
     def declStr(self):
         return f"{self.mobject.__class__.__name__}()"
@@ -33,18 +35,20 @@ class IGroup(IMobject):
     def add(self, imobject):
         mobject, group = mh.getCopy(imobject), mh.getCopy(self)
         imobject.group = self
+
         self.vgroup_children.add(imobject)
         group.add(mobject)
 
     def childrenStr(self):
         childnames = []
-        for imobject in self.vgroup_children:
-            childnames.append(mh.getName(imobject))
+        print(self.vgroup_children)
+        # for imobject in self.vgroup_children:
+        #     childnames.append(mh.getName(imobject))
         
         return ', '.join(childnames)
 
     def declStr(self):
-        return f"VGroup({self.childrenStr})"
+        return f"VGroup({self.childrenStr()})"
 
 class ICircle(IMobject):
     def __init__(self, color=RED, radius=None, parentImobject=None):
@@ -53,7 +57,7 @@ class ICircle(IMobject):
         self.radius = radius
 
     def declStr(self):
-        return f"Circle(color={self.color}, radius={self.radius})"
+        return f"Circle(color=\"{self.color}\", radius={self.radius})"
 
 class ISquare(IMobject):
     def __init__(self):

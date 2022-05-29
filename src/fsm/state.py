@@ -1,4 +1,5 @@
 
+from email.policy import default
 from manim import *
 from bidict import bidict
 from collections import defaultdict
@@ -19,7 +20,8 @@ class State:
         self.transforms = {}
         self.applyfunctions = {}
         ## TODO: replace transforms by using prepare_anim on calledTargetFunctions
-        self.calledTargetFunctions = defaultdict(lambda: {})
+        # imobject -> [function, args, isTarget] 
+        self.calledMobjectFunctions = defaultdict(lambda: [])
         self.targetDeclStr = {}
         self.revAttributes = defaultdict(lambda: {})
         self.changedMobjectAttributes = defaultdict(lambda: {})

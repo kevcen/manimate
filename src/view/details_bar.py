@@ -402,8 +402,9 @@ class DetailsBar(QWidget):
             group = mh.getCopy(igroup)
 
             igroup.add(imobject)
+            self.fsm_model.curr.calledMobjectFunctions[igroup].append(('add', [mh.getName(imobject)], False))
 
-            self.scene_model.set_selected_mobject(group)
+            self.scene_model.unselect_mobjects()
         else:
             pass # TODO: tabs for each child
             
@@ -415,6 +416,7 @@ class DetailsBar(QWidget):
             mcopy = mh.getCopy(imobject)
 
             mcopy.set_color(color.name())
+            imobject.colorChanged = True
             self.scene_model.selected[mcopy] = color.name()
             target = mcopy.copy()
             

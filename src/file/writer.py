@@ -43,9 +43,9 @@ class Main(Scene):
 
                 #attributes
                 # self.print_attribute_changes(f, curr)
-
-                #animations
                 self.print_targets(f, curr)
+                self.print_mobject_functions(f, curr)
+                #animations
                 self.print_animations(f, curr)
 
                 curr = curr.next
@@ -58,6 +58,7 @@ class Main(Scene):
 
     #debug
     def print_added(self, f, curr):
+        f.write("#PRINT ADDED\n")
         for imobject in curr.added:
             if imobject.addedState == curr:
                 continue #will be written in targets
@@ -72,6 +73,7 @@ class Main(Scene):
             f.write('\n')
 
     def print_removed(self, f, curr):
+        f.write("#PRINT REMOVED\n")
         for imobject in curr.removed:
             f.write(f"        self.remove({mh.getName(imobject)})\n")
         
@@ -80,17 +82,21 @@ class Main(Scene):
 
     def print_attribute_changes(self, f, curr):
         pass
-            
+    
+    def print_mobject_functions(self, f, curr):
+        f.write("#PRINT MOBJ FUNCS\n")
+        for imobject in curr.calledMobjectFunctions:
+            for func, args, isTarget in curr.calledMobjectFunctions[imobject]:
+                mobj_name = mh.getName(imobject) if not isTarget or imobject.addedState == curr else self.get_target_name(imobject, curr)
+                f.write(f"        {mobj_name}.{func}({', '.join(args)})\n")
+    
     def print_targets(self, f, curr):
+        f.write("#PRINT TARGETS\n")
         for imobject in curr.targets:
             tobj_str = mh.getName(imobject) if imobject.addedState == curr else self.get_target_name(imobject, curr)
 
             target_decl = curr.targetDeclStr[imobject]
             f.write(f"        {tobj_str} = {target_decl}\n")
-
-            for func, args in curr.calledTargetFunctions[imobject].items():
-                f.write(f"        {tobj_str}.{func}({', '.join(args)})\n")
-
             
             if curr == imobject.addedState and imobject.introAnim is None:
                 f.write(f"        self.add({tobj_str})\n")
@@ -101,6 +107,7 @@ class Main(Scene):
         
             
     def print_animations(self, f, curr):
+        f.write("#PRINT ANIMS\n")
         anim_strs = [self.get_anim_str(anim, curr) for anim in curr.animations]
         if anim_strs:
             f.write(f"        self.play({', '.join(anim_strs)})\n")

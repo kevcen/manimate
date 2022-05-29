@@ -14,6 +14,7 @@ import models.mobject_helper as mh
 
 class FsmModel(QObject):
     stateChange = Signal(int, int)
+    CLAMP_DISTANCE = 1.2
     # selectedMobjectChange = Signal(IMobject)
     def __init__(self, scene_model):
         super().__init__()
@@ -129,22 +130,18 @@ class FsmModel(QObject):
         imobject = mh.getOriginal(mcopy)
         if imobject is None:
             return #selected item is old, before transform 
-            
 
-        past_mobject = None 
-        if imobject not in self.curr.targets:
-            past_mobject = imobject.mobject 
-        else:
-            past_mobject = self.curr.targets[imobject]
+        past_point = imobject.move_to
 
-        if (past_mobject.get_center() == mcopy.get_center()).all():
+        if past_point is not None and np.linalg.norm(past_point-point) < self.CLAMP_DISTANCE:
+            mcopy.move_to(past_point)
             return
 
         target = mcopy.copy()
 
         if not isinstance(target, MarkupText):
             target.set_color(self.scene_model.selected[mcopy])
-
+        print("MOVED", imobject)
         self.edit_transform_target(imobject, target, move_to=point)
 
     def edit_transform_target(self, imobject, target, color=None, move_to=None, scale=None):
@@ -156,13 +153,13 @@ class FsmModel(QObject):
         self.curr.targetDeclStr[imobject] = imobject.declStr()  
 
         if color is not None:
-            self.curr.calledTargetFunctions[imobject]['set_color'] = [f"\"{color}\""]
+            self.curr.calledMobjectFunctions[imobject].append(('set_color', [f"\"{color}\""], True))
         if scale is not None:
             imobject.scale = scale # used for tracking old scale to do a proportionate scaling
-            self.curr.calledTargetFunctions[imobject]['scale'] = [str(scale)]
+            self.curr.calledMobjectFunctions[imobject].append(('scale', [str(scale)], True))
         if move_to is not None:
             imobject.move_to = move_to
-            self.curr.calledTargetFunctions[imobject]['move_to'] = [str(move_to.tolist())]
+            self.curr.calledMobjectFunctions[imobject].append(('move_to', [str(move_to.tolist())], True))
 
         # update animation
         if not self.created_at_curr_state(imobject):
