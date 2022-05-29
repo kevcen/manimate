@@ -66,47 +66,13 @@ class IMarkupText(IMobject):
 
     def handleBold(self, cs, ce, highlight):
         self.highlight = highlight
-        # [(1,3), (4,5) (6,2)]
-        # (4, 4)
         newBoldAreas = [(cs, ce)] 
-        i = 0
-        # while i < len(self.boldAreas):
-        #     bs, be = self.boldAreas[i]
-        #     if cs > be:
-        #         newBoldAreas.append((bs, be))
-        #     else:
-        #         break
-
-        # if i < len(newBoldAreas) and ce >= bs:
-        #     newBoldAreas.append((cs, max(be, ce)))
-        #     i += 1
-        # else:
-        #     newBoldAreas.append((cs, ce))
-
-        # for j in range(i, len(self.boldAreas)):
-        #     newBoldAreas.append((bs, be))
-
-
-        # for bs, be in self.boldAreas:
-        #     if cs > be:
-        #         newBoldAreas.append((bs, be))
-        #         continue
-
-        #     # lbe <= cs <= be
-        #     # if ce < bs then insert new before current bold area
-        #     # otherwise merge
-        #     if ce < bs:
-        #         newBoldAreas.append((cs, ce))
-        #         newBoldAreas.append((bs, be))
-        #     else:
-        #         newBoldAreas.append((cs, max(be, ce)))
         
-        # print(newBoldAreas)
-
         self.fsm_model.curr.revAttributes[self]['boldAreas'] = self.boldAreas
         self.fsm_model.curr.changedMobjectAttributes[self]['boldAreas'] = newBoldAreas
 
         self.boldAreas = newBoldAreas
+
         # print(self.formatBolds(html.escape(self.text)))
         self.updateMarkupText(self.formatText(self.text))
 
@@ -148,6 +114,9 @@ class IMarkupText(IMobject):
         # update field
         self.text = new_text_str
 
+        self.fsm_model.curr.revAttributes[self]['text'] = self.text
+        self.fsm_model.curr.changedMobjectAttributes[self]['text'] = new_text_str
+
         self.updateMarkupText(self.formatText(new_text_str))
 
         
@@ -155,6 +124,7 @@ class IMarkupText(IMobject):
     def updateMarkupText(self, markupText):
         curr_state = self.fsm_model.curr
         
+        print("text", markupText)
         # create new text
         new_text = MarkupText(markupText, font_size=self.font_size, font="Consolas")
         # new_text.match_color(mh.getCopy(self))

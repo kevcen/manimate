@@ -11,7 +11,7 @@ class INode(IMobject):
         # Manim mobjects
         self.label = IText("t", parentImobject=self)
         self.container = ICircle(radius=0.6, color=RED, parentImobject=self)
-        self.mobject = VGroup(self.label.mobject, self.container.mobject, color=RED) #TODO: selected copy each child
+        self.mobject = VGroup(self.label.mobject, self.container.mobject, color=RED)
         self.parent_edge = None
         self.vgroup_children = [self.label, self.container]
         # TODO: fadein/create parent edge too when node has intro anim
