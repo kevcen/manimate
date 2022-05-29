@@ -28,6 +28,8 @@ from PySide6.QtWidgets import (
     QSpinBox,
     QDoubleSpinBox,
     QColorDialog,
+    QMessageBox,
+    QErrorMessage,
 )
 from __feature__ import true_property
 from pathlib import Path
@@ -92,6 +94,10 @@ class DetailsBar(QWidget):
         self.layout.addWidget(self.emptyLabel)
         self.layout.addStretch()
         
+        self.nameEdit = QLineEdit()
+        self.nameEdit.setText(mh.getName(self.selectedImobject))
+        self.nameEdit.editingFinished.connect(self.nameEditHandler)
+
         self.introCb = QComboBox()
         self.introCb.addItems(["None", "Create", "FadeIn"])
         self.introCb.currentIndexChanged.connect(self.introAnimationHandler)
@@ -116,8 +122,9 @@ class DetailsBar(QWidget):
         self.groupRow.addWidget(self.groupCb)
         self.groupRow.addWidget(self.newGroupBtn)
         
-        self.mobjGroupBox = QGroupBox(f"Selected: {self.selectedImobject.__class__.__name__}")
+        self.mobjGroupBox = QGroupBox(f"Selected: {mh.getName(self.selectedImobject)}")
         mobjLayout = QFormLayout()
+        mobjLayout.addRow(QLabel("Name:"), self.nameEdit)
         mobjLayout.addRow(QLabel("Appear animation:"), self.introCb)
         mobjLayout.addRow(QLabel("Colour:"), self.changeColorBtn)
         mobjLayout.addRow(QLabel("Scale:"), self.scaleBox)
@@ -254,10 +261,14 @@ class DetailsBar(QWidget):
         self.scaleBox.value = self.fsm_model.get_curr_scale(imobject)
         self.scaleBox.blockSignals(False)
 
+        self.nameEdit.setText(mh.getName(self.selectedImobject))
+        self.nameEdit.blockSignals(False)
+
         # self.layout.addStretch()
     
     def clearItems(self):
         self.changeNodeText.blockSignals(True)
+        self.nameEdit.blockSignals(True)
         self.changeMarkupText.blockSignals(True)
         self.loopCb.blockSignals(True)
         self.groupCb.blockSignals(True)
@@ -421,3 +432,20 @@ class DetailsBar(QWidget):
         
         self.fsm_model.edit_apply_method(imobject, target, scale=new_scale)
 
+    def nameEditHandler(self):
+
+        new_name = self.nameEdit.text
+        if not mh.setName(self.selectedImobject, new_name):
+            msg = QMessageBox()
+            msg.setWindowTitle("Manimate")
+            msg.text = "Name is already in use!"
+            msg.icon = QMessageBox.Critical
+            msg.standardButtons = QMessageBox.Ok
+            msg.defaultButton = QMessageBox.Ok
+
+            conflictImobj = mh.getImobjectByName(new_name)
+            msg.detailedText = f"There is another {conflictImobj.__class__.__name__} with the same name {new_name}."
+
+            msg.exec_()
+
+        self.refresh()
