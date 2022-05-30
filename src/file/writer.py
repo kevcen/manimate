@@ -2,6 +2,8 @@ import collections
 from manim import *
 
 from intermediate.ianimation import IApplyFunction, ICreate, IFadeIn, ITransform
+from intermediate.imobject import IMobject
+from intermediate.itree import INode
 import  models.mobject_helper as mh
 
 class Writer:
@@ -21,6 +23,39 @@ class Main(Scene):
             mobject.scale(scale)
             
         return mobject
+
+"""
+
+    TREECLASS = """
+class Tree(VGroup):
+    def __init__(self, text="t", parent=None):
+        super().__init__()
+        self.label = Text(text)
+        self.container = Circle(radius=0.6)
+        self.add(self.label, self.container)
+        self.set_color(RED)
+        self.parent = parent
+
+    def change_text_transform(self, text):
+        target = Text(text)
+        target.match_color(self.label)
+        target.move_to(self.label.get_center())
+
+        return Transform(self.label, target)
+        
+
+class ParentEdge(Line):
+    def __init__(self, node):
+        self.node = node
+        super().__init__(node.parent.get_bottom(), node.get_top(), color=RED)
+        self.add_updater(lambda mob: self.updateLine(mob))
+
+    def updateLine(self, line):
+        if self.node.parent is None:
+            return 
+
+        line.put_start_and_end_on(self.node.parent.get_bottom(),
+                    self.node.get_top())
 
 """
 
@@ -45,21 +80,26 @@ class Main(Scene):
                 # self.print_attribute_changes(f, curr)
                 self.print_targets(f, curr)
                 self.print_mobject_functions(f, curr)
+
+                self.print_modified_added(f, curr)
                 #animations
                 self.print_animations(f, curr)
 
                 curr = curr.next
 
-            # if self.writeTree:
-            #     self.print_tree_class(f)
             
             if self.writeApplyFunction:
                 f.write(self.APPLYFUNCTION)
+
+            if self.writeTree:
+                f.write(self.TREECLASS)
 
     #debug
     def print_added(self, f, curr):
         f.write("#PRINT ADDED\n")
         for imobject in curr.added:
+            if isinstance(imobject, INode):
+                self.writeTree = True
             if imobject.addedState == curr:
                 continue #will be written in targets
 
@@ -86,9 +126,10 @@ class Main(Scene):
     def print_mobject_functions(self, f, curr):
         f.write("#PRINT MOBJ FUNCS\n")
         for imobject in curr.calledMobjectFunctions:
-            for func, args, isTarget in curr.calledMobjectFunctions[imobject]:
-                mobj_name = mh.getName(imobject) if not isTarget or imobject.addedState == curr else self.get_target_name(imobject, curr)
-                f.write(f"        {mobj_name}.{func}({', '.join(args)})\n")
+            for func, args in curr.calledMobjectFunctions[imobject]:
+                args_names = [mh.getName(arg) if isinstance(arg, IMobject) else arg for arg in args]
+                mobj_name = mh.getName(imobject)
+                f.write(f"        {mobj_name}.{func}({', '.join(args_names)})\n")
     
     def print_targets(self, f, curr):
         f.write("#PRINT TARGETS\n")
@@ -97,14 +138,19 @@ class Main(Scene):
 
             target_decl = curr.targetDeclStr[imobject]
             f.write(f"        {tobj_str} = {target_decl}\n")
-            
-            if curr == imobject.addedState and imobject.introAnim is None:
-                f.write(f"        self.add({tobj_str})\n")
 
+            for func, args in curr.calledTargetFunctions[imobject].items():
+                args_names = [mh.getName(arg) if isinstance(arg, IMobject) else arg for arg in args]
+                f.write(f"        {tobj_str}.{func}({', '.join(args_names)})\n")
+            
         if curr.targets:
             f.write('\n')
 
-        
+    def print_modified_added(self, f, curr):
+        f.write('#PRINT TARGET ADD\n')
+        for imobject in curr.targets:
+            if curr == imobject.addedState and imobject.introAnim is None:
+                f.write(f"        self.add({mh.getName(imobject)})\n")
             
     def print_animations(self, f, curr):
         f.write("#PRINT ANIMS\n")
@@ -154,7 +200,6 @@ class Main(Scene):
         if iapplyfunction.scale is not None:
             res.append(f"{str(iapplyfunction.scale)}")
 
-        print("APPLYFUNCTION ARGS", res)
         return ', '.join(res)
 
 

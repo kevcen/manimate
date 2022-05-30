@@ -57,7 +57,6 @@ class SceneModel(QObject):
         self.selectedMobjectChange.emit(imobject)
 
     def unselect_mobjects(self):
-        print("UNSELECT")
         for mobject, color in self.selected.items():
             if not isinstance(mobject, MarkupText):
                 mobject.set_color(color)

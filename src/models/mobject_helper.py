@@ -21,8 +21,9 @@ def generateNewCopy(imobject):
     if isinstance(imobject.mobject, VGroup):
         vgroup_children = [getCopy(child) for child in imobject.vgroup_children]
         vgroup = VGroup(*vgroup_children)
-        if imobject.colorChanged:
-            vgroup.set_color(imobject.mobject.get_color())
+        # if imobject.colorChanged:
+        #     print("COLOR CHANGED VGROUP")
+        vgroup.set_color(imobject.mobject.get_color())
         return vgroup
     
     mcopy = imobject.mobject.copy()

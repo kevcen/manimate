@@ -210,7 +210,6 @@ class DetailsBar(QWidget):
         self.loopCb.setCurrentIndex(self.loopCb.findText(f"State {self.fsm_model.curr.loop[0]}") if self.fsm_model.curr.loop is not None else 0)
         self.loopCb.blockSignals(False)
         if isinstance(imobject, INone):
-            print('add nothing sel text')
             self.layout.insertWidget(self.layout.count()-1, QLabel("nothing selected"))
             return
 
@@ -226,7 +225,6 @@ class DetailsBar(QWidget):
                 for w in self.tree_widgets:
                     self.layout.insertWidget(self.layout.count()-1, w)
                 
-                print("SET PARENT", mh.getName(imobject.parent) if imobject.parent is not None else "None")
                 self.changeParentCb.setCurrentIndex(self.changeParentCb.findText(mh.getName(imobject.parent)) if imobject.parent is not None else 0)
                 self.changeParentCb.blockSignals(False)
                 self.changeNodeText.setText(mh.getCopy(imobject.label).text)
@@ -304,7 +302,6 @@ class DetailsBar(QWidget):
         if self.changeParentCb.count == 0 or not self.loopCb.currentText:
             return 
 
-        print('CHANGE LOOP TIMES', self.loopCb.currentText)
         if self.loopCb.currentText == "None":
             self.fsm_model.curr.loop = None
         else:
@@ -340,7 +337,6 @@ class DetailsBar(QWidget):
 
         # print("CHANGE PARENT")
         imobj_name = self.changeParentCb.currentText
-        print("CHANGE PARENT", imobj_name, "cb count", self.changeParentCb.count)
         imobj = mh.getImobjectByName(imobj_name) if imobj_name is not None else None
 
         self.selectedImobject.change_parent(imobj)
@@ -396,13 +392,12 @@ class DetailsBar(QWidget):
             self.scene_model.scene.add(mobject)
 
         group_name = self.groupCb.currentText
-        print("CHANGE GROUP", group_name, "cb count", self.groupCb.count)
         if group_name != "None":
             igroup = mh.getImobjectByName(group_name)
             group = mh.getCopy(igroup)
 
             igroup.add(imobject)
-            self.fsm_model.curr.calledMobjectFunctions[igroup].append(('add', [mh.getName(imobject)], False))
+            self.fsm_model.curr.calledMobjectFunctions[igroup]['add'].add(imobject)
 
             self.scene_model.unselect_mobjects()
         else:
@@ -428,7 +423,6 @@ class DetailsBar(QWidget):
 
         old_scale = self.fsm_model.get_curr_scale(imobject)
         new_scale = self.fsm_model.clean_scale(value)
-        print("OLD SCALE ", old_scale, new_scale/old_scale)
         mcopy.scale(new_scale / old_scale)
         target = mcopy.copy()
         

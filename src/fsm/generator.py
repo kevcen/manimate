@@ -16,15 +16,11 @@ def reverse(animation, state):
         case ITransform(imobject=imobj) | IApplyFunction(imobject=imobj):
             mcopy = mh.getCopy(imobj)
 
-            # print('mcopy is ', hex(id(mcopy)))
             tcopy = None
             if imobj in state.prev.targets:
-                print('YES TARGET')
                 tcopy = state.prev.targets[imobj].copy()
             else:
-                print("NO TARGET")
                 if imobj.editedAt < state.idx:
-                    print("CAPTURE NEW PREV")
                     state.capture_prev(mcopy, bypass=True)
                 
                 # print('rev target')

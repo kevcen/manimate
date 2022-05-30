@@ -135,7 +135,6 @@ class IMarkupText(IMobject):
     def updateMarkupText(self, markupText):
         curr_state = self.fsm_model.curr
         
-        print("text", markupText)
         # create new text
         new_text = MarkupText(markupText, font_size=self.font_size, font="Consolas")
         # new_text.match_color(mh.getCopy(self))

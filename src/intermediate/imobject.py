@@ -41,7 +41,6 @@ class IGroup(IMobject):
 
     def childrenStr(self):
         childnames = []
-        print(self.vgroup_children)
         # for imobject in self.vgroup_children:
         #     childnames.append(mh.getName(imobject))
         

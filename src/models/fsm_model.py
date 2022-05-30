@@ -14,7 +14,7 @@ import models.mobject_helper as mh
 
 class FsmModel(QObject):
     stateChange = Signal(int, int)
-    CLAMP_DISTANCE = 1.2
+    CLAMP_DISTANCE = 1
     # selectedMobjectChange = Signal(IMobject)
     def __init__(self, scene_model):
         super().__init__()
@@ -141,7 +141,6 @@ class FsmModel(QObject):
 
         if not isinstance(target, MarkupText):
             target.set_color(self.scene_model.selected[mcopy])
-        print("MOVED", imobject)
         self.edit_transform_target(imobject, target, move_to=point)
 
     def edit_transform_target(self, imobject, target, color=None, move_to=None, scale=None):
@@ -153,13 +152,13 @@ class FsmModel(QObject):
         self.curr.targetDeclStr[imobject] = imobject.declStr()  
 
         if color is not None:
-            self.curr.calledMobjectFunctions[imobject].append(('set_color', [f"\"{color}\""], True))
+            self.curr.calledTargetFunctions[imobject]['set_color'] = {f"\"{color}\""}
         if scale is not None:
             imobject.scale = scale # used for tracking old scale to do a proportionate scaling
-            self.curr.calledMobjectFunctions[imobject].append(('scale', [str(scale)], True))
+            self.curr.calledTargetFunctions[imobject]['scale'] = {str(scale)}
         if move_to is not None:
             imobject.move_to = move_to
-            self.curr.calledMobjectFunctions[imobject].append(('move_to', [str(move_to.tolist())], True))
+            self.curr.calledTargetFunctions[imobject]['move_to'] = {str(move_to.tolist())}
 
         # update animation
         if not self.created_at_curr_state(imobject):
@@ -196,17 +195,6 @@ class FsmModel(QObject):
     def created_at_curr_state_with_anim(self, imobject):
         return self.created_at_curr_state(imobject) and imobject.introAnim is not None
 
-    def add_object_to_curr(self, imobject):
-        # TODO: make it instant with scene.add
-        create = ICreate(imobject)
-        self.curr.animations.append(create)
-        self.curr.targets[imobject] = imobject.mobject
-        imobject.addedState = self.curr
-        imobject.introAnim = create
-        # self.curr.prev.added.add(imobject)
-        self.curr.playCopy(create, self.scene_model.scene)
-
-
     def instant_add_object_to_curr(self, imobject, select=True):
             
         self.curr.added.add(imobject)
@@ -223,11 +211,9 @@ class FsmModel(QObject):
     def instant_remove_obj_at_curr(self, imobject):
         self.scene_model.remove(imobject)
         if not self.created_at_curr_state(imobject):
-            print('removed at this state')
             self.curr.removed.add(imobject)
             imobject.removedState = self.curr
         else:
-            print('fully disappeared')
             imobject.addedState = None
             mh.removeCopy(mh.getCopy(imobject))
             if imobject in self.curr.added:

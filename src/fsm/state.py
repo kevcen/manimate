@@ -20,8 +20,9 @@ class State:
         self.transforms = {}
         self.applyfunctions = {}
         ## TODO: replace transforms by using prepare_anim on calledTargetFunctions
-        # imobject -> [function, args, isTarget] 
-        self.calledMobjectFunctions = defaultdict(lambda: [])
+        # imobject -> function -> set(args)
+        self.calledMobjectFunctions = defaultdict(lambda: defaultdict(lambda: set()))
+        self.calledTargetFunctions = defaultdict(lambda: defaultdict(lambda: set()))
         self.targetDeclStr = {}
         self.revAttributes = defaultdict(lambda: {})
         self.changedMobjectAttributes = defaultdict(lambda: {})
@@ -51,7 +52,6 @@ class State:
         
     def addApplyFunction(self, imobject):
         if imobject not in self.applyfunctions:
-            print("ADDED NEW METHOD")
             self.applyfunctions[imobject] = IApplyFunction(imobject)
             self.animations.append(self.applyfunctions[imobject])
 
@@ -66,10 +66,8 @@ class State:
         # capture previous frame for reverse if editable
         imobject = mh.getOriginal(mcopy)
         if bypass or imobject not in self.rev_targets: #if not already captured
-            print('captured prev')
             target = self.find_prev_target(self.prev, imobject)
             if target is None:
-                print('head state NO TARGET')
                 return #we are in head state
                 
             self.rev_targets[imobject] = target
