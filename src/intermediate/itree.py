@@ -36,9 +36,9 @@ class INode(IMobject):
         child.show_node()
 
     def show_node(self):
-        self.fsm_model.instant_add_object_to_curr(self)
         if self.parent_edge is not None:
             self.fsm_model.instant_add_object_to_curr(self.parent_edge)
+        self.fsm_model.instant_add_object_to_curr(self)
 
     def change_label_text(self, new_text_str):
         curr_state = self.fsm_model.curr

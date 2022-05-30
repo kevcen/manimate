@@ -399,7 +399,7 @@ class DetailsBar(QWidget):
             igroup.add(imobject)
             self.fsm_model.curr.calledMobjectFunctions[igroup]['add'].add(imobject)
 
-            self.scene_model.unselect_mobjects()
+            # self.scene_model.unselect_mobjects()
         else:
             pass # TODO: tabs for each child
             

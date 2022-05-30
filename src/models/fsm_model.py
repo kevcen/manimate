@@ -196,7 +196,9 @@ class FsmModel(QObject):
         return self.created_at_curr_state(imobject) and imobject.introAnim is not None
 
     def instant_add_object_to_curr(self, imobject, select=True):
-            
+        if select: # if select needs changing
+            self.scene_model.unselect_mobjects()
+        
         self.curr.added.add(imobject)
         self.curr.targets[imobject] = imobject.mobject
         self.curr.targetDeclStr[imobject] = imobject.declStr()

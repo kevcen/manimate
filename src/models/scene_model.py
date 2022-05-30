@@ -57,6 +57,7 @@ class SceneModel(QObject):
         self.selectedMobjectChange.emit(imobject)
 
     def unselect_mobjects(self):
+        print("UNSELETED")
         for mobject, color in self.selected.items():
             if not isinstance(mobject, MarkupText):
                 mobject.set_color(color)
@@ -79,9 +80,11 @@ class SceneModel(QObject):
 
         return self.fsm_model.created_at_curr_state_with_anim(imobject)
 
-    def move_selected_to(self, point):
+    def move_selected_by(self, delta):
         if not self.selected:
                 return
-        
+        # target = new_point.get_bounding_box_point(ORIGIN)
+        # old = old_point.get_bounding_box_point(ORIGIN)
         for mobject in self.selected:
-            mobject.move_to(point)
+            # mobject.shift((target - old) * np.array([1, 1, 1]))
+            mobject.shift(delta)
