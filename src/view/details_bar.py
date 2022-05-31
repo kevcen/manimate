@@ -354,7 +354,7 @@ class DetailsBar(QWidget):
         else:
             imobject.addedState.added.remove(imobject)
 
-        self.scene_model.remove(imobject)
+        # self.scene_model.remove(imobject)
         match i:
             case 0:
                 imobject.introAnim = None
@@ -368,7 +368,7 @@ class DetailsBar(QWidget):
             # imobject.addedState.playCopy(imobject.introAnim, self.scene_model.scene)
         else:
             imobject.addedState.added.add(imobject)
-            self.scene_model.addCopy(imobject)
+            # self.scene_model.addCopy(imobject)
 
     def removeMobjectHandler(self):
         self.fsm_model.instant_remove_obj_at_curr(self.selectedImobject)

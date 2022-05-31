@@ -19,7 +19,6 @@ from PySide6.QtWidgets import (
 )
 
 from PySide6.QtGui import QImage
-import pygame
 from __feature__ import true_property
 from file.reader import Reader
 from models.fsm_model import FsmModel

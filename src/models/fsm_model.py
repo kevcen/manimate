@@ -217,9 +217,12 @@ class FsmModel(QObject):
             imobject.removedState = self.curr
         else:
             imobject.addedState = None
+            imobject.isDeleted = True
             mh.removeCopy(mh.getCopy(imobject))
             if imobject in self.curr.added:
                 self.curr.added.remove(imobject)     
+            if imobject in self.curr.targets:
+                del self.curr.targets[imobject]
         
         #remove dependent animations
         if imobject in self.curr.transforms:

@@ -98,6 +98,9 @@ class ParentEdge(Line):
     def print_added(self, f, curr):
         f.write("#PRINT ADDED\n")
         for imobject in curr.added:
+            if imobject.isDeleted:
+                continue
+
             if isinstance(imobject, INode):
                 self.writeTree = True
             if imobject.addedState == curr:
@@ -115,6 +118,8 @@ class ParentEdge(Line):
     def print_removed(self, f, curr):
         f.write("#PRINT REMOVED\n")
         for imobject in curr.removed:
+            if imobject.isDeleted:
+                continue
             f.write(f"        self.remove({mh.getName(imobject)})\n")
         
         if curr.removed:
@@ -126,6 +131,8 @@ class ParentEdge(Line):
     def print_mobject_functions(self, f, curr):
         f.write("#PRINT MOBJ FUNCS\n")
         for imobject in curr.calledMobjectFunctions:
+            if imobject.isDeleted:
+                continue
             for func, args in curr.calledMobjectFunctions[imobject]:
                 args_names = [mh.getName(arg) if isinstance(arg, IMobject) else arg for arg in args]
                 mobj_name = mh.getName(imobject)
@@ -134,6 +141,8 @@ class ParentEdge(Line):
     def print_targets(self, f, curr):
         f.write("#PRINT TARGETS\n")
         for imobject in curr.targets:
+            if imobject.isDeleted:
+                continue
             tobj_str = mh.getName(imobject) if imobject.addedState == curr else self.get_target_name(imobject, curr)
 
             target_decl = curr.targetDeclStr[imobject]
@@ -149,12 +158,14 @@ class ParentEdge(Line):
     def print_modified_added(self, f, curr):
         f.write('#PRINT TARGET ADD\n')
         for imobject in curr.targets:
+            if imobject.isDeleted:
+                continue
             if curr == imobject.addedState and imobject.introAnim is None:
                 f.write(f"        self.add({mh.getName(imobject)})\n")
             
     def print_animations(self, f, curr):
         f.write("#PRINT ANIMS\n")
-        anim_strs = [self.get_anim_str(anim, curr) for anim in curr.animations]
+        anim_strs = [self.get_anim_str(anim, curr) for anim in curr.animations if not anim.imobject.isDeleted]
         if anim_strs:
             f.write(f"        self.play({', '.join(anim_strs)})\n")
         else:
@@ -168,6 +179,7 @@ class ParentEdge(Line):
         res.append('(')
 
         imobject = anim.imobject
+
         match anim:
             case IApplyFunction():
                 res.append('self.customfunction')

@@ -60,7 +60,7 @@ class IMathTex(IMobject):
             print("latex compile error")
 
     def declStr(self):
-        return f"MathTex(r\"{{}}\".format({self.text}), font_size={self.font_size}, font=\"Consolas\")"
+        return f"MathTex(r\"{{}}\".format(\"{self.text}\"), font_size={self.font_size}, font=\"Consolas\")"
 
 class IMarkupText(IMobject):
     def __init__(self, text, parentImobject=None, font_size=14, fsm_model=None):
