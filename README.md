@@ -9,6 +9,8 @@ A novel WYSIWYG animation builder for Manim
 - Python3.10 - install with python3.10, 3.10distutils, 3.10-dev
 - Python3.10 pip - `curl -sS https://bootstrap.pypa.io/get-pip.py | python3.10` for Ubuntu
 - moderngl
+- bidict
+- IPython 8.0.1
 - Manim community dependencies - `sudo apt install libcairo2-dev libpango1.0-dev ffmpeg` for Ubuntu
 - Manim community - `pip install manim` for Ubuntu
 
