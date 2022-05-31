@@ -26,7 +26,6 @@ from models.scene_model import SceneModel
 import scene.manim_scene as manim_scene 
 from pathlib import Path
 import moderngl_window as mglw
-from moderngl_window.context.pyside2.window import Window as PySideWindow
 from moderngl_window.timers.clock import Timer
 from view.details_bar import DetailsBar
 from view.objects_bar import ObjectsBar

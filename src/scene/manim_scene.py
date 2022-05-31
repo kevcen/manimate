@@ -64,7 +64,6 @@ class Test(Scene):
         # print(d_point)
         self.mouse_point.move_to(point)
         # self.delta_point.move_to(d_point)
-        from PySide2.QtCore import Qt
         
         if self.mouse_is_down:
             self.handler.move_selected_by(point - self.clicked_point)

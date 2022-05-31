@@ -7,41 +7,28 @@ class Main(Scene):
 #PRINT REMOVED
 #PRINT TARGETS
         INode0 = Tree("t", parent=None)
-        INode0.move_to([-2.5384615384615388, 1.9076923076923078, 0.0])
+        INode0.move_to([-4.276923076923077, 2.3692307692307693, 0.0])
         INode1 = Tree("t", parent=INode0)
-        INode1.move_to([-4.876923076923077, -0.676923076923077, 0.0])
+        INode1.move_to([-4.276923076923077, 0.36923076923076925, 0])
         IParentEdge0 = ParentEdge(INode1)
-        ITriangle0 = Triangle()
-        ITriangle0.move_to([0.24615384615384617, 1.8615384615384616, 0.0])
-        IStar0 = Star()
-        IStar0.move_to([2.9846153846153847, 1.6307692307692307, 0.0])
+        INode2 = Tree("t", parent=INode1)
+        INode2.move_to([-4.276923076923077, -1.6307692307692307, 0])
+        IParentEdge1 = ParentEdge(INode2)
 
 #PRINT MOBJ FUNCS
 #PRINT TARGET ADD
         self.add(INode0)
         self.add(INode1)
         self.add(IParentEdge0)
-        self.add(ITriangle0)
-        self.add(IStar0)
+        self.add(INode2)
+        self.add(IParentEdge1)
 #PRINT ANIMS
         self.wait(1)
 #PRINT ADDED
 #PRINT REMOVED
 #PRINT TARGETS
         INode1_target = INode1.copy()
-        INode1_target.move_to([-0.8769230769230769, -0.5846153846153846, 0.0])
-        INode0_target = INode0.copy()
-        INode0_target.move_to([-4.523076923076923, 1.6153846153846154, 0.0])
-
-#PRINT MOBJ FUNCS
-#PRINT TARGET ADD
-#PRINT ANIMS
-        self.play(Transform(INode1, INode1_target), Transform(INode0, INode0_target))
-#PRINT ADDED
-#PRINT REMOVED
-#PRINT TARGETS
-        INode1_target = INode1.copy()
-        INode1_target.move_to([-5.923076923076923, -2.246153846153846, 0.0])
+        INode1_target.move_to([0.27692307692307694, 0.18461538461538463, 0.0])
 
 #PRINT MOBJ FUNCS
 #PRINT TARGET ADD
@@ -51,12 +38,15 @@ class Main(Scene):
 #PRINT REMOVED
 #PRINT TARGETS
         INode1_target = INode1.copy()
-        INode1_target.move_to([-1.476923076923077, -2.076923076923077, 0.0])
+        INode1_target.move_to([-6.1230769230769235, 0.3076923076923077, 0.0])
+        INode2_target = INode2.copy()
+        INode2_target.move_to([2.784615384615385, -1.2923076923076924, 0.0])
+        INode2_target.set_color("#c17d11")
 
 #PRINT MOBJ FUNCS
 #PRINT TARGET ADD
 #PRINT ANIMS
-        self.play(Transform(INode1, INode1_target))
+        self.play(Transform(INode1, INode1_target), Transform(INode2, INode2_target))
 
 class Tree(VGroup):
     def __init__(self, text="t", parent=None):

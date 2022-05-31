@@ -24,7 +24,6 @@ from PySide6.QtWidgets import (
 from __feature__ import true_property
 from pathlib import Path
 import moderngl_window as mglw
-from moderngl_window.context.pyside2.window import Window as PySideWindow
 from moderngl_window.timers.clock import Timer
 
 

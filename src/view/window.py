@@ -2,29 +2,6 @@ import sys
 import moderngl
 from manim import *
 from manim.opengl import *
-from manim.renderer.opengl_renderer import OpenGLRenderer
-
-from PySide6.QtGui import QOpenGLContext, QSurfaceFormat
-from PySide6.QtOpenGLWidgets import QOpenGLWidget
-from PySide6.QtCore import Qt, Slot
-from PySide6.QtWidgets import (
-    QApplication,
-    QLabel,
-    QPushButton,
-    QVBoxLayout,
-    QWidget,
-    QSizePolicy,
-    QLineEdit
-)
-
-from PySide2.QtWidgets import (
-    QToolBar,
-    QAction,
-    QMenuBar,
-    QMenu
-)
-from __feature__ import true_property
-from pathlib import Path
 import moderngl_window as mglw
 from moderngl_window.context.pyside2.window import Window as PySideWindow
 from moderngl_window.timers.clock import Timer
@@ -34,14 +11,6 @@ class QTWindow(PySideWindow):
         super().__init__()
         self._widget.setGeometry(550, 250, 900, 520)
         self.title = f"Manimate"
-
-        button_action = QAction("Your button")
-        button_action.triggered.connect(self.export)
-
-        # file_menu.addAction(button_action)
-
-        # self._widget.layout().setMenuBar(menu)
-
 
         # self.size = size
         self.renderer = renderer

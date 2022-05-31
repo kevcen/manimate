@@ -32,6 +32,9 @@ share/python-wheels/
 *.egg
 MANIFEST
 src/media/
+media/
+.vscode/
+src/io/
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
