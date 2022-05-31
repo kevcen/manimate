@@ -43,6 +43,8 @@ class Tree(VGroup):
 
         return Transform(self.label, target)
         
+    def set_parent(self, parent):
+        self.parent = parent
 
 class ParentEdge(Line):
     def __init__(self, node):
@@ -72,14 +74,14 @@ class ParentEdge(Line):
             curr = self.head_state.next 
             while curr.next is not None: # is not the END state
                 #add objects
-                self.print_added(f, curr)
+                # self.print_added(f, curr)
                 #rem objects
                 self.print_removed(f, curr)
 
                 #attributes
                 # self.print_attribute_changes(f, curr)
-                self.print_targets(f, curr)
                 self.print_mobject_functions(f, curr)
+                self.print_targets(f, curr)
 
                 self.print_modified_added(f, curr)
                 #animations
@@ -133,7 +135,7 @@ class ParentEdge(Line):
         for imobject in curr.calledMobjectFunctions:
             if imobject.isDeleted:
                 continue
-            for func, args in curr.calledMobjectFunctions[imobject]:
+            for func, args in curr.calledMobjectFunctions[imobject].items():
                 args_names = [mh.getName(arg) if isinstance(arg, IMobject) else arg for arg in args]
                 mobj_name = mh.getName(imobject)
                 f.write(f"        {mobj_name}.{func}({', '.join(args_names)})\n")
@@ -143,6 +145,9 @@ class ParentEdge(Line):
         for imobject in curr.targets:
             if imobject.isDeleted:
                 continue
+            if isinstance(imobject, INode):
+                self.writeTree = True
+
             tobj_str = mh.getName(imobject) if imobject.addedState == curr else self.get_target_name(imobject, curr)
 
             target_decl = curr.targetDeclStr[imobject]
@@ -151,6 +156,8 @@ class ParentEdge(Line):
             for func, args in curr.calledTargetFunctions[imobject].items():
                 args_names = [mh.getName(arg) if isinstance(arg, IMobject) else arg for arg in args]
                 f.write(f"        {tobj_str}.{func}({', '.join(args_names)})\n")
+            
+
             
         if curr.targets:
             f.write('\n')
@@ -193,7 +200,8 @@ class ParentEdge(Line):
             case ITransform():
                 res.append(mh.getName(imobject))
                 res.append(', ')
-                res.append(self.get_target_name(imobject, curr))
+                res.append(self.use_target_name(imobject, curr))
+
             case _:
                 res.append(mh.getName(imobject))
 
@@ -222,6 +230,19 @@ class ParentEdge(Line):
             self.existing_names[target] = f"{mobj_name}_target"
 
         return self.existing_names[target]
+
+    def use_target_name(self, imobject, curr):
+        target = curr.targets[imobject]
+        tname = self.existing_names[target]
+        del self.existing_names[target]
+        return tname
+
+    def get_latest_name(self, imobject, curr):
+        if imobject in curr.targets:
+            target = curr.targets[imobject]
+            if imobject in self.existing_names[target]:
+                return self.existing_names[target]
+        return mh.getName(imobject)
 
 
 

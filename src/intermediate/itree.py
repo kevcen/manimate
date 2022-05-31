@@ -57,7 +57,7 @@ class INode(IMobject):
         #store for writer 
         self.text = new_text
         curr_state.targetDeclStr[self] = self.declStr()
-        if not self.fsm_model.created_at_curr_state(self):
+        if not self.fsm_model.created_at_curr_state(self): #match properties with old label
             self.fsm_model.curr.calledTargetFunctions[self.label]['match_color'] = [self.label]
             self.fsm_model.curr.calledTargetFunctions[self.label]['move_to'] = [str(mh.getCopy(self.label).get_center().tolist())]
 
@@ -72,6 +72,7 @@ class INode(IMobject):
     def change_parent(self, new_parent):
         self.fsm_model.curr.revAttributes[self]['parent'] = self.parent
         self.fsm_model.curr.changedMobjectAttributes[self]['parent'] = new_parent
+        self.fsm_model.curr.calledMobjectFunctions[self]['set_parent'] = [new_parent]
 
         if new_parent is None:
             self.fsm_model.instant_remove_obj_at_curr(self.parent_edge)
