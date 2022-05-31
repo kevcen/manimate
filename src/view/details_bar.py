@@ -49,11 +49,12 @@ class MarkupTextEdit(QTextEdit):
 
 TOP_WIDGETS_NUM = 1 #stretch n groupbox
 class DetailsBar(QWidget):
-    def __init__(self, scene_model, fsm_model):
+    def __init__(self, scene_model, fsm_model, closeHandler):
         super().__init__()
 
         self.scene_model = scene_model
         self.fsm_model = fsm_model
+        self.closeHandler = closeHandler
 
         self.selectedImobject = INone()
 
@@ -444,3 +445,7 @@ class DetailsBar(QWidget):
             msg.exec_()
 
         self.refresh()
+
+    def closeEvent(self, e):
+        self.closeHandler()
+        e.accept()

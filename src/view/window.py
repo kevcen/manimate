@@ -7,8 +7,10 @@ from moderngl_window.context.pyside2.window import Window as PySideWindow
 from moderngl_window.timers.clock import Timer
 
 class QTWindow(PySideWindow):
-    def __init__(self, app, renderer) -> None:
+    def __init__(self, app, renderer, close_handler) -> None:
         super().__init__()
+        self.close_handler = close_handler
+        self.app = app
         self._widget.setGeometry(550, 250, 900, 520)
         self.title = f"Manimate"
 
@@ -23,9 +25,6 @@ class QTWindow(PySideWindow):
         self.swap_buffers()
 
 
-    def export(self):
-        pass
-    
     # Delegate event handling to scene.
     def mouse_move_event(self, event):
         super().mouse_move_event(event)
@@ -34,19 +33,6 @@ class QTWindow(PySideWindow):
         point = self.renderer.pixel_coords_to_space_coords(x, y, top_left=True)
         d_point = self.renderer.pixel_coords_to_space_coords(dx, dy, relative=True, top_left=True)
         self.renderer.scene.mouse_move_event(point, d_point)
-
-    # def key_pressed_event(self, event):
-    #     key = event.key()
-    #     self.renderer.pressed_keys.add(key)
-    #     super().key_pressed_event(event)
-    #     self.renderer.scene.on_key_press(key, None)
-
-    # def key_release_event(self, event):
-    #     key = event.key()
-    #     if key in self.renderer.pressed_keys:
-    #         self.renderer.pressed_keys.remove(key)
-    #     super().key_release_event(event)
-        # self.renderer.scene.on_key_release(key, None)
 
     def mouse_press_event(self, event):
         super().mouse_press_event(event)
@@ -74,6 +60,11 @@ class QTWindow(PySideWindow):
         }
         self.renderer.scene.on_mouse_release(point, mouse_button_map[button], modifiers)
 
+
+    def close_event(self, event):
+        super().close_event(event)
+        self.close_handler()
+        event.accept()
 
     # def mouse_drag_event(self, event):
     #     super().on_mouse_drag(x, y, dx, dy, buttons, modifiers)

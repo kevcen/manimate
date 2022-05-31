@@ -33,6 +33,13 @@ from view.state_bar import StateWidget
 from view.window import QTWindow
 
 
+windows = set()
+def closeAllWindows():
+    for window in windows:
+        window.close()
+    
+    # sys.exit()
+
 if __name__ == "__main__":
     # read_tokens = Reader("scene/manim_scene.py")
     
@@ -49,7 +56,8 @@ if __name__ == "__main__":
         format.setProfile(QSurfaceFormat.CoreProfile)
         QSurfaceFormat.setDefaultFormat(format)
         renderer = OpenGLRenderer()
-        window = QTWindow(app, renderer)
+        window = QTWindow(app, renderer, closeAllWindows)
+        windows.add(window._widget)
         renderer.window = window
         renderer.frame_buffer_object = window.ctx.detect_framebuffer()
         renderer.context = window.ctx
@@ -69,20 +77,21 @@ if __name__ == "__main__":
         fsm_model = FsmModel(scene_model)
         scene_model.setFsmModel(fsm_model)
 
-        objects_bar = ObjectsBar(fsm_model)
+        objects_bar = ObjectsBar(fsm_model, closeAllWindows)
         objects_bar.show()
 
-        state_bar = StateWidget(scene_model, fsm_model)
+        state_bar = StateWidget(scene_model, fsm_model, closeAllWindows)
         state_bar.show()
 
 
-        details_bar = DetailsBar(scene_model, fsm_model)
+        details_bar = DetailsBar(scene_model, fsm_model, closeAllWindows)
         details_bar.show()
 
 
         with open("view/styles.qss", "r") as f:
             _style = f.read()
             for w in (objects_bar, details_bar, state_bar):
+                windows.add(w)
                 w.setStyleSheet(_style)
 
         scene.render()

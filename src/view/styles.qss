@@ -21,3 +21,7 @@ QSlider::handle:hover {
 QSlider::sub-page {
     background: darkseagreen;
 }
+
+QPushButton:disabled { 
+    color: gray;
+}

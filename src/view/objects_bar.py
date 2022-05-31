@@ -30,10 +30,11 @@ from moderngl_window.timers.clock import Timer
 
 
 class ObjectsBar(QTabWidget):
-    def __init__(self, fsm_model):
+    def __init__(self, fsm_model, close_handler):
         super().__init__()
 
         self.fsm_model = fsm_model
+        self.close_handler = close_handler
 
         self.setWindowTitle(" ")
 
@@ -51,13 +52,19 @@ class ObjectsBar(QTabWidget):
         layout = QVBoxLayout()
 
         exit = QPushButton("Exit")
-        save = QPushButton("Save As Python Script")
-        export = QPushButton("Export As MP4")
-        importBtn = QPushButton("Import Python Script As Frame")
-        # addTree.clicked.connect(self.add_tree)
+        exit.clicked.connect(self.close_handler)
+        exportScript = QPushButton("Export As Python Script")
+        exportScript.clicked.connect(self.fsm_model.export)
+        exportMp4 = QPushButton("TODO: Export As MP4")
+        exportMp4.setEnabled(False)
+        importBtn = QPushButton("TODO: Import Script As State")
+        importBtn.setEnabled(False)
 
-        for w in (save, export, importBtn, export, exit):
+        for w in (exportScript, exportMp4, importBtn):
             layout.addWidget(w)
+
+        layout.addStretch()
+        layout.addWidget(exit)
 
         tab.setLayout(layout)
         return tab
@@ -67,7 +74,9 @@ class ObjectsBar(QTabWidget):
         layout = QVBoxLayout()
 
         addFrame = QPushButton("New Frame (+)")
+        addFrame.clicked.connect(self.fsm_model.add_state())
         delFrame = QPushButton("Delete Current Frame (-)")
+        delFrame.clicked.connect(self.fsm_model.del_state())
 
         for w in (addFrame, delFrame):
             layout.addWidget(w)
@@ -119,3 +128,7 @@ class ObjectsBar(QTabWidget):
     def add_tree(self):
         node = INode(self.fsm_model)
         node.show_node()
+
+    def closeEvent(self, e):
+        self.close_handler()
+        e.accept()

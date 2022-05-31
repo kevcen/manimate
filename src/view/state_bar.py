@@ -54,7 +54,7 @@ class TimeSlider(QSlider):
                 
     
 class StateWidget(QWidget):
-    def __init__(self, scene_model, fsm_model):
+    def __init__(self, scene_model, fsm_model, close_handler):
         def timeChangeHandler(value):
             scene_model.unselect_mobjects()
             label.setText(f"{value}/{timeSlider.maximum}")
@@ -69,6 +69,8 @@ class StateWidget(QWidget):
 
 
         super().__init__()
+
+        self.close_handler = close_handler
 
         self.setWindowTitle(" ")
         self.geometry = QRect(550, 800, 900, 100)
@@ -120,3 +122,8 @@ class StateWidget(QWidget):
         layout.addLayout(videoButtons)
         layout.addLayout(sliderButtons)
         self.setLayout(layout)
+    
+
+    def closeEvent(self, e):
+        self.close_handler()
+        e.accept()
