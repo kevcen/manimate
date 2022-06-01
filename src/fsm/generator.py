@@ -1,28 +1,32 @@
 from manim import *
 
 from intermediate.ianimation import IApplyFunction, ICreate, IFadeIn, ITransform
-import models.mobject_helper as mh;
-import copy
+import models.mobject_helper as mh
+
 
 def reverse(animation, state):
-    if animation.imobject.isDeleted:
+    """
+    Gives the reverse animation given an IAnimation and the current state.
+    """
+
+    if animation.imobject.is_deleted:
         return None
 
     match animation:
         case IFadeIn(imobject=imobj):
-            mcopy = mh.getCopy(imobj)
-            mh.removeCopy(mcopy)
+            mcopy = mh.get_copy(imobj)
+            mh.remove_copy(mcopy)
             return FadeOut(mcopy)
         case ITransform(imobject=imobj) | IApplyFunction(imobject=imobj):
-            mcopy = mh.getCopy(imobj)
+            mcopy = mh.get_copy(imobj)
 
             tcopy = None
             if imobj in state.prev.targets:
                 tcopy = state.prev.targets[imobj].copy()
             else:
-                if imobj.editedAt < state.idx:
+                if imobj.edited_at < state.idx:
                     state.capture_prev(mcopy, bypass=True)
-                
+
                 # print('rev target')
                 tcopy = state.rev_targets[imobj].copy()
 
@@ -30,35 +34,36 @@ def reverse(animation, state):
             # mh.setCopy(imobj, tcopy)
             return Transform(mcopy, tcopy)
         case ICreate(imobject=imobj):
-            mcopy = mh.getCopy(imobj)
-            mh.removeCopy(mcopy)
+            mcopy = mh.get_copy(imobj)
+            mh.remove_copy(mcopy)
             return Uncreate(mcopy)
 
+
 def forward(animation, state):
-    if animation.imobject.isDeleted:
+    """
+    Returns the forward animation given an IAnimation and the current state
+    """
+    if animation.imobject.is_deleted:
         return None
 
     match animation:
         case ITransform(imobject=imobj):
-            mcopy = mh.getCopy(imobj)
+            mcopy = mh.get_copy(imobj)
             tcopy = state.targets[imobj].copy()
             # mh.setCopy(imobj, tcopy)
             return Transform(mcopy, tcopy)
         case IFadeIn(imobject=imobj):
-            mcopy = state.targets[imobj].copy() #target[obj] == obj for introducers
-            mh.setCopy(imobj, mcopy)
+            mcopy = state.targets[imobj].copy()  # target[obj] == obj for introducers
+            mh.set_copy(imobj, mcopy)
             return FadeIn(mcopy)
         case ICreate(imobject=imobj):
             mcopy = state.targets[imobj].copy()
-            mh.setCopy(imobj, mcopy)
+            mh.set_copy(imobj, mcopy)
             return Create(mcopy)
         case IApplyFunction(imobject=imobj):
-            mcopy = mh.getCopy(imobj)
+            mcopy = mh.get_copy(imobj)
             # tcopy = state.targets[imobj].copy()
             # mh.setCopy(imobj, tcopy)
             # return Transform(mcopy, tcopy)
             return ApplyFunction(animation.custom_method, mcopy)
 
-def matchPosition(mobject, target_mobject):
-    mobject.match_x(target_mobject)
-    mobject.match_y(target_mobject)

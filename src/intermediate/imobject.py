@@ -1,74 +1,97 @@
 from manim import *
-import html
 import models.mobject_helper as mh
 
 
 class IMobject:
-    def __init__(self, mobject, parentImobject=None):
-        self.mobject = mobject #mobject to be only used as a initial target
-        self.addedState = None 
-        self.removedState = None
-        self.introAnim = None
-        self.isDeleted = False
-        self.parentImobject = parentImobject
-        self.editedAt = None
+    """
+    Intermediate mobject class
+    """
+    def __init__(self, mobject, parent_imobject=None):
+        self.mobject = mobject  # mobject to be only used as a initial target
+        self.added_state = None
+        self.removed_state = None
+        self.intro_anim = None
+        self.is_deleted = False
+        self.parent_imobject = parent_imobject
+        self.edited_at = None
         self.group = None
         self.allowed_to_select = True
         self.scale = 1.0
         self.move_to = None
-        self.colorChanged = False
+        self.color_changed = False
 
-    def declStr(self):
+    def decl_str(self):
         return f"{self.mobject.__class__.__name__}()"
 
 
-# Class representing no selected object
 class INone(IMobject):
+    """
+    Intermediate mobject class representing no selected object
+    """
     def __init__(self):
         super().__init__(None)
 
+
 class IGroup(IMobject):
+    """
+    Intermediate mobject class representing a grouping
+    """
     def __init__(self):
         super().__init__(VGroup())
         self.vgroup_children = set()
-    
+
     def add(self, imobject):
-        mobject, group = mh.getCopy(imobject), mh.getCopy(self)
+        mobject, group = mh.get_copy(imobject), mh.get_copy(self)
         imobject.group = self
 
         self.vgroup_children.add(imobject)
         group.add(mobject)
 
-    def childrenStr(self):
+    def children_str(self):
         childnames = []
         # for imobject in self.vgroup_children:
         #     childnames.append(mh.getName(imobject))
-        
-        return ', '.join(childnames)
 
-    def declStr(self):
-        return f"VGroup({self.childrenStr()})"
+        return ", ".join(childnames)
+
+    def decl_str(self):
+        return f"VGroup({self.children_str()})"
+
 
 class ICircle(IMobject):
-    def __init__(self, color=RED, radius=None, parentImobject=None):
-        super().__init__(Circle(color=color, radius=radius), parentImobject=parentImobject)
+    """
+    Intermediate Circle class
+    """
+    def __init__(self, color=RED, radius=None, parent_imobject=None):
+        super().__init__(
+            Circle(color=color, radius=radius), parent_imobject=parent_imobject
+        )
         self.color = color
         self.radius = radius
 
-    def declStr(self):
-        return f"Circle(color=\"{self.color}\", radius={self.radius})"
+    def decl_str(self):
+        return f'Circle(color="{self.color}", radius={self.radius})'
+
 
 class ISquare(IMobject):
+    """
+    Intermediate Square class
+    """
     def __init__(self):
         super().__init__(Square())
 
+
 class IStar(IMobject):
+    """
+    Intermediate Star class
+    """
     def __init__(self):
         super().__init__(Star())
 
+
 class ITriangle(IMobject):
+    """
+    Intermediate Triangle class
+    """
     def __init__(self):
         super().__init__(Triangle())
-
-
-

@@ -1,21 +1,35 @@
-import models.mobject_helper as mh
-
 class IAnimation:
+    """
+    Intermediate animation class
+    """
     def __init__(self, imobject):
         self.imobject = imobject
+
 
 class IFadeIn(IAnimation):
-    pass
+    """
+    Intermediate FadeIn class
+    """
+
 
 class ITransform(IAnimation):
-    pass
+    """
+    Intermediate animation class
+    """
+
 
 class ICreate(IAnimation):
-    pass
+    """
+    Intermediate animation class
+    """
+
 
 class IApplyFunction(IAnimation):
+    """
+    Intermediate animation class
+    """
     def __init__(self, imobject):
-        self.imobject = imobject
+        super().__init__(imobject)
         self.color = None
         self.move_to = None
         self.scale = None
@@ -27,5 +41,5 @@ class IApplyFunction(IAnimation):
             mobject.move_to(self.move_to)
         if self.scale is not None:
             mobject.scale(self.scale)
-            
+
         return mobject

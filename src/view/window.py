@@ -1,18 +1,20 @@
-import sys
-import moderngl
-from manim import *
-from manim.opengl import *
 import moderngl_window as mglw
 from moderngl_window.context.pyside2.window import Window as PySideWindow
 from moderngl_window.timers.clock import Timer
 
+
 class QTWindow(PySideWindow):
+    """
+    Previews the Manim animations...
+
+    is a subclass of ModernGL's Pyside2 window
+    """
     def __init__(self, app, renderer, close_handler) -> None:
         super().__init__()
         self.close_handler = close_handler
         self.app = app
         self._widget.setGeometry(550, 250, 900, 520)
-        self.title = f"Manimate"
+        self.title = "Manimate"
 
         # self.size = size
         self.renderer = renderer
@@ -24,14 +26,15 @@ class QTWindow(PySideWindow):
 
         self.swap_buffers()
 
-
     # Delegate event handling to scene.
     def mouse_move_event(self, event):
         super().mouse_move_event(event)
         x, y = event.x(), event.y()
         dx, dy = self._calc_mouse_delta(x, y)
         point = self.renderer.pixel_coords_to_space_coords(x, y, top_left=True)
-        d_point = self.renderer.pixel_coords_to_space_coords(dx, dy, relative=True, top_left=True)
+        d_point = self.renderer.pixel_coords_to_space_coords(
+            dx, dy, relative=True, top_left=True
+        )
         self.renderer.scene.mouse_move_event(point, d_point)
 
     def mouse_press_event(self, event):
@@ -42,7 +45,6 @@ class QTWindow(PySideWindow):
         point = self.renderer.pixel_coords_to_space_coords(x, y, top_left=True)
         mouse_button_map = {
             1: "LEFT",
-            # 2: "MOUSE",
             2: "RIGHT",
         }
         self.renderer.scene.on_mouse_press(point, mouse_button_map[button], modifiers)
@@ -55,22 +57,12 @@ class QTWindow(PySideWindow):
         point = self.renderer.pixel_coords_to_space_coords(x, y, top_left=True)
         mouse_button_map = {
             1: "LEFT",
-            # 2: "MOUSE",
             2: "RIGHT",
         }
         self.renderer.scene.on_mouse_release(point, mouse_button_map[button], modifiers)
-
 
     def close_event(self, event):
         super().close_event(event)
         self.close_handler()
         event.accept()
 
-    # def mouse_drag_event(self, event):
-    #     super().on_mouse_drag(x, y, dx, dy, buttons, modifiers)
-    #     point = self.renderer.pixel_coords_to_space_coords(x, y)
-    #     d_point = self.renderer.pixel_coords_to_space_coords(dx, dy, relative=True)
-    #     self.renderer.scene.on_mouse_drag(point, d_point, buttons, modifiers)
-    # def swap_buffers(self):
-    #     # self.widget.update()
-    #     pass

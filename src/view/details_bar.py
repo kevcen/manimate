@@ -1,24 +1,8 @@
-import sys
-from intermediate.ianimation import ICreate, IFadeIn
-from intermediate.imobject import IGroup, INone
-from intermediate.itext import Highlight, IMarkupText, IMathTex
-from intermediate.itree import INode
-from models.fsm_model import FsmModel
-import moderngl
-from manim import *
-from manim.opengl import *
-from manim.renderer.opengl_renderer import OpenGLRenderer
-
-from PySide6.QtGui import QOpenGLContext, QSurfaceFormat, QIntValidator, QDoubleValidator
-from PySide6.QtOpenGLWidgets import QOpenGLWidget
-from PySide6.QtCore import Qt, Slot, QRect
 from PySide6.QtWidgets import (
-    QApplication,
     QLabel,
     QPushButton,
     QVBoxLayout,
     QWidget,
-    QSlider,
     QLineEdit,
     QComboBox,
     QTextEdit,
@@ -29,248 +13,294 @@ from PySide6.QtWidgets import (
     QDoubleSpinBox,
     QColorDialog,
     QMessageBox,
-    QErrorMessage,
 )
-from __feature__ import true_property
-from pathlib import Path
-import moderngl_window as mglw
-from moderngl_window.timers.clock import Timer
+
+from intermediate.ianimation import ICreate, IFadeIn
+from intermediate.imobject import IGroup, INone
+from intermediate.itext import Highlight, IMarkupText, IMathTex
+from intermediate.itree import INode
 import models.mobject_helper as mh
 
 
-class MarkupTextEdit(QTextEdit):
+class MarkupText_edit(QTextEdit):
+    """
+    Text _edit for MarkupText
+    """
     def __init__(self, details_bar):
         super().__init__()
         self.details_bar = details_bar
-        
-    def focusOutEvent(self, e):
-        super().focusOutEvent(e)
-        self.details_bar.changeMarkupTextHandler()
 
-TOP_WIDGETS_NUM = 1 #stretch n groupbox
+    def focus_out_event(self, e):
+        super().focus_out_event(e)
+        self.details_bar.change_markup_text_handler()
+
+
+TOP_WIDGETS_NUM = 1  # stretch n groupbox
+
+
 class DetailsBar(QWidget):
-    def __init__(self, scene_model, fsm_model, closeHandler):
+    """
+    Right widget which contains information for currently 
+    selected Mobject and current state
+    """
+    def __init__(self, scene_model, fsm_model, close_handler):
         super().__init__()
 
         self.scene_model = scene_model
         self.fsm_model = fsm_model
-        self.closeHandler = closeHandler
+        self.close_handler = close_handler
 
-        self.selectedImobject = INone()
+        self.selected_imobject = INone()
 
         self.setWindowTitle(" ")
 
-        self.geometry = QRect(1450, 250, 150, 600)
+        self.setGeometry(1450, 250, 150, 600)
 
         self.layout = QVBoxLayout()
 
-        self.animationRunTime = QDoubleSpinBox()
-        self.animationRunTime.minimum = 0
-        self.animationRunTime.suffix = "s"
-        self.animationRunTime.valueChanged.connect(self.changeAnimationRunTimeHandler)
-        self.animationRunTime.setValue(fsm_model.curr.run_time)
+        self.animation_run_time = QDoubleSpinBox()
+        self.animation_run_time.setMinimum(0)
+        self.animation_run_time.setSuffix("s")
+        self.animation_run_time.valueChanged.connect(self.change_animation_run_time_handler)
+        self.animation_run_time.setValue(fsm_model.curr.run_time)
         # self.stateLabel = QLabel(f"State {fsm_model.curr.idx}")
 
-        self.loopCb = QComboBox()
-        self.loopCb.addItem("None")
-        self.loopCb.addItems([f"State {n}" for n in range(1, fsm_model.end.idx)])
-        self.loopCb.currentIndexChanged.connect(self.loopStateChangeHandler)
+        self.loop_cb = QComboBox()
+        self.loop_cb.addItem("None")
+        self.loop_cb.addItems([f"State {n}" for n in range(1, fsm_model.end.idx)])
+        self.loop_cb.currentIndexChanged.connect(self.loop_cb_handler)
 
-        self.loopTimes = QSpinBox()
-        self.loopTimes.minimum = 0
-        self.loopTimes.suffix = " times"
-        self.loopTimes.valueChanged.connect(self.changeLoopTimesHandler)
+        self.loop_times = QSpinBox()
+        self.loop_times.setMinimum(0)
+        self.loop_times.setSuffix(" times")
+        self.loop_times.valueChanged.connect(self.change_loop_times_handler)
 
-        self.stateGroupBox = QGroupBox(f"State {fsm_model.curr.idx}")
-        stateLayout = QFormLayout()
-        stateLayout.addRow(QLabel("Run time:"), self.animationRunTime)
-        stateLayout.addRow(QLabel("Loop to:"), self.loopCb)
-        stateLayout.addRow(QLabel("for:"), self.loopTimes)
-        
-        self.stateGroupBox.setLayout(stateLayout)
-        self.layout.addWidget(self.stateGroupBox)
+        self.state_group_box = QGroupBox(f"State {fsm_model.curr.idx}")
+        state_layout = QFormLayout()
+        state_layout.addRow(QLabel("Run time:"), self.animation_run_time)
+        state_layout.addRow(QLabel("Loop to:"), self.loop_cb)
+        state_layout.addRow(QLabel("for:"), self.loop_times)
+
+        self.state_group_box.setLayout(state_layout)
+        self.layout.addWidget(self.state_group_box)
         self.layout.addStretch()
         self.emptyLabel = QLabel("nothing selected")
         self.layout.addWidget(self.emptyLabel)
         self.layout.addStretch()
-        
-        self.nameEdit = QLineEdit()
-        self.nameEdit.setText(mh.getName(self.selectedImobject))
-        self.nameEdit.editingFinished.connect(self.nameEditHandler)
 
-        self.introCb = QComboBox()
-        self.introCb.addItems(["None", "Create", "FadeIn"])
-        self.introCb.currentIndexChanged.connect(self.introAnimationHandler)
+        self.name_edit = QLineEdit()
+        self.name_edit.setText(mh.get_name(self.selected_imobject))
+        self.name_edit.editingFinished.connect(self.name_edit_handler)
 
-        self.changeColorBtn = QPushButton("change colour")
-        self.changeColorBtn.clicked.connect(self.changeColourBtnHandler)
+        self.intro_cb = QComboBox()
+        self.intro_cb.addItems(["None", "Create", "FadeIn"])
+        self.intro_cb.currentIndexChanged.connect(self.intro_anim_handler)
+
+        self.change_color_btn = QPushButton("change colour")
+        self.change_color_btn.clicked.connect(self.change_color_btn_handler)
 
         self.scaleBox = QDoubleSpinBox()
-        self.scaleBox.minimum = 0
-        self.scaleBox.valueChanged.connect(self.scaleBoxHandler)
+        self.scaleBox.setMinimum(0)
+        self.scaleBox.valueChanged.connect(self.scale_box_handler)
 
-        removeBtn = QPushButton("remove mobject")
-        removeBtn.clicked.connect(self.removeMobjectHandler)
+        remove_btn = QPushButton("remove mobject")
+        remove_btn.clicked.connect(self.remove_mobject_handler)
 
-        self.groupCb = QComboBox()
-        self.groupCb.currentIndexChanged.connect(self.groupCbHandler)
+        self.group_cb = QComboBox()
+        self.group_cb.currentIndexChanged.connect(self.group_change_handler)
 
-        self.newGroupBtn = QPushButton("+")
-        self.newGroupBtn.clicked.connect(self.newGroupBtnHandler)
+        self.new_group_btn = QPushButton("+")
+        self.new_group_btn.clicked.connect(self.new_group_handler)
 
-        self.groupRow = QHBoxLayout()
-        self.groupRow.addWidget(self.groupCb)
-        self.groupRow.addWidget(self.newGroupBtn)
-        
-        self.mobjGroupBox = QGroupBox(f"Selected: {mh.getName(self.selectedImobject)}")
-        mobjLayout = QFormLayout()
-        mobjLayout.addRow(QLabel("Name:"), self.nameEdit)
-        mobjLayout.addRow(QLabel("Appear animation:"), self.introCb)
-        mobjLayout.addRow(QLabel("Colour:"), self.changeColorBtn)
-        mobjLayout.addRow(QLabel("Scale:"), self.scaleBox)
-        mobjLayout.addRow(QLabel("Grouping:"), self.groupRow)
-        mobjLayout.addRow(QLabel("Remove:"), removeBtn)
-        self.mobjGroupBox.setLayout(mobjLayout)
+        self.group_row = QHBoxLayout()
+        self.group_row.addWidget(self.group_cb)
+        self.group_row.addWidget(self.new_group_btn)
 
-        self.all_widgets = (self.mobjGroupBox, )
+        self.mobj_group_box = QGroupBox(f"Selected: {mh.get_name(self.selected_imobject)}")
+        mobj_layout = QFormLayout()
+        mobj_layout.addRow(QLabel("Name:"), self.name_edit)
+        mobj_layout.addRow(QLabel("Appear animation:"), self.intro_cb)
+        mobj_layout.addRow(QLabel("Colour:"), self.change_color_btn)
+        mobj_layout.addRow(QLabel("Scale:"), self.scaleBox)
+        mobj_layout.addRow(QLabel("Grouping:"), self.group_row)
+        mobj_layout.addRow(QLabel("Remove:"), remove_btn)
+        self.mobj_group_box.setLayout(mobj_layout)
+
+        self.all_widgets = (self.mobj_group_box,)
 
         # Tree widgets
-        self.changeParentCb = QComboBox()
-        self.changeParentCb.addItem("None")
-        self.changeParentCb.currentIndexChanged.connect(self.changeParentHandler)
+        self.change_parent_cb = QComboBox()
+        self.change_parent_cb.addItem("None")
+        self.change_parent_cb.currentIndexChanged.connect(self.change_parent_handler)
 
-        self.changeNodeText = QLineEdit()
-        self.changeNodeText.editingFinished.connect(self.changeNodeTextHandler)
+        self.change_node_text = QLineEdit()
+        self.change_node_text.editingFinished.connect(self.change_node_text_handler)
 
-        self.addChildBtn = QPushButton("add child")
+        self.add_child_btn = QPushButton("add child")
 
-        
-        self.treeGroupBox = QGroupBox("Tree attributes")
-        treeLayout = QFormLayout()
-        treeLayout.addRow(QLabel("Node text:"), self.changeNodeText)
-        treeLayout.addRow(QLabel("Parent:"), self.changeParentCb)
-        treeLayout.addRow(QLabel("Add child:"), self.addChildBtn)
-        self.treeGroupBox.setLayout(treeLayout)
+        self.tree_group_box = QGroupBox("Tree attributes")
+        tree_layout = QFormLayout()
+        tree_layout.addRow(QLabel("Node text:"), self.change_node_text)
+        tree_layout.addRow(QLabel("Parent:"), self.change_parent_cb)
+        tree_layout.addRow(QLabel("Add child:"), self.add_child_btn)
+        self.tree_group_box.setLayout(tree_layout)
 
-
-        # self.tree_widgets = (self.changeNodeText, self.changeParentCb, self.addChildBtn, )
-        self.tree_widgets = (self.treeGroupBox, )
-    
+        # self.tree_widgets = (self.change_node_text, self.changeParent_cb, self.addChildBtn, )
+        self.tree_widgets = (self.tree_group_box,)
 
         # Text widgets
-        self.changeMarkupText = MarkupTextEdit(self)
+        self.change_markup_text = MarkupText_edit(self)
 
-        self.boldMarkupText = QPushButton("b")
-        self.boldMarkupText.clicked.connect(lambda: self.highlightMarkupText(Highlight.BOLD))
-        
-        self.italicMarkupText = QPushButton("i")
-        self.italicMarkupText.clicked.connect(lambda: self.highlightMarkupText(Highlight.ITALICS))
-        
-        self.underlineMarkupText = QPushButton("u")
-        self.underlineMarkupText.clicked.connect(lambda: self.highlightMarkupText(Highlight.UNDERLINE))
-        
-        self.bigMarkupText = QPushButton("big")
-        self.bigMarkupText.clicked.connect(lambda: self.highlightMarkupText(Highlight.BIG))
-        
-        self.colorMarkupText = QPushButton("red")
-        self.colorMarkupText.clicked.connect(lambda: self.highlightMarkupText(Highlight.COLOR_CHANGE))
+        self.bold_markup_text = QPushButton("b")
+        self.bold_markup_text.clicked.connect(
+            lambda: self.highlight_markup_text(Highlight.BOLD)
+        )
 
-        self.text_edits = (self.boldMarkupText, self.italicMarkupText, self.underlineMarkupText, self.bigMarkupText, self.colorMarkupText)
-        self.text_widgets = (self.changeMarkupText, )
-        self.textEditLayout = QHBoxLayout()
+        self.italic_markup_text = QPushButton("i")
+        self.italic_markup_text.clicked.connect(
+            lambda: self.highlight_markup_text(Highlight.ITALICS)
+        )
 
-        self.currIdx = -1
+        self.underline_markup_text = QPushButton("u")
+        self.underline_markup_text.clicked.connect(
+            lambda: self.highlight_markup_text(Highlight.UNDERLINE)
+        )
 
+        self.big_markup_text = QPushButton("big")
+        self.big_markup_text.clicked.connect(
+            lambda: self.highlight_markup_text(Highlight.BIG)
+        )
 
+        self.color_markup_text = QPushButton("red")
+        self.color_markup_text.clicked.connect(
+            lambda: self.highlight_markup_text(Highlight.COLOR_CHANGE)
+        )
 
-        scene_model.selectedMobjectChange.connect(lambda mob: self.refresh(mob))
-        fsm_model.stateChange.connect(lambda: self.refresh())
+        self.text_edits = (
+            self.bold_markup_text,
+            self.italic_markup_text,
+            self.underline_markup_text,
+            self.big_markup_text,
+            self.color_markup_text,
+        )
+        self.text_widgets = (self.change_markup_text,)
+        self.text_edit_layout = QHBoxLayout()
+
+        self.curr_idx = -1
+
+        scene_model.selectedMobjectChange.connect(self.refresh)
+        fsm_model.stateChange.connect(lambda i: self.refresh())
         # fsm_model.selectedMobjectChange.connect()
-        
+
         self.setLayout(self.layout)
 
     def refresh(self, imobject=None):
-        # print('REFRESH', imobject)
-        if imobject == self.selectedImobject and self.currIdx == self.fsm_model.curr.idx:
-            return #nothing happened 
+        print('REFRESH', imobject)
+        if (
+            imobject == self.selected_imobject
+            and self.curr_idx == self.fsm_model.curr.idx
+        ):
+            return  # nothing happened
         if imobject is None:
-            imobject = self.selectedImobject
-        self.currIdx = self.fsm_model.curr.idx
-        self.clearItems()
-        self.selectedImobject = imobject
-        self.addItems(imobject)
+            imobject = self.selected_imobject
+        self.curr_idx = self.fsm_model.curr.idx
+        self.clear_items()
+        self.selected_imobject = imobject
+        self.add_items(imobject)
 
-
-
-    def addItems(self, imobject):
-        self.stateGroupBox.title = f"State {self.fsm_model.curr.idx}"
-        self.animationRunTime.setValue(self.fsm_model.curr.run_time)
-        self.loopCb.addItem("None")
-        self.loopCb.addItems([f"State {n}" for n in range(1, self.fsm_model.end.idx)])
-        self.loopCb.setCurrentIndex(self.loopCb.findText(f"State {self.fsm_model.curr.loop[0]}") if self.fsm_model.curr.loop is not None else 0)
-        self.loopCb.blockSignals(False)
+    def add_items(self, imobject):
+        print("ADD", imobject)
+        self.state_group_box.title = f"State {self.fsm_model.curr.idx}"
+        self.animation_run_time.setValue(self.fsm_model.curr.run_time)
+        self.loop_cb.addItem("None")
+        self.loop_cb.addItems([f"State {n}" for n in range(1, self.fsm_model.end.idx)])
+        self.loop_cb.setCurrentIndex(
+            self.loop_cb.findText(f"State {self.fsm_model.curr.loop[0]}")
+            if self.fsm_model.curr.loop is not None
+            else 0
+        )
+        self.loop_cb.blockSignals(False)
         if isinstance(imobject, INone):
-            self.layout.insertWidget(self.layout.count()-1, QLabel("nothing selected"))
+            self.layout.insertWidget(
+                self.layout.count() - 1, QLabel("nothing selected")
+            )
             return
 
-        #fresh add
+        # fresh add
         for w in self.all_widgets:
-            self.layout.insertWidget(self.layout.count()-1, w)
+            self.layout.insertWidget(self.layout.count() - 1, w)
 
         match imobject:
             case INode():
-                self.addChildBtn.clicked.connect(imobject.spawn_child)
-                self.changeParentCb.addItem("None")
-                self.changeParentCb.addItems(filter(lambda name: name != mh.getName(imobject), map(mh.getName, mh.getImobjectsByClass(INode))))
+                self.add_child_btn.clicked.connect(imobject.spawn_child)
+                self.change_parent_cb.addItem("None")
+                self.change_parent_cb.addItems(
+                    filter(
+                        lambda name: name != mh.get_name(imobject),
+                        map(mh.get_name, mh.get_imobjects_by_class(INode)),
+                    )
+                )
                 for w in self.tree_widgets:
-                    self.layout.insertWidget(self.layout.count()-1, w)
-                
-                self.changeParentCb.setCurrentIndex(self.changeParentCb.findText(mh.getName(imobject.parent)) if imobject.parent is not None else 0)
-                self.changeParentCb.blockSignals(False)
-                self.changeNodeText.setText(mh.getCopy(imobject.label).text)
-                self.changeNodeText.blockSignals(False)
+                    self.layout.insertWidget(self.layout.count() - 1, w)
+
+                self.change_parent_cb.setCurrentIndex(
+                    self.change_parent_cb.findText(mh.get_name(imobject.parent))
+                    if imobject.parent is not None
+                    else 0
+                )
+                self.change_parent_cb.blockSignals(False)
+                self.change_node_text.setText(mh.get_copy(imobject.label).text)
+                self.change_node_text.blockSignals(False)
             case IMarkupText() | IMathTex():
                 for w in self.text_widgets:
-                    self.layout.insertWidget(self.layout.count()-1, w)
-                    
-                self.changeMarkupText.setText(imobject.text)
-                self.changeMarkupText.blockSignals(True)
-                
+                    self.layout.insertWidget(self.layout.count() - 1, w)
+
+                self.change_markup_text.setText(imobject.text)
+                self.change_markup_text.blockSignals(True)
 
                 if isinstance(imobject, IMarkupText):
-                    self.textEditLayout = QHBoxLayout()
+                    self.text_edit_layout = QHBoxLayout()
                     for w in self.text_edits:
-                        self.textEditLayout.addWidget(w)
-                    self.layout.insertLayout(self.layout.count()-1, self.textEditLayout)
+                        self.text_edit_layout.addWidget(w)
+                    self.layout.insertLayout(
+                        self.layout.count() - 1, self.text_edit_layout
+                    )
 
-        
-        self.mobjGroupBox.title = f"Selected: {mh.getName(imobject)}"
-        # print("REFRESHED INTRO", imobject.introAnim.__class__.__name__ if imobject.introAnim is not None else 'None')
-        self.introCb.blockSignals(True)
-        self.introCb.setCurrentIndex(self.introCb.findText(imobject.introAnim.__class__.__name__[1:]) if imobject.introAnim is not None else 0)
-        self.introCb.blockSignals(False)
+        self.mobj_group_box.setTitle(f"Selected: {mh.get_name(imobject)}")
+        # print("REFRESHED INTRO", imobject.intro_anim.__class__.__name__ if imobject.intro_anim is not None else 'None')
+        self.intro_cb.blockSignals(True)
+        self.intro_cb.setCurrentIndex(
+            self.intro_cb.findText(imobject.intro_anim.__class__.__name__[1:])
+            if imobject.intro_anim is not None
+            else 0
+        )
+        self.intro_cb.blockSignals(False)
 
-        self.groupCb.addItem("None")
-        self.groupCb.addItems([mh.getName(im) for im in mh.getGroups()])
-        self.groupCb.setCurrentIndex(self.groupCb.findText(mh.getName(imobject.group) if imobject.group is not None else "None"))
-        self.groupCb.blockSignals(False)
+        self.group_cb.addItem("None")
+        self.group_cb.addItems([mh.get_name(im) for im in mh.get_groups()])
+        self.group_cb.setCurrentIndex(
+            self.group_cb.findText(
+                mh.get_name(imobject.group) if imobject.group is not None else "None"
+            )
+        )
+        self.group_cb.blockSignals(False)
 
         self.scaleBox.blockSignals(True)
-        self.scaleBox.value = self.fsm_model.get_curr_scale(imobject)
+        self.scaleBox.setValue(self.fsm_model.get_curr_scale(imobject))
         self.scaleBox.blockSignals(False)
 
-        self.nameEdit.setText(mh.getName(self.selectedImobject))
-        self.nameEdit.blockSignals(False)
+        self.name_edit.setText(mh.get_name(imobject))
+        self.name_edit.blockSignals(False)
 
         # self.layout.addStretch()
-    
-    def clearItems(self):
-        self.changeNodeText.blockSignals(True)
-        self.nameEdit.blockSignals(True)
-        self.changeMarkupText.blockSignals(True)
-        self.loopCb.blockSignals(True)
-        self.groupCb.blockSignals(True)
-        for i in range(self.layout.count()-2, TOP_WIDGETS_NUM, -1): 
+
+    def clear_items(self):
+        self.change_node_text.blockSignals(True)
+        self.name_edit.blockSignals(True)
+        self.change_markup_text.blockSignals(True)
+        self.loop_cb.blockSignals(True)
+        self.group_cb.blockSignals(True)
+        for i in range(self.layout.count() - 2, TOP_WIDGETS_NUM, -1):
             child = self.layout.itemAt(i).widget()
             # print("clearing " + child.__class__.__name__ if child is not None else "NONE")
             if child is None:
@@ -278,160 +308,163 @@ class DetailsBar(QWidget):
             if child is not None:
                 child.setParent(None)
 
-        #clear sublayout
-        for i in reversed(range(self.textEditLayout.count())): 
-            child = self.textEditLayout.itemAt(i).widget().setParent(None)
+        # clear sublayout
+        for i in reversed(range(self.text_edit_layout.count())):
+            child = self.text_edit_layout.itemAt(i).widget().setParent(None)
 
+        if isinstance(self.selected_imobject, INode):
+            self.add_child_btn.clicked.disconnect(self.selected_imobject.spawn_child)
+            self.change_parent_cb.blockSignals(True)
+            self.change_parent_cb.clear()
 
-        if isinstance(self.selectedImobject, INode):
-            self.addChildBtn.clicked.disconnect(self.selectedImobject.spawn_child)
-            self.changeParentCb.blockSignals(True)
-            self.changeParentCb.clear()
+        self.loop_cb.clear()
+        self.group_cb.clear()
 
-        self.loopCb.clear()
-        self.groupCb.clear()
-
-    def highlightMarkupText(self, highlight):
-        if isinstance(self.selectedImobject, INone):
+    def highlight_markup_text(self, highlight):
+        if isinstance(self.selected_imobject, INone):
             return
 
-        cursor = self.changeMarkupText.textCursor()
-        self.selectedImobject.handleBold(cursor.selectionStart(), cursor.selectionEnd(), highlight)
+        cursor = self.change_markup_text.textCursor()
+        self.selected_imobject.handle_bold(
+            cursor.selectionStart(), cursor.selectionEnd(), highlight
+        )
 
-    def loopStateChangeHandler(self, i):
-        if self.changeParentCb.count == 0 or not self.loopCb.currentText:
-            return 
+    def loop_cb_handler(self, i):
+        if self.change_parent_cb.count == 0 or not self.loop_cb.currentText:
+            return
 
-        if self.loopCb.currentText == "None":
+        if self.loop_cb.currentText == "None":
             self.fsm_model.curr.loop = None
         else:
-            state_num = int(self.loopCb.currentText[6:])
-            if not self.loopTimes.text:
-                self.loopTimes.setValue(1)
+            state_num = int(self.loop_cb.currentText[6:])
+            if not self.loop_times.text:
+                self.loop_times.setValue(1)
 
             self.fsm_model.curr.loop = (state_num, 1)
             self.fsm_model.curr.loopCnt = 1
 
-    def changeLoopTimesHandler(self, value):
+    def change_loop_times_handler(self, value):
         self.fsm_model.curr.loopCnt = value
 
-    def changeMarkupTextHandler(self):
-        if isinstance(self.selectedImobject, INone):
+    def change_markup_text_handler(self):
+        if isinstance(self.selected_imobject, INone):
             return
-        
-        text = self.changeMarkupText.plainText
-        self.selectedImobject.changeText(text)
-        self.selectedImobject.editedAt = self.fsm_model.curr.idx 
 
-    def changeNodeTextHandler(self):
-        text = self.changeNodeText.text
-        self.selectedImobject.change_label_text(text)
-        self.selectedImobject.editedAt = self.fsm_model.curr.idx 
+        text = self.change_markup_text.plainText
+        self.selected_imobject.change_text(text)
+        self.selected_imobject.edited_at = self.fsm_model.curr.idx
 
-    def changeAnimationRunTimeHandler(self, value):
+    def change_node_text_handler(self):
+        text = self.change_node_text.text
+        self.selected_imobject.change_label_text(text)
+        self.selected_imobject.edited_at = self.fsm_model.curr.idx
+
+    def change_animation_run_time_handler(self, value):
         self.fsm_model.curr.run_time = value
 
-    def changeParentHandler(self, i):
-        if self.changeParentCb.count == 0 or not isinstance(self.selectedImobject, INode):
-            return 
+    def change_parent_handler(self, i):
+        if self.change_parent_cb.count == 0 or not isinstance(
+            self.selected_imobject, INode
+        ):
+            return
 
         # print("CHANGE PARENT")
-        imobj_name = self.changeParentCb.currentText
-        imobj = mh.getImobjectByName(imobj_name) if imobj_name is not None else None
+        imobj_name = self.change_parent_cb.currentText
+        imobj = mh.get_imobject_by_name(imobj_name) if imobj_name is not None else None
 
-        self.selectedImobject.change_parent(imobj)
+        print(imobj_name, imobj)
+        self.selected_imobject.change_parent(imobj)
 
+    def intro_anim_handler(self, i):
+        if isinstance(self.selected_imobject, INone):
+            return
 
-    def introAnimationHandler(self, i):
-        if isinstance(self.selectedImobject, INone):
-            return 
+        # print('CHANGE INTRO', self.selected_imobject.__class__.__name__, i)
 
-        # print('CHANGE INTRO', self.selectedImobject.__class__.__name__, i)
-
-        imobject = self.selectedImobject
-        if imobject.introAnim is not None:
-            imobject.addedState.animations.remove(imobject.introAnim)
+        imobject = self.selected_imobject
+        if imobject.intro_anim is not None:
+            imobject.added_state.animations.remove(imobject.intro_anim)
         else:
-            imobject.addedState.added.remove(imobject)
+            imobject.added_state.added.remove(imobject)
 
         # self.scene_model.remove(imobject)
         match i:
             case 0:
-                imobject.introAnim = None
+                imobject.intro_anim = None
             case 1:
-                imobject.introAnim = ICreate(imobject)
+                imobject.intro_anim = ICreate(imobject)
             case 2:
-                imobject.introAnim = IFadeIn(imobject)
+                imobject.intro_anim = IFadeIn(imobject)
 
-        if imobject.introAnim is not None:
-            imobject.addedState.animations.append(imobject.introAnim)
-            # imobject.addedState.playCopy(imobject.introAnim, self.scene_model.scene)
+        if imobject.intro_anim is not None:
+            imobject.added_state.animations.append(imobject.intro_anim)
+            # imobject.added_state.play_copy(imobject.intro_anim, self.scene_model.scene)
         else:
-            imobject.addedState.added.add(imobject)
+            imobject.added_state.added.add(imobject)
             # self.scene_model.addCopy(imobject)
 
-    def removeMobjectHandler(self):
-        self.fsm_model.instant_remove_obj_at_curr(self.selectedImobject)
+    def remove_mobject_handler(self):
+        self.fsm_model.instant_remove_obj_at_curr(self.selected_imobject)
         self.refresh()
 
-    def newGroupBtnHandler(self):
+    def new_group_handler(self):
         group = IGroup()
         self.fsm_model.instant_add_object_to_curr(group, select=False)
         mh.groups.add(group)
 
-        self.refresh() # show new igroup in combobox
+        self.refresh()  # show new igroup in combobox
 
-    def groupCbHandler(self, i):
-        if isinstance(self.selectedImobject, INone):
+    def group_change_handler(self, i):
+        if isinstance(self.selected_imobject, INone):
             return
 
-        imobject = self.selectedImobject
-        mobject = mh.getCopy(imobject)
+        imobject = self.selected_imobject
+        mobject = mh.get_copy(imobject)
         if imobject.group is not None:
-            mh.getCopy(imobject.group).remove(mobject)
+            mh.get_copy(imobject.group).remove(mobject)
             self.scene_model.scene.add(mobject)
 
-        group_name = self.groupCb.currentText
+        group_name = self.group_cb.currentText
         if group_name != "None":
-            igroup = mh.getImobjectByName(group_name)
-            group = mh.getCopy(igroup)
+            igroup = mh.get_imobject_by_name(group_name)
+            group = mh.get_copy(igroup)
 
             igroup.add(imobject)
-            self.fsm_model.curr.calledMobjectFunctions[igroup]['add'].add(imobject)
+            self.fsm_model.curr.called_mobject_functions[igroup]["add"].add(imobject)
 
             # self.scene_model.unselect_mobjects()
         else:
-            pass # TODO: tabs for each child
-            
-    def changeColourBtnHandler(self):
+            pass  # TODO: tabs for each child
+
+    def change_color_btn_handler(self):
         color = QColorDialog.getColor()
 
         if color.isValid():
-            imobject = self.selectedImobject
-            mcopy = mh.getCopy(imobject)
+            imobject = self.selected_imobject
+            mcopy = mh.get_copy(imobject)
 
             mcopy.set_color(color.name())
-            imobject.colorChanged = True
+            imobject.color_changed = True
             self.scene_model.selected[mcopy] = color.name()
             target = mcopy.copy()
-            
+
             self.fsm_model.edit_transform_target(imobject, target, color=color.name())
 
-    def scaleBoxHandler(self, value):
-        imobject = self.selectedImobject
-        mcopy = mh.getCopy(imobject)
+    def scale_box_handler(self, value):
+        imobject = self.selected_imobject
+        mcopy = mh.get_copy(imobject)
 
         old_scale = self.fsm_model.get_curr_scale(imobject)
         new_scale = self.fsm_model.clean_scale(value)
         mcopy.scale(new_scale / old_scale)
         target = mcopy.copy()
-        
+
         self.fsm_model.edit_transform_target(imobject, target, scale=new_scale)
 
-    def nameEditHandler(self):
+    def name_edit_handler(self):
 
-        new_name = self.nameEdit.text
-        if not mh.setName(self.selectedImobject, new_name):
+        new_name = self.name_edit.text
+        if not mh.set_name(self.selected_imobject, new_name):
             msg = QMessageBox()
             msg.setWindowTitle("Manimate")
             msg.text = "Name is already in use!"
@@ -439,13 +472,13 @@ class DetailsBar(QWidget):
             msg.standardButtons = QMessageBox.Ok
             msg.defaultButton = QMessageBox.Ok
 
-            conflictImobj = mh.getImobjectByName(new_name)
-            msg.detailedText = f"There is another {conflictImobj.__class__.__name__} with the same name {new_name}."
+            conflict_mobj = mh.get_imobject_by_name(new_name)
+            msg.detailedText = f"There is another {conflict_mobj.__class__.__name__} with the same name {new_name}."
 
             msg.exec_()
 
         self.refresh()
 
     def closeEvent(self, e):
-        self.closeHandler()
+        self.close_handler()
         e.accept()

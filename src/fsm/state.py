@@ -1,6 +1,3 @@
-
-from email.policy import default
-from manim import *
 from bidict import bidict
 from collections import defaultdict
 
@@ -8,38 +5,37 @@ from intermediate.ianimation import IApplyFunction, ITransform
 import fsm.generator as generator
 import models.mobject_helper as mh
 
-# from manim.animation.animation import DEFAULT_ANIMATION_RUN_TIME
-
 class State:
+    """
+    A single state of the automata-based animation model.
+    """
     def __init__(self, idx, animations=None):
-        self.next = None #next state
-        self.prev = None #previous state
-        self.animations = animations if animations else [] #list of animations to play
-        self.targets = bidict() # what the mobjects look like at this state at the end
+        self.next = None  # next state
+        self.prev = None  # previous state
+        self.animations = animations if animations else []  # list of animations to play
+        self.targets = bidict()  # what the mobjects look like at this state at the end
         self.rev_targets = bidict()
         self.transforms = {}
         self.applyfunctions = {}
-        ## TODO: replace transforms by using prepare_anim on calledTargetFunctions
+        ## TODO: replace transforms by using prepare_anim on called_target_functions
         # imobject -> function -> set(args)
-        self.calledMobjectFunctions = defaultdict(lambda: defaultdict(lambda: set()))
-        self.calledTargetFunctions = defaultdict(lambda: defaultdict(lambda: set()))
-        self.targetDeclStr = {}
-        self.revAttributes = defaultdict(lambda: {})
-        self.changedMobjectAttributes = defaultdict(lambda: {})
+        self.called_mobject_functions = defaultdict(lambda: defaultdict(lambda: set()))
+        self.called_target_functions = defaultdict(lambda: defaultdict(lambda: set()))
+        self.target_decl_str = {}
+        self.rev_attributes = defaultdict(lambda: {})
+        self.changed_mobject_attributes = defaultdict(lambda: {})
         self.added = set()
         self.removed = set()
         self.idx = idx
         self.run_time = 1.0
-        self.loop = None # in form of (state, times)
+        self.loop = None  # in form of (state, times)
         self.loopCnt = None
-
 
     def addTransform(self, imobject):
         """
         PRE: called only after state has a target for the transform
         """
         assert imobject in self.targets
-
 
         if imobject not in self.transforms:
             self.transforms[imobject] = ITransform(imobject)
@@ -49,7 +45,7 @@ class State:
 
     def getTransform(self, imobject):
         return self.transforms[imobject] if imobject in self.transforms else None
-        
+
     def addApplyFunction(self, imobject):
         if imobject not in self.applyfunctions:
             self.applyfunctions[imobject] = IApplyFunction(imobject)
@@ -58,71 +54,75 @@ class State:
         return self.applyfunctions[imobject]
 
     def getApplyFunction(self, imobject):
-        return self.applyfunctions[imobject] if imobject in self.applyfunctions else None
+        return (
+            self.applyfunctions[imobject] if imobject in self.applyfunctions else None
+        )
 
     # Capturing states for reverse
     def capture_prev(self, mcopy, bypass=False):
         # print('try capture', hex(id(self)))
         # capture previous frame for reverse if editable
-        imobject = mh.getOriginal(mcopy)
-        if bypass or imobject not in self.rev_targets: #if not already captured
+        imobject = mh.get_original(mcopy)
+        if bypass or imobject not in self.rev_targets:  # if not already captured
             target = self.find_prev_target(self.prev, imobject)
             if target is None:
-                return #we are in head state
-                
+                return  # we are in head state
+
             self.rev_targets[imobject] = target
-            if imobject.editedAt is not None and imobject.editedAt < self.idx:
-                imobject.editedAt = None #mark as handled 
+            if imobject.edited_at is not None and imobject.edited_at < self.idx:
+                imobject.edited_at = None  # mark as handled
 
     def find_prev_target(self, state, imobject):
         if state is None:
-            return None 
+            return None
 
         if imobject in state.targets:
             return state.targets[imobject].copy()
         return self.find_prev_target(state.prev, imobject)
 
     # Scene related functions
-    def playOne(self, anim, scene):
+    def play_one(self, anim, scene):
         anim.run_time = 0
         scene.play(anim)
 
-    def playCopy(self, anim, scene):
+    def play_copy(self, anim, scene):
         forward_anim = generator.forward(anim, self)
         forward_anim.run_time = 0
         scene.play(forward_anim)
 
-    def addMobjects(self, mobjects, scene):
+    def add_mobjects(self, mobjects, scene):
         for imobject in mobjects:
-            mcopy = mh.getCopy(imobject)
+            mcopy = mh.get_copy(imobject)
             scene.add(mcopy)
 
-    def removeMobjects(self, mobjects, scene):
+    def remove_mobjects(self, mobjects, scene):
         for imobject in mobjects:
-            mcopy = mh.getCopy(imobject)
+            mcopy = mh.get_copy(imobject)
             scene.remove(mcopy)
 
-    def forwardAttributes(self):
-        for imobject in self.changedMobjectAttributes:
-            for attr_name, value in self.changedMobjectAttributes[imobject].items():
+    def forward_attributes(self):
+        for imobject in self.changed_mobject_attributes:
+            for attr_name, value in self.changed_mobject_attributes[imobject].items():
                 setattr(imobject, attr_name, value)
 
-    def reverseAttributes(self):
-        for imobject in self.changedMobjectAttributes:
-            for attr_name in self.changedMobjectAttributes[imobject]:
+    def reverse_attributes(self):
+        for imobject in self.changed_mobject_attributes:
+            for attr_name in self.changed_mobject_attributes[imobject]:
                 value = None
-                if attr_name in self.prev.changedMobjectAttributes[imobject]:
-                    value = self.prev.changedMobjectAttributes[imobject][attr_name] 
+                if attr_name in self.prev.changed_mobject_attributes[imobject]:
+                    value = self.prev.changed_mobject_attributes[imobject][attr_name]
                 else:
-                    value = self.revAttributes[imobject][attr_name]
+                    value = self.rev_attributes[imobject][attr_name]
                 # print(imobject, attr_name, value)
                 setattr(imobject, attr_name, value)
 
     def play(self, scene, fast=False):
-        self.addMobjects(self.added, scene)
-        self.removeMobjects(self.removed, scene)
-        self.forwardAttributes()
-        forward_anim = list(filter(None, map(lambda a: generator.forward(a, self), self.animations)))
+        self.add_mobjects(self.added, scene)
+        self.remove_mobjects(self.removed, scene)
+        self.forward_attributes()
+        forward_anim = list(
+            filter(None, map(lambda a: generator.forward(a, self), self.animations))
+        )
 
         for animation in forward_anim:
             animation.run_time = self.run_time if not fast else 0
@@ -132,10 +132,12 @@ class State:
         elif not fast:
             scene.wait(1)
 
-    def playRev(self, scene):
+    def play_rev(self, scene):
         # print(f"rem {len(state.added)}, anim {len(state.animations)}")
-        reversed_anim = list(filter(None, map(lambda a: generator.reverse(a, self), self.animations)))
-        
+        reversed_anim = list(
+            filter(None, map(lambda a: generator.reverse(a, self), self.animations))
+        )
+
         for animation in reversed_anim:
             # print('rev', animation, animation.mobject)
             animation.run_time = 0
@@ -143,10 +145,9 @@ class State:
         if len(reversed_anim) > 0:
             scene.play(*reversed_anim)
 
-        
-        self.addMobjects(self.removed, scene)
-        self.removeMobjects(self.added, scene)
-        self.reverseAttributes()
+        self.add_mobjects(self.removed, scene)
+        self.remove_mobjects(self.added, scene)
+        self.reverse_attributes()
 
     ## debugging
     def replay(self, scene):

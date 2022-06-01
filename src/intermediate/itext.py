@@ -1,109 +1,128 @@
 import html
+from enum import Enum
 from manim import *
 from intermediate.ianimation import ITransform
 from intermediate.imobject import IMobject
 import models.mobject_helper as mh
-from enum import Enum
+
 
 class Highlight(Enum):
+    """
+    Type of highlights that can be done of MarkupText
+    """
     BOLD = 1
     ITALICS = 2
     UNDERLINE = 3
     COLOR_CHANGE = 4
     BIG = 5
 
+
 class IText(IMobject):
-    def __init__(self, text, parentImobject=None):
+    """
+    Intermediate Text mobject
+    """
+    def __init__(self, text, parent_imobject=None):
         self.label = Text(text)
-        super().__init__(self.label, parentImobject=parentImobject)
+        super().__init__(self.label, parent_imobject=parent_imobject)
 
         self.label.set_color(RED)
         self.text = text
 
-    def declStr(self):
+    def decl_str(self):
         return f"Text({self.text})"
 
+
 class IMathTex(IMobject):
-    def __init__(self, text, parentImobject=None, font_size=50, fsm_model=None):
+    """
+    Intermediate MathTex mobject
+    """
+    def __init__(self, text, parent_imobject=None, font_size=50, fsm_model=None):
         self.text = text
         self.fsm_model = fsm_model
         self.font_size = font_size
         self.label = MathTex(r"{}".format(text), font_size=font_size, font="Consolas")
         self.label.set_color(WHITE)
-        super().__init__(self.label, parentImobject=parentImobject)
+        super().__init__(self.label, parent_imobject=parent_imobject)
 
-    def changeText(self, new_text_str):
+    def change_text(self, new_text_str):
         # update field
         self.text = new_text_str
         curr_state = self.fsm_model.curr
-        
+
         # create new text
         try:
-            new_text = MathTex(r"{}".format(new_text_str), font_size=self.font_size, font="Consolas")
+            new_text = MathTex(
+                r"{}".format(new_text_str), font_size=self.font_size, font="Consolas"
+            )
             # new_text.match_color(mh.getCopy(self))
-            new_text.move_to(mh.getCopy(self).get_center())
+            new_text.move_to(mh.get_copy(self).get_center())
 
             # configure transforms
-            self.fsm_model.curr.capture_prev(mh.getCopy(self))
+            self.fsm_model.curr.capture_prev(mh.get_copy(self))
             curr_state.targets[self] = new_text
 
             if not self.fsm_model.created_at_curr_state(self):
                 curr_state.addTransform(self)
 
             # setup current ui
-            curr_state.playCopy(ITransform(self), self.fsm_model.scene_model.scene)
+            curr_state.play_copy(ITransform(self), self.fsm_model.scene_model.scene)
 
-            #store for writer 
-            curr_state.targetDeclStr[self] = self.declStr()
+            # store for writer
+            curr_state.target_decl_str[self] = self.decl_str()
 
         except:
             print("latex compile error")
 
-    def declStr(self):
-        return f"MathTex(r\"{{}}\".format(\"{self.text}\"), font_size={self.font_size}, font=\"Consolas\")"
+    def decl_str(self):
+        return f'MathTex(r"{{}}".format("{self.text}"), font_size={self.font_size}, font="Consolas")'
+
 
 class IMarkupText(IMobject):
-    def __init__(self, text, parentImobject=None, font_size=14, fsm_model=None):
+    """
+    Intermediate MarkupText mobject
+    """
+    def __init__(self, text, parent_imobject=None, font_size=14, fsm_model=None):
         self.text = text
         self.fsm_model = fsm_model
         self.font_size = font_size
-        self.boldAreas = []
+        self.bold_areas = []
         self.highlight = Highlight.BOLD
-        self.label = MarkupText(self.formatText(text), font_size=font_size, font="Consolas")
+        self.label = MarkupText(
+            self.format_text(text), font_size=font_size, font="Consolas"
+        )
         self.label.set_color(WHITE)
-        super().__init__(self.label, parentImobject=parentImobject)
+        super().__init__(self.label, parent_imobject=parent_imobject)
 
-
-    def handleBold(self, cs, ce, highlight):
+    def handle_bold(self, cs, ce, highlight):
         self.highlight = highlight
-        newBoldAreas = [(cs, ce)] 
-        
-        self.fsm_model.curr.revAttributes[self]['boldAreas'] = self.boldAreas
-        self.fsm_model.curr.changedMobjectAttributes[self]['boldAreas'] = newBoldAreas
+        new_bold_areas = [(cs, ce)]
 
-        self.boldAreas = newBoldAreas
+        self.fsm_model.curr.rev_attributes[self]["bold_areas"] = self.bold_areas
+        self.fsm_model.curr.changed_mobject_attributes[self]["bold_areas"] = new_bold_areas
 
-        # print(self.formatBolds(html.escape(self.text)))
-        self.updateMarkupText(self.formatText(self.text))
+        self.bold_areas = new_bold_areas
 
-    def getHighlightTags(self):
+        # print(self.format_bolds(html.escape(self.text)))
+        self.update_markup_text(self.format_text(self.text))
+
+    def get_highlight_tags(self):
         match self.highlight:
             case Highlight.BOLD:
-                return '<b>', '</b>'
+                return "<b>", "</b>"
             case Highlight.UNDERLINE:
-                return '<u>', '</u>'
+                return "<u>", "</u>"
             case Highlight.ITALICS:
-                return '<i>', '</i>'
+                return "<i>", "</i>"
             case Highlight.BIG:
-                return '<big>', '</big>'
+                return "<big>", "</big>"
             case Highlight.COLOR_CHANGE:
-                return '<span foreground="#FF0000">', '</span>'
-                
-    def formatBolds(self, html_text_arr):
+                return '<span foreground="#FF0000">', "</span>"
+
+    def format_bolds(self, html_text_arr):
         res = []
         curr = 0
-        tags, tage = self.getHighlightTags()
-        for start, end in self.boldAreas:
+        tags, tage = self.get_highlight_tags()
+        for start, end in self.bold_areas:
             res.extend(html_text_arr[curr:start])
             res.append(tags)
             res.extend(html_text_arr[start:end])
@@ -111,49 +130,47 @@ class IMarkupText(IMobject):
             curr = end
         res.extend(html_text_arr[curr:])
         return res
-        
-    def formatText(self, text):
+
+    def format_text(self, text):
         text_arr = list(text)
         html_text_arr = list(map(html.escape, text_arr))
-        bolded_text_arr = self.formatBolds(html_text_arr)
-        res = ''.join(bolded_text_arr)
+        bolded_text_arr = self.format_bolds(html_text_arr)
+        res = "".join(bolded_text_arr)
         # print(res)
         return res
 
-    def changeText(self, new_text_str):
+    def change_text(self, new_text_str):
         # update field
 
-        self.fsm_model.curr.revAttributes[self]['text'] = self.text
-        self.fsm_model.curr.changedMobjectAttributes[self]['text'] = new_text_str
+        self.fsm_model.curr.rev_attributes[self]["text"] = self.text
+        self.fsm_model.curr.changed_mobject_attributes[self]["text"] = new_text_str
 
         self.text = new_text_str
 
-        self.updateMarkupText(self.formatText(new_text_str))
+        self.update_markup_text(self.format_text(new_text_str))
 
-        
-
-    def updateMarkupText(self, markupText):
+    def update_markup_text(self, markup_text):
         curr_state = self.fsm_model.curr
-        
+
         # create new text
-        new_text = MarkupText(markupText, font_size=self.font_size, font="Consolas")
+        new_text = MarkupText(markup_text, font_size=self.font_size, font="Consolas")
         # new_text.match_color(mh.getCopy(self))
-        new_text.move_to(mh.getCopy(self).get_center())
+        new_text.move_to(mh.get_copy(self).get_center())
 
         # configure transforms
-        self.fsm_model.curr.capture_prev(mh.getCopy(self))
+        self.fsm_model.curr.capture_prev(mh.get_copy(self))
         curr_state.targets[self] = new_text
 
         if not self.fsm_model.created_at_curr_state(self):
             curr_state.addTransform(self)
 
-        #store for writer 
-        curr_state.targetDeclStr[self] = self.declStr()
+        # store for writer
+        curr_state.target_decl_str[self] = self.decl_str()
 
         # setup current ui
-        curr_state.playCopy(ITransform(self), self.fsm_model.scene_model.scene)
+        curr_state.play_copy(ITransform(self), self.fsm_model.scene_model.scene)
 
-        self.editedAt = curr_state.idx
+        self.edited_at = curr_state.idx
 
-    def declStr(self):
-        return f"MarkupText(\"{self.formatText(self.text)}\", font_size={self.font_size}, font=\"Consolas\")"
+    def decl_str(self):
+        return f'MarkupText("{self.format_text(self.text)}", font_size={self.font_size}, font="Consolas")'

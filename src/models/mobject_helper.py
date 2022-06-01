@@ -1,69 +1,81 @@
 from collections import defaultdict
 from bidict import bidict
-import copy
 from manim import VGroup
+
+"""
+Module which handles the linking of intermediate mobjects, IMobjects,
+and actual manim mobjects
+"""
 
 copies = bidict()
 names = bidict()
 classCtr = defaultdict(int)
 groups = set()
 
-def getGroups():
+
+def get_groups():
     return groups
 
-def getCopy(imobject):
+
+def get_copy(imobject):
     if imobject not in copies:
-        setCopy(imobject, generateNewCopy(imobject))
-    
+        set_copy(imobject, generate_new_copy(imobject))
+
     return copies[imobject]
 
-def generateNewCopy(imobject):
+
+def generate_new_copy(imobject):
     if isinstance(imobject.mobject, VGroup):
-        vgroup_children = [getCopy(child) for child in imobject.vgroup_children]
+        vgroup_children = [get_copy(child) for child in imobject.vgroup_children]
         vgroup = VGroup(*vgroup_children)
-        # if imobject.colorChanged:
+        # if imobject.color_changed:
         #     print("COLOR CHANGED VGROUP")
         vgroup.set_color(imobject.mobject.get_color())
         return vgroup
-    
+
     mcopy = imobject.mobject.copy()
     return mcopy
-    
-def removeCopy(*mcopies):
+
+
+def remove_copy(*mcopies):
     for mcopy in mcopies:
         original = copies.inverse[mcopy]
         del copies[original]
 
-def setCopy(mobject, mcopy):
-    copies[mobject] = mcopy 
 
-def getOriginal(mcopy):
+def set_copy(mobject, mcopy):
+    copies[mobject] = mcopy
+
+
+def get_original(mcopy):
     return copies.inverse[mcopy] if mcopy in copies.inverse else None
 
-def getName(imobject):
+
+def get_name(imobject):
     if imobject not in names:
         cnt = classCtr[imobject.__class__]
-        setName(imobject, imobject.__class__.__name__ + str(cnt))
+        set_name(imobject, imobject.__class__.__name__ + str(cnt))
         classCtr[imobject.__class__] += 1
-    
+
     return names[imobject]
 
-def setName(imobject, name):
+
+def set_name(imobject, name):
     if name in names.inverse:
-        return False #already in use 
-    
+        return False  # already in use
+
     names[imobject] = name
     return True
 
-def getImobjectByName(name):
+
+def get_imobject_by_name(name):
     if name not in names.inverse:
-        return None 
+        return None
 
     return names.inverse[name]
 
-def getImobjectsByClass(cls):
+
+def get_imobjects_by_class(cls):
     for imobj in copies:
         if isinstance(imobj, cls):
-            yield imobj 
-
-
+            yield imobj

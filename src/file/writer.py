@@ -1,12 +1,15 @@
-import collections
-from manim import *
 
-from intermediate.ianimation import IApplyFunction, ICreate, IFadeIn, ITransform
+from intermediate.ianimation import IApplyFunction, ITransform
 from intermediate.imobject import IMobject
 from intermediate.itree import INode
-import  models.mobject_helper as mh
+import models.mobject_helper as mh
+
 
 class Writer:
+    """
+    Writer class to write the automata model into a Python script.
+    """
+   
     BOILERPLATE = """from manim import *
 
 class Main(Scene):
@@ -69,164 +72,173 @@ class ParentEdge(Line):
         self.writeTree = False
 
     def write(self):
-        with open(self.filename, "w") as f:
+        with open(self.filename, "w", encoding="utf-8") as f:
             f.write(self.BOILERPLATE)
-            curr = self.head_state.next 
-            while curr.next is not None: # is not the END state
-                #add objects
+            curr = self.head_state.next
+            while curr.next is not None:  # is not the END state
+                # add objects
                 # self.print_added(f, curr)
-                #rem objects
+                # rem objects
                 self.print_removed(f, curr)
 
-                #attributes
+                # attributes
                 # self.print_attribute_changes(f, curr)
                 self.print_mobject_functions(f, curr)
                 self.print_targets(f, curr)
 
                 self.print_modified_added(f, curr)
-                #animations
+                # animations
                 self.print_animations(f, curr)
 
                 curr = curr.next
 
-            
             if self.writeApplyFunction:
                 f.write(self.APPLYFUNCTION)
 
             if self.writeTree:
                 f.write(self.TREECLASS)
 
-    #debug
+    # debug
     def print_added(self, f, curr):
         f.write("#PRINT ADDED\n")
         for imobject in curr.added:
-            if imobject.isDeleted:
+            if imobject.is_deleted:
                 continue
 
             if isinstance(imobject, INode):
                 self.writeTree = True
-            if imobject.addedState == curr:
-                continue #will be written in targets
+            if imobject.added_state == curr:
+                continue  # will be written in targets
 
-            mobj_str = mh.getName(imobject)
-            f.write(f"        {mobj_str} = {imobject.declStr()}\n")
-            
-            if imobject.introAnim is None:
+            mobj_str = mh.get_name(imobject)
+            f.write(f"        {mobj_str} = {imobject.decl_str()}\n")
+
+            if imobject.intro_anim is None:
                 f.write(f"        self.add({mobj_str})\n")
 
         if curr.added:
-            f.write('\n')
+            f.write("\n")
 
     def print_removed(self, f, curr):
         f.write("#PRINT REMOVED\n")
         for imobject in curr.removed:
-            if imobject.isDeleted:
+            if imobject.is_deleted:
                 continue
-            f.write(f"        self.remove({mh.getName(imobject)})\n")
-        
+            f.write(f"        self.remove({mh.get_name(imobject)})\n")
+
         if curr.removed:
-            f.write('\n')
+            f.write("\n")
 
     def print_attribute_changes(self, f, curr):
         pass
-    
+
     def print_mobject_functions(self, f, curr):
         f.write("#PRINT MOBJ FUNCS\n")
-        for imobject in curr.calledMobjectFunctions:
-            if imobject.isDeleted:
+        for imobject in curr.called_mobject_functions:
+            if imobject.is_deleted:
                 continue
-            for func, args in curr.calledMobjectFunctions[imobject].items():
-                args_names = [mh.getName(arg) if isinstance(arg, IMobject) else arg for arg in args]
-                mobj_name = mh.getName(imobject)
+            for func, args in curr.called_mobject_functions[imobject].items():
+                args_names = [
+                    mh.get_name(arg) if isinstance(arg, IMobject) else arg
+                    for arg in args
+                ]
+                mobj_name = mh.get_name(imobject)
                 f.write(f"        {mobj_name}.{func}({', '.join(args_names)})\n")
-    
+
     def print_targets(self, f, curr):
         f.write("#PRINT TARGETS\n")
         for imobject in curr.targets:
-            if imobject.isDeleted:
+            if imobject.is_deleted:
                 continue
             if isinstance(imobject, INode):
                 self.writeTree = True
 
-            tobj_str = mh.getName(imobject) if imobject.addedState == curr else self.get_target_name(imobject, curr)
+            tobj_str = (
+                mh.get_name(imobject)
+                if imobject.added_state == curr
+                else self.get_target_name(imobject, curr)
+            )
 
-            target_decl = curr.targetDeclStr[imobject]
+            target_decl = curr.target_decl_str[imobject]
             f.write(f"        {tobj_str} = {target_decl}\n")
 
-            for func, args in curr.calledTargetFunctions[imobject].items():
-                args_names = [mh.getName(arg) if isinstance(arg, IMobject) else arg for arg in args]
+            for func, args in curr.called_target_functions[imobject].items():
+                args_names = [
+                    mh.get_name(arg) if isinstance(arg, IMobject) else arg
+                    for arg in args
+                ]
                 f.write(f"        {tobj_str}.{func}({', '.join(args_names)})\n")
-            
 
-            
         if curr.targets:
-            f.write('\n')
+            f.write("\n")
 
     def print_modified_added(self, f, curr):
-        f.write('#PRINT TARGET ADD\n')
+        f.write("#PRINT TARGET ADD\n")
         for imobject in curr.targets:
-            if imobject.isDeleted:
+            if imobject.is_deleted:
                 continue
-            if curr == imobject.addedState and imobject.introAnim is None:
-                f.write(f"        self.add({mh.getName(imobject)})\n")
-            
+            if curr == imobject.added_state and imobject.intro_anim is None:
+                f.write(f"        self.add({mh.get_name(imobject)})\n")
+
     def print_animations(self, f, curr):
         f.write("#PRINT ANIMS\n")
-        anim_strs = [self.get_anim_str(anim, curr) for anim in curr.animations if not anim.imobject.isDeleted]
+        anim_strs = [
+            self.get_anim_str(anim, curr)
+            for anim in curr.animations
+            if not anim.imobject.is_deleted
+        ]
         if anim_strs:
             f.write(f"        self.play({', '.join(anim_strs)})\n")
         else:
             f.write("        self.wait(1)\n")
 
-
     def get_anim_str(self, anim, curr):
         res = []
 
         res.append(anim.__class__.__name__[1:])
-        res.append('(')
+        res.append("(")
 
         imobject = anim.imobject
 
         match anim:
             case IApplyFunction():
-                res.append('self.customfunction')
-                res.append(', ')
-                res.append(mh.getName(imobject))
+                res.append("self.customfunction")
+                res.append(", ")
+                res.append(mh.get_name(imobject))
                 extra_args = self.get_applyfunction_args_str(anim)
                 if extra_args:
-                    res.append(', ')
+                    res.append(", ")
                     res.append(extra_args)
                 self.writeApplyFunction = True
             case ITransform():
-                res.append(mh.getName(imobject))
-                res.append(', ')
+                res.append(mh.get_name(imobject))
+                res.append(", ")
                 res.append(self.use_target_name(imobject, curr))
 
             case _:
-                res.append(mh.getName(imobject))
+                res.append(mh.get_name(imobject))
 
-        res.append(')')
+        res.append(")")
 
-        return ''.join(res)
+        return "".join(res)
 
     def get_applyfunction_args_str(self, iapplyfunction):
         res = []
         if iapplyfunction.color is not None:
-            res.append(f"\"{iapplyfunction.color}\"")
-        
+            res.append(f'"{iapplyfunction.color}"')
+
         if iapplyfunction.move_to is not None:
             res.append(f"{str(iapplyfunction.move_to.tolist())}")
-        
+
         if iapplyfunction.scale is not None:
             res.append(f"{str(iapplyfunction.scale)}")
 
-        return ', '.join(res)
-
+        return ", ".join(res)
 
     def get_target_name(self, imobject, curr):
         target = curr.targets[imobject]
         if target not in self.existing_names:
-            mobj_name = mh.getName(imobject)
+            mobj_name = mh.get_name(imobject)
             self.existing_names[target] = f"{mobj_name}_target"
 
         return self.existing_names[target]
@@ -242,13 +254,4 @@ class ParentEdge(Line):
             target = curr.targets[imobject]
             if imobject in self.existing_names[target]:
                 return self.existing_names[target]
-        return mh.getName(imobject)
-
-
-
-                
-                
-
-
-    
-        
+        return mh.get_name(imobject)

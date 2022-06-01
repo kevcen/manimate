@@ -1,13 +1,5 @@
-import sys
-from models.fsm_model import FsmModel
-import moderngl
-from manim import *
-from manim.opengl import *
-from manim.renderer.opengl_renderer import OpenGLRenderer
-
-from PySide6.QtGui import QOpenGLContext, QSurfaceFormat, QPen, QColor, QPainter
-from PySide6.QtOpenGLWidgets import QOpenGLWidget
-from PySide6.QtCore import Qt, Slot, QRect
+from PySide6.QtGui import QColor, QPainter
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QApplication,
     QLabel,
@@ -16,11 +8,13 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
     QSlider,
-    QLineEdit,
-    QStyleOptionSlider
+    QStyleOptionSlider,
 )
 
 class TimeSlider(QSlider):
+    """
+    Styled QSlider for the time slider.
+    """
     def paintEvent(self, ev):
         super(TimeSlider, self).paintEvent(ev)
 
@@ -31,99 +25,110 @@ class TimeSlider(QSlider):
         p = QPainter(self)
 
         # custom ticks to make discreteness obvious
-        interval = self.tickInterval
-        if (interval == 0):
-            interval = self.pageStep
+        interval = self.tickInterval()
+        if interval == 0:
+            interval = self.pageStep()
 
         tp = self.tickPosition
-        if (tp != QSlider.TickPosition.NoTicks):
-            for i in range(self.minimum, self.maximum + 1, interval):
-                if self.minimum == self.maximum:
+        if tp != QSlider.TickPosition.NoTicks:
+            for i in range(self.minimum(), self.maximum() + 1, interval):
+                if self.minimum() == self.maximum():
                     return
 
-                x = round((i - self.minimum) / (self.maximum - self.minimum) * (self.width - handle.width()) + (handle.width() / 2.0)) - 1
+                x = (
+                    round(
+                        (i - self.minimum())
+                        / (self.maximum() - self.minimum())
+                        * (self.width() - handle.width())
+                        + (handle.width() / 2.0)
+                    )
+                    - 1
+                )
                 h = 2
                 p.setPen(QColor("white"))
-                if (tp == QSlider.TickPosition.TicksBothSides or tp == QSlider.TickPosition.TicksAbove):
-                    y = self.rect.top()
+                if (
+                    tp == QSlider.TickPosition.TicksBothSides
+                    or tp == QSlider.TickPosition.TicksAbove
+                ):
+                    y = self.rect().top()
                     p.drawLine(x, y, x, y + h)
 
-                if (tp == QSlider.TickPosition.TicksBothSides or tp == QSlider.TickPosition.TicksBelow):
-                    y = self.rect.bottom()
+                if (
+                    tp == QSlider.TickPosition.TicksBothSides
+                    or tp == QSlider.TickPosition.TicksBelow
+                ):
+                    y = self.rect().bottom()
                     p.drawLine(x, y, x, y - h)
-                
-    
+
+
 class StateWidget(QWidget):
+    """
+    The bottom widget which controls the the state machine.
+    """
     def __init__(self, scene_model, fsm_model, close_handler):
-        def timeChangeHandler(value):
+        def time_change_handler(value):
             scene_model.unselect_mobjects()
-            label.setText(f"{value}/{timeSlider.maximum}")
+            label.setText(f"{value}/{time_slider.maximum()}")
             fsm_model.set_state_number(value)
 
-        def stateChangeHandler(value, length):
-            timeSlider.maximum = length
-            timeSlider.setValue(value)
+        def state_change_handler(value, length):
+            time_slider.setMaximum(length)
+            time_slider.setValue(value)
             label.setText(f"{value}/{length}")
-
-
-
 
         super().__init__()
 
         self.close_handler = close_handler
 
         self.setWindowTitle(" ")
-        self.geometry = QRect(550, 800, 900, 100)
+        self.setGeometry(550, 800, 900, 100)
 
         # button1 = QPushButton("manim it")
         # button1.clicked.connect(lambda : self.manim_run())
         layout = QVBoxLayout()
 
-        videoButtons = QHBoxLayout()
-        sliderButtons = QHBoxLayout()
+        video_buttons = QHBoxLayout()
+        slider_buttons = QHBoxLayout()
 
-        runBtn = QPushButton("Play")
-        runBtn.clicked.connect(lambda : fsm_model.run())
+        run_btn = QPushButton("Play")
+        run_btn.clicked.connect(fsm_model.run)
 
-        stopBtn = QPushButton("Pause")
-        stopBtn.clicked.connect(lambda : fsm_model.stop())
+        stop_btn = QPushButton("Pause")
+        stop_btn.clicked.connect(fsm_model.stop)
 
-        videoButtons.addStretch()
-        videoButtons.addWidget(runBtn)
-        videoButtons.addWidget(stopBtn)
-        videoButtons.addStretch()
+        video_buttons.addStretch()
+        video_buttons.addWidget(run_btn)
+        video_buttons.addWidget(stop_btn)
+        video_buttons.addStretch()
 
-        addframeBtn = QPushButton("+")
-        addframeBtn.clicked.connect(lambda : fsm_model.add_state())
-        delframeBtn = QPushButton("-")
-        delframeBtn.clicked.connect(lambda : fsm_model.del_state())
+        add_frame_btn = QPushButton("+")
+        add_frame_btn.clicked.connect(fsm_model.add_state)
+        del_frame_btn = QPushButton("-")
+        del_frame_btn.clicked.connect(fsm_model.del_state)
 
-        exportBtn = QPushButton("Export")
-        exportBtn.clicked.connect(lambda : fsm_model.export())
+        export_btn = QPushButton("Export")
+        export_btn.clicked.connect(fsm_model.export)
 
-        timeSlider = TimeSlider()
-        timeSlider.setOrientation(Qt.Horizontal)
-        timeSlider.tickInterval = 1
-        timeSlider.maximum = 1
-        timeSlider.minimum = 1
-        timeSlider.tickPosition = QSlider.TickPosition.TicksBelow
-        timeSlider.value = 1
-        timeSlider.valueChanged.connect(timeChangeHandler)
+        time_slider = TimeSlider()
+        time_slider.setOrientation(Qt.Horizontal)
+        time_slider.setTickInterval(1)
+        time_slider.setMinimum(1)
+        time_slider.setMaximum(1)
+        time_slider.setTickPosition(QSlider.TickPosition.TicksBelow)
+        time_slider.setValue(1)
+        time_slider.valueChanged.connect(time_change_handler)
 
         label = QLabel("1/1")
 
-        fsm_model.stateChange.connect(stateChangeHandler)
+        fsm_model.stateChange.connect(state_change_handler)
 
-        for w in (timeSlider, label, addframeBtn, delframeBtn, exportBtn):
-            sliderButtons.addWidget(w)
-        
+        for w in (time_slider, label, add_frame_btn, del_frame_btn, export_btn):
+            slider_buttons.addWidget(w)
 
-        
-        layout.addLayout(videoButtons)
-        layout.addLayout(sliderButtons)
+        layout.addLayout(video_buttons)
+        layout.addLayout(slider_buttons)
         self.setLayout(layout)
-    
 
-    def closeEvent(self, e):
+    def close_event(self, e):
         self.close_handler()
         e.accept()
