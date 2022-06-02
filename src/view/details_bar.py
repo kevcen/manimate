@@ -22,7 +22,7 @@ from intermediate.itree import INode
 import models.mobject_helper as mh
 
 
-class MarkupText_edit(QTextEdit):
+class MarkupTextEdit(QTextEdit):
     """
     Text _edit for MarkupText
     """
@@ -30,8 +30,8 @@ class MarkupText_edit(QTextEdit):
         super().__init__()
         self.details_bar = details_bar
 
-    def focus_out_event(self, e):
-        super().focus_out_event(e)
+    def focusOutEvent(self, e):
+        super().focusOutEvent(e)
         self.details_bar.change_markup_text_handler()
 
 
@@ -84,8 +84,8 @@ class DetailsBar(QWidget):
         self.state_group_box.setLayout(state_layout)
         self.layout.addWidget(self.state_group_box)
         self.layout.addStretch()
-        self.emptyLabel = QLabel("nothing selected")
-        self.layout.addWidget(self.emptyLabel)
+        self.empty_label = QLabel("nothing selected")
+        self.layout.addWidget(self.empty_label)
         self.layout.addStretch()
 
         self.name_edit = QLineEdit()
@@ -99,9 +99,9 @@ class DetailsBar(QWidget):
         self.change_color_btn = QPushButton("change colour")
         self.change_color_btn.clicked.connect(self.change_color_btn_handler)
 
-        self.scaleBox = QDoubleSpinBox()
-        self.scaleBox.setMinimum(0)
-        self.scaleBox.valueChanged.connect(self.scale_box_handler)
+        self.scale_box = QDoubleSpinBox()
+        self.scale_box.setMinimum(0)
+        self.scale_box.valueChanged.connect(self.scale_box_handler)
 
         remove_btn = QPushButton("remove mobject")
         remove_btn.clicked.connect(self.remove_mobject_handler)
@@ -121,7 +121,7 @@ class DetailsBar(QWidget):
         mobj_layout.addRow(QLabel("Name:"), self.name_edit)
         mobj_layout.addRow(QLabel("Appear animation:"), self.intro_cb)
         mobj_layout.addRow(QLabel("Colour:"), self.change_color_btn)
-        mobj_layout.addRow(QLabel("Scale:"), self.scaleBox)
+        mobj_layout.addRow(QLabel("Scale:"), self.scale_box)
         mobj_layout.addRow(QLabel("Grouping:"), self.group_row)
         mobj_layout.addRow(QLabel("Remove:"), remove_btn)
         self.mobj_group_box.setLayout(mobj_layout)
@@ -149,7 +149,7 @@ class DetailsBar(QWidget):
         self.tree_widgets = (self.tree_group_box,)
 
         # Text widgets
-        self.change_markup_text = MarkupText_edit(self)
+        self.change_markup_text = MarkupTextEdit(self)
 
         self.bold_markup_text = QPushButton("b")
         self.bold_markup_text.clicked.connect(
@@ -285,9 +285,9 @@ class DetailsBar(QWidget):
         )
         self.group_cb.blockSignals(False)
 
-        self.scaleBox.blockSignals(True)
-        self.scaleBox.setValue(self.fsm_model.get_curr_scale(imobject))
-        self.scaleBox.blockSignals(False)
+        self.scale_box.blockSignals(True)
+        self.scale_box.setValue(self.fsm_model.get_curr_scale(imobject))
+        self.scale_box.blockSignals(False)
 
         self.name_edit.setText(mh.get_name(imobject))
         self.name_edit.blockSignals(False)
@@ -330,13 +330,13 @@ class DetailsBar(QWidget):
         )
 
     def loop_cb_handler(self, i):
-        if self.change_parent_cb.count == 0 or not self.loop_cb.currentText:
+        if self.change_parent_cb.count == 0 or not self.loop_cb.currentText():
             return
 
-        if self.loop_cb.currentText == "None":
+        if self.loop_cb.currentText() == "None":
             self.fsm_model.curr.loop = None
         else:
-            state_num = int(self.loop_cb.currentText[6:])
+            state_num = int(self.loop_cb.currentText()[6:])
             if not self.loop_times.text:
                 self.loop_times.setValue(1)
 
@@ -350,12 +350,12 @@ class DetailsBar(QWidget):
         if isinstance(self.selected_imobject, INone):
             return
 
-        text = self.change_markup_text.plainText
+        text = self.change_markup_text.toPlainText()
         self.selected_imobject.change_text(text)
         self.selected_imobject.edited_at = self.fsm_model.curr.idx
 
     def change_node_text_handler(self):
-        text = self.change_node_text.text
+        text = self.change_node_text.text()
         self.selected_imobject.change_label_text(text)
         self.selected_imobject.edited_at = self.fsm_model.curr.idx
 
@@ -369,10 +369,10 @@ class DetailsBar(QWidget):
             return
 
         # print("CHANGE PARENT")
-        imobj_name = self.change_parent_cb.currentText
+        imobj_name = self.change_parent_cb.currentText()
         imobj = mh.get_imobject_by_name(imobj_name) if imobj_name is not None else None
 
-        print(imobj_name, imobj)
+        print("CHANGE PARENT", imobj_name, imobj)
         self.selected_imobject.change_parent(imobj)
 
     def intro_anim_handler(self, i):
@@ -424,7 +424,7 @@ class DetailsBar(QWidget):
             mh.get_copy(imobject.group).remove(mobject)
             self.scene_model.scene.add(mobject)
 
-        group_name = self.group_cb.currentText
+        group_name = self.group_cb.currentText()
         if group_name != "None":
             igroup = mh.get_imobject_by_name(group_name)
             group = mh.get_copy(igroup)

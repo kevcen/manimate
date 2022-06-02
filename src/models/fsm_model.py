@@ -31,15 +31,15 @@ class FsmModel(QObject):
 
         self.curr = state  # animations to play
 
-    def playForward(self, fast=True):
+    def play_forward(self, fast=True):
         self.curr = self.curr.next
         self.curr.play(self.scene_model.scene, fast)
 
-    def playBack(self):
+    def play_back(self):
         self.curr.play_rev(self.scene_model.scene)
         self.curr = self.curr.prev
 
-    def hasLoop(self):
+    def has_loop(self):
         return self.curr.loop is not None and self.curr.loopCnt > 0
 
     def run(self):
@@ -48,14 +48,14 @@ class FsmModel(QObject):
         if self.curr.next == self.end:
             self.set_state_number(1, False)  # go back to start
 
-        while (self.curr.next != self.end or self.hasLoop()) and self.is_running:
+        while (self.curr.next != self.end or self.has_loop()) and self.is_running:
             print(self.curr.idx)
-            if self.hasLoop():
+            if self.has_loop():
                 self.curr.loopCnt -= 1
                 self.set_state_number(self.curr.loop[0], False)
                 # TODO: reverse all the stuff
             else:
-                self.playForward(fast=False)
+                self.play_forward(fast=False)
             self.stateChange.emit(self.curr.idx, self.num_states)
 
         self.is_running = False
@@ -72,10 +72,10 @@ class FsmModel(QObject):
                     if userCalled and self.curr.loop is not None:
                         self.curr.loopCnt = self.curr.loop[1]
                     # print('move back')
-                    self.playBack()
+                    self.play_back()
             else:
                 for _ in range(self.curr.idx, idx):
-                    self.playForward()
+                    self.play_forward()
 
     def del_state(self):
         if self.is_running or self.num_states <= 1:

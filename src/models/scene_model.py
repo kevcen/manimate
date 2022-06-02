@@ -35,8 +35,8 @@ class SceneModel(QObject):
     """ Selection functions """
 
     def set_selected_mobject(self, mobject, ctrldown=False):
-        # if not ctrldown: #TODO
-        self.unselect_mobjects()
+        if not ctrldown: #TODO
+            self.unselect_mobjects()
 
         imobject = mh.get_original(mobject)
         self.set_selected_imobject(imobject)

@@ -118,7 +118,7 @@ class IParentEdge(IMobject):
         self.allowed_to_select = False
 
     def continuously_update(self):
-        self.mobject.add_updater(self.update_line)
+        self.mobject.add_updater(lambda mob: self.update_line(mob))
 
     def update_line(self, line):
         if self.node.parent is None:
