@@ -15,13 +15,14 @@ class SceneModel(QObject):
 
     selectedMobjectChange = Signal(IMobject)
 
-    def __init__(self, scene):
+    def __init__(self, scene, renderer):
         super().__init__()
         self.scene = scene
+        self.renderer = renderer
         scene.handler = self
-        # generator = AnimationGenerator()
         self.selected = {}
         self.fsm_model = None  # to set
+        self.ctrldown = False
 
     def set_fsm_model(self, fsm_model):
         self.fsm_model = fsm_model
@@ -35,8 +36,12 @@ class SceneModel(QObject):
     """ Selection functions """
 
     def set_selected_mobject(self, mobject, ctrldown=False):
-        if not ctrldown: #TODO
+        if ctrldown:
+            self.ctrldown = True
+
+        if not self.ctrldown: #TODO
             self.unselect_mobjects()
+
 
         imobject = mh.get_original(mobject)
         self.set_selected_imobject(imobject)
@@ -48,9 +53,13 @@ class SceneModel(QObject):
         if imobject.group is not None:
             imobject = imobject.group
 
-        mobject = mh.get_copy(imobject)
 
+        mobject = mh.get_copy(imobject)
+        if mobject in self.selected:
+            return
+            
         self.selected[mobject] = mobject.get_color()
+        print("SELECT", self.selected)
 
         if not isinstance(imobject, IMarkupText):
             mobject.set_color("#8fbc8f")
@@ -61,6 +70,8 @@ class SceneModel(QObject):
         self.selectedMobjectChange.emit(imobject)
 
     def unselect_mobjects(self):
+        self.ctrldown = False
+        print(self.selected)
         print("UNSELETED")
         for mobject, color in self.selected.items():
             if not isinstance(mobject, MarkupText):
@@ -72,9 +83,9 @@ class SceneModel(QObject):
 
     """" Movement functions """
     # TODO: refactor non-scene related functions out
-    def confirm_selected_move(self, point):
+    def confirm_selected_shift(self, delta):
         for mcopy in self.selected:
-            self.fsm_model.confirm_move(mcopy, point)
+            self.fsm_model.confirm_move(mcopy, delta)
 
     def created_at_curr_state_with_anim(self, mcopy):
         imobject = mh.get_original(mcopy)

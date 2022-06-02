@@ -53,7 +53,6 @@ class FsmModel(QObject):
             if self.has_loop():
                 self.curr.loopCnt -= 1
                 self.set_state_number(self.curr.loop[0], False)
-                # TODO: reverse all the stuff
             else:
                 self.play_forward(fast=False)
             self.stateChange.emit(self.curr.idx, self.num_states)
@@ -71,7 +70,6 @@ class FsmModel(QObject):
                 for _ in range(self.curr.idx, idx, -1):
                     if userCalled and self.curr.loop is not None:
                         self.curr.loopCnt = self.curr.loop[1]
-                    # print('move back')
                     self.play_back()
             else:
                 for _ in range(self.curr.idx, idx):
@@ -93,8 +91,6 @@ class FsmModel(QObject):
         self.stateChange.emit(self.curr.idx, self.num_states)
 
     def add_state(self):
-        # print('idx before', self.curr.idx)
-        # print(hex(id(self.curr)))
         if self.is_running:
             return
 
@@ -110,8 +106,6 @@ class FsmModel(QObject):
 
         # move to new state
         self.curr = new_state
-        # print('index is now', self.curr.idx)
-        # print(hex(id(self.curr)))
         self.num_states += 1
         self.shift_above_idxs(self.curr.next, 1)
 
@@ -123,17 +117,16 @@ class FsmModel(QObject):
         if state != self.end:
             self.shift_above_idxs(state.next, inc)
 
-    def confirm_move(self, mcopy, point):
+    def confirm_move(self, mcopy, delta):
+        # TODO: use delta  to calculate change
         imobject = mh.get_original(mcopy)
         if imobject is None:
             return  # selected item is old, before transform
 
-        past_point = imobject.move_to
+        past_point = imobject.past_point
 
-        if (
-            past_point is not None
-            and np.linalg.norm(past_point - point) < self.CLAMP_DISTANCE
-        ):
+        if np.linalg.norm(delta) < self.CLAMP_DISTANCE:
+            print(delta, np.linalg.norm(delta))
             mcopy.move_to(past_point)
             return
 
@@ -141,10 +134,10 @@ class FsmModel(QObject):
 
         if not isinstance(target, MarkupText):
             target.set_color(self.scene_model.selected[mcopy])
-        self.edit_transform_target(imobject, target, move_to=point)
+        self.edit_transform_target(imobject, target, shift=delta)
 
     def edit_transform_target(
-        self, imobject, target, color=None, move_to=None, scale=None
+        self, imobject, target, color=None, move_to=None, scale=None, shift=None
     ):
         imobject.edited_at = self.curr.idx  # need to capture after edit
 
@@ -156,16 +149,18 @@ class FsmModel(QObject):
         if color is not None:
             self.curr.called_target_functions[imobject]["set_color"] = {f'"{color}"'}
         if scale is not None:
-            imobject.scale = (
-                scale  # used for tracking old scale to do a proportionate scaling
-            )
+            imobject.past_scale = scale            
             self.curr.called_target_functions[imobject]["scale"] = {str(scale)}
         if move_to is not None:
-            imobject.move_to = move_to
+            imobject.past_point = move_to
             self.curr.called_target_functions[imobject]["move_to"] = {
                 str(move_to.tolist())
             }
-
+        if shift is not None:
+            imobject.past_point = mh.get_copy(imobject).get_center()
+            self.curr.called_target_functions[imobject]["move_to"] = {
+                str(imobject.past_point)
+            }
         # update animation
         if not self.created_at_curr_state(imobject):
             # self.curr.targets[imobject] = target
@@ -182,7 +177,7 @@ class FsmModel(QObject):
         # else:
 
     def get_curr_scale(self, imobject):
-        res = imobject.scale
+        res = imobject.past_scale
 
         # if not self.created_at_curr_state(imobject):
         #     imethod = self.curr.getApplyFunction(imobject)

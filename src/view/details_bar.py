@@ -137,12 +137,14 @@ class DetailsBar(QWidget):
         self.change_node_text.editingFinished.connect(self.change_node_text_handler)
 
         self.add_child_btn = QPushButton("add child")
+        self.align_children_btn = QPushButton("align children")
 
         self.tree_group_box = QGroupBox("Tree attributes")
         tree_layout = QFormLayout()
         tree_layout.addRow(QLabel("Node text:"), self.change_node_text)
         tree_layout.addRow(QLabel("Parent:"), self.change_parent_cb)
         tree_layout.addRow(QLabel("Add child:"), self.add_child_btn)
+        tree_layout.addRow(QLabel("Align children:"), self.align_children_btn)
         self.tree_group_box.setLayout(tree_layout)
 
         # self.tree_widgets = (self.change_node_text, self.changeParent_cb, self.addChildBtn, )
@@ -233,6 +235,7 @@ class DetailsBar(QWidget):
         match imobject:
             case INode():
                 self.add_child_btn.clicked.connect(imobject.spawn_child)
+                self.align_children_btn.clicked.connect(imobject.align_children)
                 self.change_parent_cb.addItem("None")
                 self.change_parent_cb.addItems(
                     filter(
@@ -314,6 +317,7 @@ class DetailsBar(QWidget):
 
         if isinstance(self.selected_imobject, INode):
             self.add_child_btn.clicked.disconnect(self.selected_imobject.spawn_child)
+            self.align_children_btn.clicked.disconnect(self.selected_imobject.align_children)
             self.change_parent_cb.blockSignals(True)
             self.change_parent_cb.clear()
 
@@ -382,29 +386,39 @@ class DetailsBar(QWidget):
         # print('CHANGE INTRO', self.selected_imobject.__class__.__name__, i)
 
         imobject = self.selected_imobject
-        if imobject.intro_anim is not None:
-            imobject.added_state.animations.remove(imobject.intro_anim)
-        else:
-            imobject.added_state.added.remove(imobject)
+        affected_imobjects = [imobject]
+        if isinstance(imobject, INode) and imobject.parent_edge is not None:
+            affected_imobjects.append(imobject.parent_edge)
 
-        # self.scene_model.remove(imobject)
-        match i:
-            case 0:
-                imobject.intro_anim = None
-            case 1:
-                imobject.intro_anim = ICreate(imobject)
-            case 2:
-                imobject.intro_anim = IFadeIn(imobject)
+        for aff_imobj in affected_imobjects:
+            if aff_imobj.intro_anim is not None:
+                aff_imobj.added_state.animations.remove(aff_imobj.intro_anim)
+            else:
+                aff_imobj.added_state.added.remove(aff_imobj)
 
-        if imobject.intro_anim is not None:
-            imobject.added_state.animations.append(imobject.intro_anim)
-            # imobject.added_state.play_copy(imobject.intro_anim, self.scene_model.scene)
-        else:
-            imobject.added_state.added.add(imobject)
-            # self.scene_model.addCopy(imobject)
+            # self.scene_model.remove(aff_imobj)
+            match i:
+                case 0:
+                    aff_imobj.intro_anim = None
+                case 1:
+                    aff_imobj.intro_anim = ICreate(aff_imobj)
+                case 2:
+                    aff_imobj.intro_anim = IFadeIn(aff_imobj)
+
+            if aff_imobj.intro_anim is not None:
+                aff_imobj.added_state.animations.append(aff_imobj.intro_anim)
+                # aff_imobj.added_state.play_copy(aff_imobj.intro_anim, self.scene_model.scene)
+            else:
+                aff_imobj.added_state.added.add(aff_imobj)
+                # self.scene_model.addCopy(aff_imobj)
 
     def remove_mobject_handler(self):
-        self.fsm_model.instant_remove_obj_at_curr(self.selected_imobject)
+        imobject = self.selected_imobject
+        affected_imobjects = [imobject]
+        if isinstance(imobject, INode) and imobject.parent_edge is not None:
+            affected_imobjects.append(imobject.parent_edge)
+        for aff_imobj in affected_imobjects:
+            self.fsm_model.instant_remove_obj_at_curr(aff_imobj)
         self.refresh()
 
     def new_group_handler(self):

@@ -33,6 +33,7 @@ class Test(Scene):
     def construct(self):
         self.mouse_is_down = False
         self.clicked_point = None
+        self.past_frame_point = None
 
         self.interactive_embed()
 
@@ -43,14 +44,14 @@ class Test(Scene):
         # self.delta_point.move_to(d_point)
 
         if self.mouse_is_down:
-            self.handler.move_selected_by(point - self.clicked_point)
-            self.clicked_point = point
+            self.handler.move_selected_by(point - self.past_frame_point)
+            self.past_frame_point = point
 
     def on_mouse_press(self, point, button, modifiers):
         super().on_mouse_press(point, button, modifiers)
         if button == "LEFT":
             # self.mouse_drag_point.move_to(point)
-            self.clicked_point = point
+            self.clicked_point = self.past_frame_point = point
             self.mouse_is_down = True
             # self.mouse_point.move_to(point)
             mcopy = self.point_to_mobject(point)
@@ -65,6 +66,6 @@ class Test(Scene):
     def on_mouse_release(self, point, mouse_button, modifiers):
         if mouse_button == "LEFT":
             # add animation to state
-            self.handler.confirm_selected_move(point)
+            self.handler.confirm_selected_shift(point - self.clicked_point)
 
             self.mouse_is_down = False

@@ -46,6 +46,43 @@ class INode(IMobject):
             self.fsm_model.instant_add_object_to_curr(self.parent_edge)
         self.fsm_model.instant_add_object_to_curr(self)
 
+    def align_children(self):
+        camera = self.fsm_model.scene_model.renderer.camera
+        fw, fh = camera.frame_shape
+        fsx = camera.get_center()[0] - fw / 2
+
+        depth = self.align_children_x(fw, fsx)
+        sy = mh.get_copy(self).get_y()
+        height_below_self = (sy - (camera.get_center()[1] - fh / 2))
+        self.align_children_y(height_below_self / depth, sy, 1)
+
+    def align_children_x(self, fw, fs):
+        if not self.children:
+            return 1
+        n = len(self.children)
+        interval = fw / n
+        depth = 1
+        for i in range(n):
+            mobject = mh.get_copy(self.children[i])
+            y = mobject.get_y()
+            x = fs + interval / 2 + i * interval
+            mobject.move_to([x, y, 0])
+            depth = max(depth, 1 + self.children[i].align_children_x(interval, fs + i * interval))
+        
+        return depth
+
+    def align_children_y(self, dy, sy, depth):
+        if not self.children:
+            return
+
+        for child in self.children:
+            mobject = mh.get_copy(child)
+            current_x = mobject.get_x()
+            y = sy - dy * depth
+            mobject.move_to([current_x, y, 0])
+            child.align_children_y(dy, sy, depth + 1)
+            
+
     def change_label_text(self, new_text_str):
         curr_state = self.fsm_model.curr
 

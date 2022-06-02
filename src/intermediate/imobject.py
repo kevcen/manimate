@@ -16,8 +16,8 @@ class IMobject:
         self.edited_at = None
         self.group = None
         self.allowed_to_select = True
-        self.scale = 1.0
-        self.move_to = None
+        self.past_scale = 1.0
+        self.past_point = [0,0,0]
         self.color_changed = False
 
     def decl_str(self):

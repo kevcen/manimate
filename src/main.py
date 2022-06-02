@@ -70,7 +70,7 @@ if __name__ == "__main__":
         scene = manim_scene.Test(renderer)
         renderer.scene = scene
 
-        scene_model = SceneModel(scene)
+        scene_model = SceneModel(scene, renderer)
         fsm_model = FsmModel(scene_model)
         scene_model.set_fsm_model(fsm_model)
 
