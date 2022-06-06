@@ -61,6 +61,7 @@ class IMathTex(IMobject):
             self.fsm_model.curr.capture_prev(mh.get_copy(self))
             curr_state.targets[self] = new_text
 
+            self.edited_at = self.fsm_model.curr.idx
             if not self.fsm_model.created_at_curr_state(self):
                 curr_state.addTransform(self)
 
@@ -161,6 +162,7 @@ class IMarkupText(IMobject):
         self.fsm_model.curr.capture_prev(mh.get_copy(self))
         curr_state.targets[self] = new_text
 
+        self.edited_at = curr_state.idx
         if not self.fsm_model.created_at_curr_state(self):
             curr_state.addTransform(self)
 

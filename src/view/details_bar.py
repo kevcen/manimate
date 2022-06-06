@@ -354,14 +354,14 @@ class DetailsBar(QWidget):
         if isinstance(self.selected_imobject, INone):
             return
 
+        self.selected_imobject.edited_at = self.fsm_model.curr.idx
         text = self.change_markup_text.toPlainText()
         self.selected_imobject.change_text(text)
-        self.selected_imobject.edited_at = self.fsm_model.curr.idx
 
     def change_node_text_handler(self):
+        self.selected_imobject.edited_at = self.fsm_model.curr.idx
         text = self.change_node_text.text()
         self.selected_imobject.change_label_text(text)
-        self.selected_imobject.edited_at = self.fsm_model.curr.idx
 
     def change_animation_run_time_handler(self, value):
         self.fsm_model.curr.run_time = value

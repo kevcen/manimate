@@ -118,7 +118,6 @@ class FsmModel(QObject):
             self.shift_above_idxs(state.next, inc)
 
     def confirm_move(self, mcopy, delta):
-        # TODO: use delta  to calculate change
         imobject = mh.get_original(mcopy)
         if imobject is None:
             return  # selected item is old, before transform
