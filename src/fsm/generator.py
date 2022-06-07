@@ -31,7 +31,7 @@ def reverse(animation, state):
                 tcopy = state.rev_targets[imobj].copy()
 
             # print('generate', mcopy.get_center(), tcopy.get_center())
-            # mh.setCopy(imobj, tcopy)
+            # mh.set_copy(imobj, tcopy)
             return Transform(mcopy, tcopy)
         case IReplacementTransform(imobject=imobj):
             mcopy = mh.get_copy(imobj)
@@ -46,7 +46,7 @@ def reverse(animation, state):
                 # print('rev target')
                 tcopy = state.rev_targets[imobj].copy()
 
-            mh.setCopy(imobj, tcopy)
+            mh.set_copy(imobj, tcopy)
             return ReplacementTransform(mcopy, tcopy)
         case ICreate(imobject=imobj):
             mcopy = mh.get_copy(imobj)
@@ -65,12 +65,12 @@ def forward(animation, state):
         case ITransform(imobject=imobj):
             mcopy = mh.get_copy(imobj)
             tcopy = state.targets[imobj].copy()
-            # mh.setCopy(imobj, tcopy)
+            # mh.set_copy(imobj, tcopy)
             return Transform(mcopy, tcopy)
         case IReplacementTransform(imobject=imobj):
             mcopy = mh.get_copy(imobj)
             tcopy = state.targets[imobj].copy()
-            mh.setCopy(imobj, tcopy)
+            mh.set_copy(imobj, tcopy)
             return ReplacementTransform(mcopy, tcopy)
         case IFadeIn(imobject=imobj):
             mcopy = state.targets[imobj].copy()  # target[obj] == obj for introducers
@@ -83,7 +83,7 @@ def forward(animation, state):
         case IApplyFunction(imobject=imobj):
             mcopy = mh.get_copy(imobj)
             # tcopy = state.targets[imobj].copy()
-            # mh.setCopy(imobj, tcopy)
+            # mh.set_copy(imobj, tcopy)
             # return Transform(mcopy, tcopy)
             return ApplyFunction(animation.custom_method, mcopy)
 

@@ -125,7 +125,7 @@ class FsmModel(QObject):
 
         past_point = imobject.past_point
 
-        if np.linalg.norm(delta) < self.CLAMP_DISTANCE:
+        if past_point is not None and np.linalg.norm(delta) < self.CLAMP_DISTANCE:
             print(delta, np.linalg.norm(delta))
             mcopy.move_to(past_point)
             return
@@ -187,17 +187,19 @@ class FsmModel(QObject):
     def created_at_curr_state_with_anim(self, imobject):
         return self.created_at_curr_state(imobject) and imobject.intro_anim is not None
 
-    def instant_add_object_to_curr(self, imobject, select=True):
+    def instant_add_object_to_curr(self, imobject, select=True, transform=False):
         if isinstance(imobject, INode) and imobject.parent_edge is not None:
-            self.fsm_model.instant_add_object_to_curr(imobject.parent_edge)
+            self.instant_add_object_to_curr(imobject.parent_edge)
 
         if select:  # if select needs changing
             self.scene_model.unselect_mobjects()
 
-        self.curr.added.append(imobject)
+        if not transform: #prevents 'self.add' on writer
+            self.curr.added.append(imobject)
+            self.scene_model.add_copy(imobject)
+
         self.curr.targets[imobject] = imobject.mobject
         self.curr.target_decl_str[imobject] = imobject.decl_str()
-        self.scene_model.add_copy(imobject)
 
         imobject.added_state = self.curr
         imobject.intro_anim = None

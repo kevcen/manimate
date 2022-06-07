@@ -107,6 +107,9 @@ class DetailsBar(QWidget):
         remove_btn = QPushButton("remove mobject")
         remove_btn.clicked.connect(self.remove_mobject_handler)
 
+        transform_btn = QPushButton("add transform")
+        transform_btn.clicked.connect(self.add_transform_handler)
+
         self.group_cb = QComboBox()
         self.group_cb.currentIndexChanged.connect(self.group_change_handler)
 
@@ -125,6 +128,7 @@ class DetailsBar(QWidget):
         mobj_layout.addRow(QLabel("Scale:"), self.scale_box)
         mobj_layout.addRow(QLabel("Grouping:"), self.group_row)
         mobj_layout.addRow(QLabel("Remove:"), remove_btn)
+        mobj_layout.addRow(QLabel("Add transform:"), transform_btn)
         self.mobj_group_box.setLayout(mobj_layout)
 
         self.all_widgets = (self.mobj_group_box,)
@@ -437,6 +441,11 @@ class DetailsBar(QWidget):
             return
 
         imobject = self.selected_imobject
+    
+        if self.fsm_model.created_at_curr_state(imobject):
+            self.show_creation_error()
+            return
+
         mobject = mh.get_copy(imobject)
         if imobject.group is not None:
             mh.get_copy(imobject.group).remove(mobject)
@@ -497,15 +506,29 @@ class DetailsBar(QWidget):
 
         self.refresh()
 
+    def show_creation_error(self):
+        msg = QMessageBox()
+        msg.setWindowTitle("Manimate")
+        msg.setText("Cannot perform this action when you just created this object!")
+        msg.setIcon(QMessageBox.Critical)
+        msg.setStandardButtons(QMessageBox.Ok)
+        msg.setDefaultButton(QMessageBox.Ok)
+
+        msg.setDetailedText("You can perform this action on the next frame.")
+
+        msg.exec_()
+
     def add_transform_handler(self):
-        if not self.fsm_model.created_at_curr_state(self.selected_imobject):
+        imobject = self.selected_imobject
+        if self.fsm_model.created_at_curr_state(imobject):
+            self.show_creation_error()
             return
 
         curr_state = self.fsm_model.curr
         items = ["Circle", "Square", "Star", "Triangle", "Tree", "Text", "Latex"]
-        ok = bool()
-        item = QInputDialog.getItem(self, "Choose Target", "Select Target MObject", items, 0, False, ok)
-        if (ok and not item.isEmpty()):
+        item, ok = QInputDialog.getItem(self, "Choose Target", "Select Target MObject", items, 0, False)
+        if ok:
+            mobject = mh.get_copy(imobject)
             # itemLabel.setText(item)
             itarget = None
             match item:
@@ -525,28 +548,34 @@ class DetailsBar(QWidget):
                     itarget = IMathTex(r"\xrightarrow{x^6y^8}", fsm_model=self.fsm_model)
 
             target = itarget.mobject
-            # new_text.match_color(mh.getCopy(self))
-            target.move_to(mh.get_copy(self.selected_imobject).get_center())
-
-            # configure transforms
-            self.fsm_model.curr.capture_prev(mh.get_copy(self.selected_imobject))
-            curr_state.targets[self] = target
-
-            self.selected_imobject.edited_at = self.fsm_model.curr.idx
+            target.move_to(mobject.get_center())
+            self.fsm_model.curr.called_target_functions[imobject]["move_to"] = {str(mobject.get_center().tolist())}
+            self.fsm_model.curr.capture_prev(mobject)
+            # self.fsm_model.instant_add_object_to_curr(target)
+            imobject.edited_at = self.fsm_model.curr.idx
            
-            curr_state.add_replacement_transform(self.selected_imobject)
+            curr_state.add_replacement_transform(imobject)
             
-            group = IGroup()
-            self.fsm_model.instant_add_object_to_curr(group, select=False)
-            mh.groups.add(group)
+            # if imobject.group is not None:
+            #     # TODO: account for this case when can access each child in group
+            #     mh.get_copy(imobject.group).remove(mobject)
+            #     self.scene_model.scene.add(mobject)
 
-            self.refresh()  # show new igroup in combobox
+            igroup = IGroup()
+            mh.set_name(igroup, f"{mh.get_name(imobject)}_grp")
+            mh.groups.add(igroup)
+
+            igroup.add(itarget)
+            self.fsm_model.instant_add_object_to_curr(igroup, transform=True)
+            
+            curr_state.targets[imobject] = mh.get_copy(igroup)
+            self.fsm_model.curr.called_mobject_functions[igroup]["add"].add(imobject)
 
             # setup current ui
-            curr_state.play_copy(IReplacementTransform(self.selected_imobject), self.scene_model.scene)
+            curr_state.play_copy(IReplacementTransform(imobject), self.scene_model.scene)
 
             # store for writer
-            curr_state.target_decl_str[self.selected_imobject] = self.selected_imobject.decl_str()
+            curr_state.target_decl_str[imobject] = imobject.decl_str()
 
     def closeEvent(self, e):
         self.close_handler()

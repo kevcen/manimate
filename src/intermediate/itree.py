@@ -30,11 +30,13 @@ class INode(IMobject):
     def spawn_child(self):
         child = INode(self.fsm_model)
         parentcpy = mh.get_copy(self)
-        child.mobject.move_to(np.array([parentcpy.get_x(), parentcpy.get_y() - 2, 0]))
+        new_point = [parentcpy.get_x(), parentcpy.get_y() - 2, 0]
+        child.mobject.move_to(np.array(new_point))
+        child.past_point = new_point
         self.fsm_model.curr.targets[child] = child.mobject.copy()
         self.fsm_model.curr.target_decl_str[child] = child.decl_str()
         self.fsm_model.curr.called_target_functions[child]["move_to"] = [
-            str([parentcpy.get_x(), parentcpy.get_y() - 2, 0])
+            str(new_point)
         ]
         self.add_edge(self, child)
         self.children.append(child)
