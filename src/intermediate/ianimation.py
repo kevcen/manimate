@@ -17,6 +17,10 @@ class ITransform(IAnimation):
     Intermediate animation class
     """
 
+class IReplacementTransform(IAnimation):
+    """
+    Intermediate replacement transform class
+    """
 
 class ICreate(IAnimation):
     """

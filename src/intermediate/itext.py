@@ -61,16 +61,13 @@ class IMathTex(IMobject):
             self.fsm_model.curr.capture_prev(mh.get_copy(self))
             curr_state.targets[self] = new_text
 
-            self.edited_at = self.fsm_model.curr.idx
-            if not self.fsm_model.created_at_curr_state(self):
-                curr_state.addTransform(self)
-
             # setup current ui
             curr_state.play_copy(ITransform(self), self.fsm_model.scene_model.scene)
 
             # store for writer
+            self.fsm_model.edit_transform_target(self, new_text, move_to=mh.get_copy(self).get_center())
+            
             curr_state.target_decl_str[self] = self.decl_str()
-
         except:
             print("latex compile error")
 
@@ -162,16 +159,13 @@ class IMarkupText(IMobject):
         self.fsm_model.curr.capture_prev(mh.get_copy(self))
         curr_state.targets[self] = new_text
 
-        self.edited_at = curr_state.idx
-        if not self.fsm_model.created_at_curr_state(self):
-            curr_state.addTransform(self)
-
-        # store for writer
-        curr_state.target_decl_str[self] = self.decl_str()
-
         # setup current ui
         curr_state.play_copy(ITransform(self), self.fsm_model.scene_model.scene)
 
+        # store for writer
+        self.fsm_model.edit_transform_target(self, new_text, move_to=mh.get_copy(self).get_center())
+
+        curr_state.target_decl_str[self] = self.decl_str()
         self.edited_at = curr_state.idx
 
     def decl_str(self):

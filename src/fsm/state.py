@@ -1,7 +1,7 @@
 from bidict import bidict
 from collections import defaultdict
 
-from intermediate.ianimation import IApplyFunction, ITransform
+from intermediate.ianimation import IApplyFunction, IReplacementTransform, ITransform
 import fsm.generator as generator
 import models.mobject_helper as mh
 
@@ -24,14 +24,14 @@ class State:
         self.target_decl_str = {}
         self.rev_attributes = defaultdict(lambda: {})
         self.changed_mobject_attributes = defaultdict(lambda: {})
-        self.added = set()
-        self.removed = set()
+        self.added = []
+        self.removed = []
         self.idx = idx
         self.run_time = 1.0
         self.loop = None  # in form of (state, times)
         self.loopCnt = None
 
-    def addTransform(self, imobject):
+    def add_transform(self, imobject):
         """
         PRE: called only after state has a target for the transform
         """
@@ -43,17 +43,23 @@ class State:
 
         return self.transforms[imobject]
 
-    def getTransform(self, imobject):
+    def add_replacement_transform(self, imobject):
+        if imobject in self.transforms and self.transforms[imobject] in self.animations:
+            self.animations.remove(self.transforms[imobject])
+        self.transforms[imobject] = IReplacementTransform(imobject)
+        self.animations.append(self.transforms[imobject])
+
+    def get_transform(self, imobject):
         return self.transforms[imobject] if imobject in self.transforms else None
 
-    def addApplyFunction(self, imobject):
+    def add_apply_function(self, imobject):
         if imobject not in self.applyfunctions:
             self.applyfunctions[imobject] = IApplyFunction(imobject)
             self.animations.append(self.applyfunctions[imobject])
 
         return self.applyfunctions[imobject]
 
-    def getApplyFunction(self, imobject):
+    def get_apply_function(self, imobject):
         return (
             self.applyfunctions[imobject] if imobject in self.applyfunctions else None
         )

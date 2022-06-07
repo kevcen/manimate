@@ -1,8 +1,8 @@
-
 from intermediate.ianimation import IApplyFunction, ITransform
 from intermediate.imobject import IMobject
 from intermediate.itree import INode
 import models.mobject_helper as mh
+from pathlib import Path
 
 
 class Writer:
@@ -72,7 +72,9 @@ class ParentEdge(Line):
         self.writeTree = False
 
     def write(self):
-        with open(self.filename, "w", encoding="utf-8") as f:
+        filepath = Path(self.filename)
+        filepath.touch(exist_ok=True)  
+        with open(filepath, "w+", encoding="utf-8") as f:
             f.write(self.BOILERPLATE)
             curr = self.head_state.next
             while curr.next is not None:  # is not the END state

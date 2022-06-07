@@ -136,7 +136,8 @@ class ObjectsBar(QTabWidget):
 
     def add_tree(self):
         node = INode(self.fsm_model)
-        node.show_node()
+        node.show_node() # can also use instant_add
+        
 
     def closeEvent(self, e):
         self.close_handler()

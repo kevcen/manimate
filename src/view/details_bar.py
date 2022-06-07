@@ -13,10 +13,11 @@ from PySide6.QtWidgets import (
     QDoubleSpinBox,
     QColorDialog,
     QMessageBox,
+    QInputDialog,
 )
 
-from intermediate.ianimation import ICreate, IFadeIn
-from intermediate.imobject import IGroup, INone
+from intermediate.ianimation import ICreate, IFadeIn, IReplacementTransform
+from intermediate.imobject import ICircle, IGroup, INone, ISquare, IStar, ITriangle
 from intermediate.itext import Highlight, IMarkupText, IMathTex
 from intermediate.itree import INode
 import models.mobject_helper as mh
@@ -212,7 +213,7 @@ class DetailsBar(QWidget):
 
     def add_items(self, imobject):
         print("ADD", imobject)
-        self.state_group_box.title = f"State {self.fsm_model.curr.idx}"
+        self.state_group_box.setTitle(f"State {self.fsm_model.curr.idx}")
         self.animation_run_time.setValue(self.fsm_model.curr.run_time)
         self.loop_cb.addItem("None")
         self.loop_cb.addItems([f"State {n}" for n in range(1, self.fsm_model.end.idx)])
@@ -221,6 +222,8 @@ class DetailsBar(QWidget):
             if self.fsm_model.curr.loop is not None
             else 0
         )
+        self.loop_times.setValue(self.fsm_model.curr.loopCnt if self.fsm_model.curr.loopCnt is not None else 0)
+        self.loop_times.blockSignals(False)
         self.loop_cb.blockSignals(False)
         if isinstance(imobject, INone):
             self.layout.insertWidget(
@@ -302,6 +305,7 @@ class DetailsBar(QWidget):
         self.name_edit.blockSignals(True)
         self.change_markup_text.blockSignals(True)
         self.loop_cb.blockSignals(True)
+        self.loop_times.blockSignals(True)
         self.group_cb.blockSignals(True)
         for i in range(self.layout.count() - 2, TOP_WIDGETS_NUM, -1):
             child = self.layout.itemAt(i).widget()
@@ -409,7 +413,7 @@ class DetailsBar(QWidget):
                 aff_imobj.added_state.animations.append(aff_imobj.intro_anim)
                 # aff_imobj.added_state.play_copy(aff_imobj.intro_anim, self.scene_model.scene)
             else:
-                aff_imobj.added_state.added.add(aff_imobj)
+                aff_imobj.added_state.added.append(aff_imobj)
                 # self.scene_model.addCopy(aff_imobj)
 
     def remove_mobject_handler(self):
@@ -481,17 +485,68 @@ class DetailsBar(QWidget):
         if not mh.set_name(self.selected_imobject, new_name):
             msg = QMessageBox()
             msg.setWindowTitle("Manimate")
-            msg.text = "Name is already in use!"
-            msg.icon = QMessageBox.Critical
-            msg.standardButtons = QMessageBox.Ok
-            msg.defaultButton = QMessageBox.Ok
+            msg.setText("Name is already in use!")
+            msg.setIcon(QMessageBox.Critical)
+            msg.setStandardButtons(QMessageBox.Ok)
+            msg.setDefaultButton(QMessageBox.Ok)
 
             conflict_mobj = mh.get_imobject_by_name(new_name)
-            msg.detailedText = f"There is another {conflict_mobj.__class__.__name__} with the same name {new_name}."
+            msg.setDetailedText(f"There is another {conflict_mobj.__class__.__name__} with the same name {new_name}.")
 
             msg.exec_()
 
         self.refresh()
+
+    def add_transform_handler(self):
+        if not self.fsm_model.created_at_curr_state(self.selected_imobject):
+            return
+
+        curr_state = self.fsm_model.curr
+        items = ["Circle", "Square", "Star", "Triangle", "Tree", "Text", "Latex"]
+        ok = bool()
+        item = QInputDialog.getItem(self, "Choose Target", "Select Target MObject", items, 0, False, ok)
+        if (ok and not item.isEmpty()):
+            # itemLabel.setText(item)
+            itarget = None
+            match item:
+                case "Circle":
+                    itarget = ICircle()
+                case "Square":
+                    itarget = ISquare()
+                case "Star":
+                    itarget = IStar()
+                case "Triangle":
+                    itarget = ITriangle()
+                case "Tree":
+                    itarget = INode(self.fsm_model)
+                case "Text":
+                    itarget = IMarkupText("click to add text", fsm_model=self.fsm_model)
+                case "Latex":
+                    itarget = IMathTex(r"\xrightarrow{x^6y^8}", fsm_model=self.fsm_model)
+
+            target = itarget.mobject
+            # new_text.match_color(mh.getCopy(self))
+            target.move_to(mh.get_copy(self.selected_imobject).get_center())
+
+            # configure transforms
+            self.fsm_model.curr.capture_prev(mh.get_copy(self.selected_imobject))
+            curr_state.targets[self] = target
+
+            self.selected_imobject.edited_at = self.fsm_model.curr.idx
+           
+            curr_state.add_replacement_transform(self.selected_imobject)
+            
+            group = IGroup()
+            self.fsm_model.instant_add_object_to_curr(group, select=False)
+            mh.groups.add(group)
+
+            self.refresh()  # show new igroup in combobox
+
+            # setup current ui
+            curr_state.play_copy(IReplacementTransform(self.selected_imobject), self.scene_model.scene)
+
+            # store for writer
+            curr_state.target_decl_str[self.selected_imobject] = self.selected_imobject.decl_str()
 
     def closeEvent(self, e):
         self.close_handler()

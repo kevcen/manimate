@@ -21,7 +21,6 @@ class INode(IMobject):
         self.mobject.set_color(RED)
         self.parent_edge = None
         self.vgroup_children = [self.label, self.container]
-        # TODO: fadein/create parent edge too when node has intro anim
 
         # Aux info
         self.fsm_model = fsm_model
@@ -55,6 +54,8 @@ class INode(IMobject):
         sy = mh.get_copy(self).get_y()
         height_below_self = (sy - (camera.get_center()[1] - fh / 2))
         self.align_children_y(height_below_self / depth, sy, 1)
+
+        ## TODO: movement store for writer
 
     def align_children_x(self, fw, fs):
         if not self.children:
@@ -96,10 +97,18 @@ class INode(IMobject):
         curr_state.targets[self.label] = new_text
         self.edited_at = curr_state.idx
         if not self.fsm_model.created_at_curr_state(self):
-            curr_state.addTransform(self.label)
+            curr_state.add_transform(self.label)
 
-        # store for writer
         self.text = new_text
+
+        # setup current ui
+        curr_state.play_copy(ITransform(self.label), self.fsm_model.scene_model.scene)
+
+        mh.get_copy(self).add(mh.get_copy(self.label))
+        # mh.setCopy(self, self.mobject)
+
+        
+        # store for writer
         curr_state.target_decl_str[self] = self.decl_str()
         if not self.fsm_model.created_at_curr_state(
             self
@@ -107,15 +116,11 @@ class INode(IMobject):
             self.fsm_model.curr.called_target_functions[self.label]["match_color"] = [
                 self.label
             ]
+
+            ## can be placed outside if statement too
             self.fsm_model.curr.called_target_functions[self.label]["move_to"] = [
                 str(mh.get_copy(self.label).get_center().tolist())
             ]
-
-        # setup current ui
-        curr_state.play_copy(ITransform(self.label), self.fsm_model.scene_model.scene)
-
-        mh.get_copy(self).add(mh.get_copy(self.label))
-        # mh.setCopy(self, self.mobject)
 
     def change_parent(self, new_parent):
         self.fsm_model.curr.rev_attributes[self]["parent"] = self.parent

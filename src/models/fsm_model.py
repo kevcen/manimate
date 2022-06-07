@@ -3,6 +3,7 @@ import numpy as np
 from manim import *
 from file.writer import Writer
 from fsm.state import State
+from intermediate.itree import INode
 import models.mobject_helper as mh
 
 
@@ -156,30 +157,21 @@ class FsmModel(QObject):
                 str(move_to.tolist())
             }
         if shift is not None:
-            imobject.past_point = mh.get_copy(imobject).get_center()
+            imobject.past_point = mh.get_copy(imobject).get_center().tolist()
             self.curr.called_target_functions[imobject]["move_to"] = {
                 str(imobject.past_point)
             }
         # update animation
         if not self.created_at_curr_state(imobject):
-            # self.curr.targets[imobject] = target
-            self.curr.addTransform(imobject)
+            self.curr.add_transform(imobject)
             self.curr.target_decl_str[imobject] = f"{mh.get_name(imobject)}.copy()"
 
-            # if move_to is not None:
-            #     imethod.move_to = move_to
-
-            # if color is not None:
-            #     imethod.color = color
-            # if scale is not None:
-            #     imethod.scale = scale
-        # else:
 
     def get_curr_scale(self, imobject):
         res = imobject.past_scale
 
         # if not self.created_at_curr_state(imobject):
-        #     imethod = self.curr.getApplyFunction(imobject)
+        #     imethod = self.curr.get_apply_function(imobject)
         #     res = (imethod.scale if imethod is not None else 1) or 1
 
         return res
@@ -196,10 +188,13 @@ class FsmModel(QObject):
         return self.created_at_curr_state(imobject) and imobject.intro_anim is not None
 
     def instant_add_object_to_curr(self, imobject, select=True):
+        if isinstance(imobject, INode) and imobject.parent_edge is not None:
+            self.fsm_model.instant_add_object_to_curr(imobject.parent_edge)
+
         if select:  # if select needs changing
             self.scene_model.unselect_mobjects()
 
-        self.curr.added.add(imobject)
+        self.curr.added.append(imobject)
         self.curr.targets[imobject] = imobject.mobject
         self.curr.target_decl_str[imobject] = imobject.decl_str()
         self.scene_model.add_copy(imobject)
@@ -213,7 +208,7 @@ class FsmModel(QObject):
     def instant_remove_obj_at_curr(self, imobject):
         self.scene_model.remove(imobject)
         if not self.created_at_curr_state(imobject):
-            self.curr.removed.add(imobject)
+            self.curr.removed.append(imobject)
             imobject.removed_state = self.curr
         else:
             imobject.added_state = None
