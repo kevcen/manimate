@@ -11,7 +11,7 @@ def point_to_mobject(self, point, search_set=None):
     if search_set is None:
         search_set = self.mobjects
 
-    print("SELECT OBJECTS NUMBER", len(search_set))
+    # print("SELECT OBJECTS NUMBER", len(search_set))
     for mobject in reversed(search_set):
         imobject = mh.get_original(mobject)
         if (

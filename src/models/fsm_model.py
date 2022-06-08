@@ -41,7 +41,7 @@ class FsmModel(QObject):
         self.curr = self.curr.prev
 
     def has_loop(self):
-        return self.curr.loop is not None and self.curr.loopCnt > 0
+        return self.curr.loop is not None and self.curr.loop_cnt > 0
 
     def run(self):
         self.scene_model.unselect_mobjects()
@@ -52,7 +52,7 @@ class FsmModel(QObject):
         while (self.curr.next != self.end or self.has_loop()) and self.is_running:
             print(self.curr.idx)
             if self.has_loop():
-                self.curr.loopCnt -= 1
+                self.curr.loop_cnt -= 1
                 self.set_state_number(self.curr.loop[0], False)
             else:
                 self.play_forward(fast=False)
@@ -65,12 +65,12 @@ class FsmModel(QObject):
         self.is_running = False
 
     def set_state_number(self, idx, userCalled=True):
-        print("SET STATE NUMBER?", idx, self.curr.idx)
+        # print("SET STATE NUMBER?", idx, self.curr.idx)
         if 1 <= idx <= self.num_states:
             if idx < self.curr.idx:
                 for _ in range(self.curr.idx, idx, -1):
                     if userCalled and self.curr.loop is not None:
-                        self.curr.loopCnt = self.curr.loop[1]
+                        self.curr.loop_cnt = self.curr.loop[1]
                     self.play_back()
             else:
                 for _ in range(self.curr.idx, idx):
@@ -139,11 +139,11 @@ class FsmModel(QObject):
     def edit_transform_target(
         self, imobject, target, color=None, move_to=None, scale=None, shift=None
     ):
-        imobject.edited_at = self.curr.idx  # need to capture after edit
+        imobject.key_imobject.edited_at = self.curr.idx  # need to capture after edit
 
         # -------------
 
-        self.curr.targets[imobject] = target
+        self.curr.change_target_mobject(imobject, target)
         self.curr.target_decl_str[imobject] = imobject.decl_str()
 
         if color is not None:
@@ -161,6 +161,7 @@ class FsmModel(QObject):
             self.curr.called_target_functions[imobject]["move_to"] = {
                 str(imobject.past_point)
             }
+            print(imobject.mobject, "MOVE", imobject.past_point)
         # update animation
         if not self.created_at_curr_state(imobject):
             self.curr.add_transform(imobject)
@@ -194,20 +195,22 @@ class FsmModel(QObject):
         if select:  # if select needs changing
             self.scene_model.unselect_mobjects()
 
-        if not transform: #prevents 'self.add' on writer
-            self.curr.added.append(imobject)
-            self.scene_model.add_copy(imobject)
 
-        self.curr.targets[imobject] = imobject.mobject
+        self.curr.change_target_mobject(imobject, imobject.mobject)
         self.curr.target_decl_str[imobject] = imobject.decl_str()
 
         imobject.added_state = self.curr
         imobject.intro_anim = None
 
+        if not transform: #prevents 'self.add' on writer
+            self.curr.added.append(imobject)
+            self.scene_model.add_copy(imobject)
+
         if select and imobject.allowed_to_select:
             self.scene_model.set_selected_imobject(imobject)
 
     def instant_remove_obj_at_curr(self, imobject):
+        imobject = imobject.key_imobject
         self.scene_model.remove(imobject)
         if not self.created_at_curr_state(imobject):
             self.curr.removed.append(imobject)
@@ -227,10 +230,10 @@ class FsmModel(QObject):
             self.curr.animations.remove(transform)
             del self.curr.transforms[imobject]
 
-        if imobject in self.curr.applyfunctions:
-            applyfunction = self.curr.applyfunctions[imobject]
-            self.curr.animations.remove(applyfunction)
-            del self.curr.applyfunctions[imobject]
+        # if imobject in self.curr.applyfunctions:
+        #     applyfunction = self.curr.applyfunctions[imobject]
+        #     self.curr.animations.remove(applyfunction)
+        #     del self.curr.applyfunctions[imobject]
 
         if imobject in self.curr.targets:
             del self.curr.targets[imobject]

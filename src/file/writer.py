@@ -1,4 +1,4 @@
-from intermediate.ianimation import IApplyFunction, ITransform
+from intermediate.ianimation import IReplacementTransform, ITransform
 from intermediate.imobject import IMobject
 from intermediate.itree import INode
 import models.mobject_helper as mh
@@ -68,7 +68,7 @@ class ParentEdge(Line):
         self.head_state = head_state
         self.filename = filename
         self.existing_names = {}
-        self.writeApplyFunction = False
+        # self.writeApplyFunction = False
         self.writeTree = False
 
     def write(self):
@@ -94,8 +94,8 @@ class ParentEdge(Line):
 
                 curr = curr.next
 
-            if self.writeApplyFunction:
-                f.write(self.APPLYFUNCTION)
+            # if self.writeApplyFunction:
+            #     f.write(self.APPLYFUNCTION)
 
             if self.writeTree:
                 f.write(self.TREECLASS)
@@ -179,7 +179,7 @@ class ParentEdge(Line):
         for imobject in curr.targets:
             if imobject.is_deleted:
                 continue
-            if curr == imobject.added_state and imobject.intro_anim is None:
+            if imobject in curr.added and imobject.intro_anim is None:
                 f.write(f"        self.add({mh.get_name(imobject)})\n")
 
     def print_animations(self, f, curr):
@@ -203,20 +203,23 @@ class ParentEdge(Line):
         imobject = anim.imobject
 
         match anim:
-            case IApplyFunction():
-                res.append("self.customfunction")
-                res.append(", ")
-                res.append(mh.get_name(imobject))
-                extra_args = self.get_applyfunction_args_str(anim)
-                if extra_args:
-                    res.append(", ")
-                    res.append(extra_args)
-                self.writeApplyFunction = True
+            # case IApplyFunction():
+            #     res.append("self.customfunction")
+            #     res.append(", ")
+            #     res.append(mh.get_name(imobject))
+            #     extra_args = self.get_applyfunction_args_str(anim)
+            #     if extra_args:
+            #         res.append(", ")
+            #         res.append(extra_args)
+            #     self.writeApplyFunction = True
             case ITransform():
                 res.append(mh.get_name(imobject))
                 res.append(", ")
                 res.append(self.use_target_name(imobject, curr))
-
+            case IReplacementTransform():
+                res.append(mh.get_name(imobject))
+                res.append(", ")
+                res.append(self.get_target_name(imobject, curr))
             case _:
                 res.append(mh.get_name(imobject))
 
@@ -224,21 +227,21 @@ class ParentEdge(Line):
 
         return "".join(res)
 
-    def get_applyfunction_args_str(self, iapplyfunction):
-        res = []
-        if iapplyfunction.color is not None:
-            res.append(f'"{iapplyfunction.color}"')
+    # def get_applyfunction_args_str(self, iapplyfunction):
+    #     res = []
+    #     if iapplyfunction.color is not None:
+    #         res.append(f'"{iapplyfunction.color}"')
 
-        if iapplyfunction.move_to is not None:
-            res.append(f"{str(iapplyfunction.move_to.tolist())}")
+    #     if iapplyfunction.move_to is not None:
+    #         res.append(f"{str(iapplyfunction.move_to.tolist())}")
 
-        if iapplyfunction.scale is not None:
-            res.append(f"{str(iapplyfunction.scale)}")
+    #     if iapplyfunction.scale is not None:
+    #         res.append(f"{str(iapplyfunction.scale)}")
 
-        return ", ".join(res)
+    #     return ", ".join(res)
 
     def get_target_name(self, imobject, curr):
-        target = curr.targets[imobject]
+        target = curr.get_target(imobject)
         if target not in self.existing_names:
             mobj_name = mh.get_name(imobject)
             self.existing_names[target] = f"{mobj_name}_target"
@@ -246,14 +249,14 @@ class ParentEdge(Line):
         return self.existing_names[target]
 
     def use_target_name(self, imobject, curr):
-        target = curr.targets[imobject]
+        target = curr.get_target(imobject)
         tname = self.existing_names[target]
         del self.existing_names[target]
         return tname
 
     def get_latest_name(self, imobject, curr):
         if imobject in curr.targets:
-            target = curr.targets[imobject]
+            target = curr.get_target(imobject)
             if imobject in self.existing_names[target]:
                 return self.existing_names[target]
         return mh.get_name(imobject)

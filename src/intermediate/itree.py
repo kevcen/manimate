@@ -9,7 +9,7 @@ class INode(IMobject):
     """
     Intermediate mobject representing a single Tree Node
     """
-    def __init__(self, fsm_model):
+    def __init__(self, fsm_model, key_imobject=None):
         self.parent = None
         self.children = []
 
@@ -25,7 +25,7 @@ class INode(IMobject):
         # Aux info
         self.fsm_model = fsm_model
 
-        super().__init__(self.mobject)
+        super().__init__(self.mobject, key_imobject=key_imobject)
 
     def spawn_child(self):
         child = INode(self.fsm_model)
@@ -33,7 +33,7 @@ class INode(IMobject):
         new_point = [parentcpy.get_x(), parentcpy.get_y() - 2, 0]
         child.mobject.move_to(np.array(new_point))
         child.past_point = new_point
-        self.fsm_model.curr.targets[child] = child.mobject.copy()
+        # self.fsm_model.curr.change_target_mobject(child, mh.generate_new_copy(child))
         self.fsm_model.curr.target_decl_str[child] = child.decl_str()
         self.fsm_model.curr.called_target_functions[child]["move_to"] = [
             str(new_point)
@@ -46,6 +46,8 @@ class INode(IMobject):
         if self.parent_edge is not None:
             self.fsm_model.instant_add_object_to_curr(self.parent_edge)
         self.fsm_model.instant_add_object_to_curr(self)
+        # self.fsm_model.curr.change_target_mobject(self.label, self.label.mobject.copy())
+        # self.fsm_model.curr.change_target_mobject(self.container, self.container.mobject.copy())
 
     def align_children(self):
         camera = self.fsm_model.scene_model.renderer.camera
@@ -58,6 +60,8 @@ class INode(IMobject):
         self.align_children_y(height_below_self / depth, sy, 1)
 
         ## TODO: movement store for writer
+
+        ## TODO: past_point change
 
     def align_children_x(self, fw, fs):
         if not self.children:
@@ -95,9 +99,9 @@ class INode(IMobject):
         new_text.move_to(mh.get_copy(self.label).get_center())
 
         # configure transforms
-        self.fsm_model.curr.capture_prev(mh.get_copy(self.label))
-        curr_state.targets[self.label] = new_text
-        self.edited_at = curr_state.idx
+        self.fsm_model.curr.capture_prev(self.label)
+        curr_state.change_target_mobject(self.label, new_text)
+        self.label.key_imobject.edited_at = curr_state.idx
         if not self.fsm_model.created_at_curr_state(self):
             curr_state.add_transform(self.label)
 
@@ -152,14 +156,14 @@ class IParentEdge(IMobject):
     """
     Intermediate mobject representing an edge connecting a node to its a parent
     """
-    def __init__(self, node):
+    def __init__(self, node, key_imobject=None):
         self.node = node
         # Move connecting line
         pn = node.parent.mobject
         cn = node.mobject
         self.mobject = Line(pn.get_bottom(), cn.get_top(), color=RED)
 
-        super().__init__(self.mobject)
+        super().__init__(self.mobject, key_imobject=key_imobject)
         self.allowed_to_select = False
 
     def continuously_update(self):

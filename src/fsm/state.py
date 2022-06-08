@@ -1,9 +1,9 @@
-from bidict import bidict
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 
-from intermediate.ianimation import IApplyFunction, IReplacementTransform, ITransform
+from intermediate.ianimation import IReplacementTransform, ITransform
 import fsm.generator as generator
 import models.mobject_helper as mh
+from manim import VGroup
 
 class State:
     """
@@ -13,10 +13,10 @@ class State:
         self.next = None  # next state
         self.prev = None  # previous state
         self.animations = animations if animations else []  # list of animations to play
-        self.targets = bidict()  # what the mobjects look like at this state at the end
-        self.rev_targets = bidict()
+        self.targets = OrderedDict()  # what the mobjects look like at this state at the end
+        self.rev_targets = {}
         self.transforms = {}
-        self.applyfunctions = {}
+        # self.applyfunctions = {}
         ## TODO: replace transforms by using prepare_anim on called_target_functions
         # imobject -> function -> set(args)
         self.called_mobject_functions = defaultdict(lambda: defaultdict(lambda: set()))
@@ -29,12 +29,13 @@ class State:
         self.idx = idx
         self.run_time = 1.0
         self.loop = None  # in form of (state, times)
-        self.loopCnt = None
+        self.loop_cnt = None
 
     def add_transform(self, imobject):
         """
         PRE: called only after state has a target for the transform
         """
+        imobject = imobject.key_imobject
         assert imobject in self.targets
 
         if imobject not in self.transforms:
@@ -43,48 +44,76 @@ class State:
 
         return self.transforms[imobject]
 
-    def add_replacement_transform(self, imobject):
+    def add_replacement_transform(self, imobject, itarget):
         if imobject in self.transforms and self.transforms[imobject] in self.animations:
             self.animations.remove(self.transforms[imobject])
-        self.transforms[imobject] = IReplacementTransform(imobject)
+        self.transforms[imobject] = IReplacementTransform(imobject, itarget)
         self.animations.append(self.transforms[imobject])
 
     def get_transform(self, imobject):
         return self.transforms[imobject] if imobject in self.transforms else None
 
-    def add_apply_function(self, imobject):
-        if imobject not in self.applyfunctions:
-            self.applyfunctions[imobject] = IApplyFunction(imobject)
-            self.animations.append(self.applyfunctions[imobject])
+    # def add_apply_function(self, imobject):
+    #     if imobject not in self.applyfunctions:
+    #         self.applyfunctions[imobject] = IApplyFunction(imobject)
+    #         self.animations.append(self.applyfunctions[imobject])
 
-        return self.applyfunctions[imobject]
+    #     return self.applyfunctions[imobject]
 
-    def get_apply_function(self, imobject):
-        return (
-            self.applyfunctions[imobject] if imobject in self.applyfunctions else None
-        )
+    # def get_apply_function(self, imobject):
+    #     return (
+    #         self.applyfunctions[imobject] if imobject in self.applyfunctions else None
+    #     )
 
     # Capturing states for reverse
-    def capture_prev(self, mcopy, bypass=False):
+    def capture_prev(self, imobject, force=False, capture_children=False):
         # print('try capture', hex(id(self)))
         # capture previous frame for reverse if editable
-        imobject = mh.get_original(mcopy)
-        if bypass or imobject not in self.rev_targets:  # if not already captured
-            target = self.find_prev_target(self.prev, imobject)
+        imobjs = [imobject.key_imobject]
+        if capture_children and isinstance(imobject.mobject, VGroup):
+            for child in imobject.vgroup_children:
+                child = child.key_imobject
+                imobjs.append(child)
+
+        for imobj in imobjs:
+            if not force and imobj in self.rev_targets:  # if not already captured
+                continue
+            
+            # print("ATTEMPT CAPTURE", imobj)
+            target = self.prev.find_prev_target(imobj)
             if target is None:
-                return  # we are in head state
+                continue  # we are in head state
 
-            self.rev_targets[imobject] = target
-            if imobject.edited_at is not None and imobject.edited_at < self.idx:
-                imobject.edited_at = None  # mark as handled
+            self.rev_targets[imobj] = target
+            edit_idx = imobj.edited_at
+            if edit_idx is not None and edit_idx < self.idx:
+                imobj.edited_at = None  # mark as handled
 
-    def find_prev_target(self, state, imobject):
-        if state is None:
+        if capture_children and isinstance(imobject.mobject, VGroup):
+            print("CHILDREN CAPTURED", len(imobjs) -1)
+            self.rev_targets[imobject.key_imobject].mobject.add(*[self.rev_targets[child].mobject.copy() for child in imobjs[1:]])
+
+    def find_prev_target(self, imobject):
+        if imobject in self.targets:
+            print("RETRIEVE STATE ", self.idx, imobject)
+            return self.get_target(imobject) #TODO: do something with vgroup - prob not, children have targets
+        
+        if self.prev is None:
             return None
 
-        if imobject in state.targets:
-            return state.targets[imobject].copy()
-        return self.find_prev_target(state.prev, imobject)
+        return self.prev.find_prev_target(imobject)
+    
+    def get_target(self, imobject):
+        imobject = imobject.key_imobject
+        return self.targets[imobject]
+
+    def change_target_mobject(self, imobject, mobject):
+        key_imobject = imobject.key_imobject
+        if key_imobject not in self.targets:
+            # print(key_imobject)
+            self.targets[key_imobject] = imobject.copy()
+        self.get_target(key_imobject).mobject = mobject
+        print(len(self.targets), "TARGTE LEN")
 
     # Scene related functions
     def play_one(self, anim, scene):
@@ -99,12 +128,25 @@ class State:
     def add_mobjects(self, mobjects, scene):
         for imobject in mobjects:
             mcopy = mh.get_copy(imobject)
+            if isinstance(imobject.mobject, VGroup):
+                mcopy = VGroup()
+                for child in imobject.vgroup_children:
+                    ccopy = mh.generate_new_copy(child)
+                    mh.set_copy(child.key_imobject, ccopy)
+                    mcopy.add(ccopy)
             scene.add(mcopy)
 
     def remove_mobjects(self, mobjects, scene):
         for imobject in mobjects:
             mcopy = mh.get_copy(imobject)
+            print("REMOVE", mcopy)
             scene.remove(mcopy)
+            if isinstance(imobject.mobject, VGroup):
+                for child in imobject.vgroup_children:
+                    print("READD GROUP CHILD ", child.mobject)
+                    ccopy = mh.generate_new_copy(child)
+                    mh.set_copy(child.key_imobject, ccopy)
+                    scene.add(ccopy)
 
     def forward_attributes(self):
         for imobject in self.changed_mobject_attributes:

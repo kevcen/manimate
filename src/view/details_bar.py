@@ -202,7 +202,7 @@ class DetailsBar(QWidget):
         self.setLayout(self.layout)
 
     def refresh(self, imobject=None):
-        print('REFRESH', imobject)
+        # print('REFRESH', imobject)
         if (
             imobject == self.selected_imobject
             and self.curr_idx == self.fsm_model.curr.idx
@@ -216,7 +216,7 @@ class DetailsBar(QWidget):
         self.add_items(imobject)
 
     def add_items(self, imobject):
-        print("ADD", imobject)
+        # print("ADD", imobject)
         self.state_group_box.setTitle(f"State {self.fsm_model.curr.idx}")
         self.animation_run_time.setValue(self.fsm_model.curr.run_time)
         self.loop_cb.addItem("None")
@@ -226,7 +226,7 @@ class DetailsBar(QWidget):
             if self.fsm_model.curr.loop is not None
             else 0
         )
-        self.loop_times.setValue(self.fsm_model.curr.loopCnt if self.fsm_model.curr.loopCnt is not None else 0)
+        self.loop_times.setValue(self.fsm_model.curr.loop_cnt if self.fsm_model.curr.loop_cnt is not None else 0)
         self.loop_times.blockSignals(False)
         self.loop_cb.blockSignals(False)
         if isinstance(imobject, INone):
@@ -353,21 +353,21 @@ class DetailsBar(QWidget):
                 self.loop_times.setValue(1)
 
             self.fsm_model.curr.loop = (state_num, 1)
-            self.fsm_model.curr.loopCnt = 1
+            self.fsm_model.curr.loop_cnt = 1
 
     def change_loop_times_handler(self, value):
-        self.fsm_model.curr.loopCnt = value
+        self.fsm_model.curr.loop_cnt = value
 
     def change_markup_text_handler(self):
         if isinstance(self.selected_imobject, INone):
             return
 
-        self.selected_imobject.edited_at = self.fsm_model.curr.idx
+        self.selected_imobject.key_imobject.edited_at = self.fsm_model.curr.idx
         text = self.change_markup_text.toPlainText()
         self.selected_imobject.change_text(text)
 
     def change_node_text_handler(self):
-        self.selected_imobject.edited_at = self.fsm_model.curr.idx
+        self.selected_imobject.key_imobject.edited_at = self.fsm_model.curr.idx
         text = self.change_node_text.text()
         self.selected_imobject.change_label_text(text)
 
@@ -384,7 +384,7 @@ class DetailsBar(QWidget):
         imobj_name = self.change_parent_cb.currentText()
         imobj = mh.get_imobject_by_name(imobj_name) if imobj_name is not None else None
 
-        print("CHANGE PARENT", imobj_name, imobj)
+        # print("CHANGE PARENT", imobj_name, imobj)
         self.selected_imobject.change_parent(imobj)
 
     def intro_anim_handler(self, i):
@@ -430,7 +430,7 @@ class DetailsBar(QWidget):
         self.refresh()
 
     def new_group_handler(self):
-        group = IGroup()
+        group = IGroup(self.fsm_model)
         self.fsm_model.instant_add_object_to_curr(group, select=False)
         mh.groups.add(group)
 
@@ -456,9 +456,12 @@ class DetailsBar(QWidget):
             igroup = mh.get_imobject_by_name(group_name)
             group = mh.get_copy(igroup)
 
-            igroup.add(imobject)
-            self.fsm_model.curr.called_mobject_functions[igroup]["add"].add(imobject)
+            self.fsm_model.curr.change_target_mobject(imobject, mobject.copy())
 
+
+            igroup.add(imobject)
+            
+            self.fsm_model.curr.called_target_functions[igroup]["add"].add(imobject)
             # self.scene_model.unselect_mobjects()
         else:
             pass  # TODO: tabs for each child
@@ -547,35 +550,50 @@ class DetailsBar(QWidget):
                 case "Latex":
                     itarget = IMathTex(r"\xrightarrow{x^6y^8}", fsm_model=self.fsm_model)
 
+            # TODO: handle reverse IGROUPS
             target = itarget.mobject
             target.move_to(mobject.get_center())
-            self.fsm_model.curr.called_target_functions[imobject]["move_to"] = {str(mobject.get_center().tolist())}
-            self.fsm_model.curr.capture_prev(mobject)
+            itarget.added_state = curr_state
+            curr_state.change_target_mobject(itarget, target)
+            curr_state.target_decl_str[itarget] = itarget.decl_str()
+            curr_state.called_target_functions[itarget]["move_to"] = {str(mobject.get_center().tolist())}
+            print("GOING TO CAPTURE...")
+            curr_state.capture_prev(imobject, force=True, capture_children=True)
             # self.fsm_model.instant_add_object_to_curr(target)
-            imobject.edited_at = self.fsm_model.curr.idx
+            imobject.key_imobject.edited_at = curr_state.idx
            
-            curr_state.add_replacement_transform(imobject)
             
             # if imobject.group is not None:
             #     # TODO: account for this case when can access each child in group
             #     mh.get_copy(imobject.group).remove(mobject)
             #     self.scene_model.scene.add(mobject)
-
-            igroup = IGroup()
+            print("DETAILS 1")
+            igroup = IGroup(self.fsm_model)
+            igroup.added_state = curr_state
             mh.set_name(igroup, f"{mh.get_name(imobject)}_grp")
+            print("DETAILS 2")
             mh.groups.add(igroup)
 
+            # self.fsm_model.instant_add_object_to_curr(igroup, transform=True)
+            curr_state.change_target_mobject(igroup, igroup.mobject)
+            # curr_state.target_decl_str[igroup] = igroup.decl_str()
+
+            print("DETAILS 2.5")
             igroup.add(itarget)
-            self.fsm_model.instant_add_object_to_curr(igroup, transform=True)
-            
-            curr_state.targets[imobject] = mh.get_copy(igroup)
-            self.fsm_model.curr.called_mobject_functions[igroup]["add"].add(imobject)
+            print("DETAILS 3")
+            curr_state.called_target_functions[imobject]["add"].add(itarget)
+            curr_state.change_target_mobject(imobject, mh.get_copy(igroup))
+            curr_state.targets.move_to_end(itarget, last=False) #make sure child gets printed first
+            curr_state.target_decl_str[imobject] = igroup.decl_str()
 
             # setup current ui
-            curr_state.play_copy(IReplacementTransform(imobject), self.scene_model.scene)
+            print("DETAILS 4")
+            curr_state.play_copy(IReplacementTransform(imobject, igroup), self.scene_model.scene)
 
+            print("DETAILS 5")
+            curr_state.add_replacement_transform(imobject, igroup)
             # store for writer
-            curr_state.target_decl_str[imobject] = imobject.decl_str()
+            # curr_state.target_decl_str[imobject] = imobject.decl_str()
 
     def closeEvent(self, e):
         self.close_handler()

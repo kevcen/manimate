@@ -28,6 +28,7 @@ class SceneModel(QObject):
         self.fsm_model = fsm_model
 
     def add_copy(self, imobject):
+        print("ADD COPY")
         self.scene.add(mh.get_copy(imobject))
 
     def remove(self, imobject):
@@ -39,40 +40,40 @@ class SceneModel(QObject):
         if ctrldown:
             self.ctrldown = True
 
-        if not self.ctrldown: #TODO
+        if not self.ctrldown:
             self.unselect_mobjects()
 
-
         imobject = mh.get_original(mobject)
-        self.set_selected_imobject(imobject)
+        print("SELECTED", imobject)
+        self.set_selected_imobject(imobject, untargeted_mobject = mobject)
 
-    def set_selected_imobject(self, imobject):
+    def set_selected_imobject(self, imobject, untargeted_mobject=None):
         if imobject.parent_imobject is not None:
             imobject = imobject.parent_imobject
 
         if imobject.group is not None:
             imobject = imobject.group
-
-
-        mobject = mh.get_copy(imobject)
+# 
+        # print("SET SELECTED")
+        mobject = mh.get_copy(imobject) if untargeted_mobject is None else untargeted_mobject
         if mobject in self.selected:
             return
             
         self.selected[mobject] = mobject.get_color()
-        print("SELECT", self.selected)
+        # print("SELECT", self.selected)
 
         if not isinstance(imobject, IMarkupText):
             mobject.set_color("#8fbc8f")
 
-        self.fsm_model.curr.capture_prev(mobject)
+        self.fsm_model.curr.capture_prev(imobject)
 
         # print(imobject)
         self.selectedMobjectChange.emit(imobject)
 
     def unselect_mobjects(self):
         self.ctrldown = False
-        print(self.selected)
-        print("UNSELETED")
+        # print(self.selected)
+        # print("UNSELETED")
         for mobject, color in self.selected.items():
             if not isinstance(mobject, MarkupText):
                 mobject.set_color(color)

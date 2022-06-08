@@ -21,9 +21,9 @@ class IText(IMobject):
     """
     Intermediate Text mobject
     """
-    def __init__(self, text, parent_imobject=None):
+    def __init__(self, text, parent_imobject=None, key_imobject=None):
         self.label = Text(text)
-        super().__init__(self.label, parent_imobject=parent_imobject)
+        super().__init__(self.label, parent_imobject=parent_imobject, key_imobject=key_imobject)
 
         self.label.set_color(RED)
         self.text = text
@@ -36,13 +36,13 @@ class IMathTex(IMobject):
     """
     Intermediate MathTex mobject
     """
-    def __init__(self, text, parent_imobject=None, font_size=50, fsm_model=None):
+    def __init__(self, text, parent_imobject=None, font_size=50, fsm_model=None, key_imobject=None):
         self.text = text
         self.fsm_model = fsm_model
         self.font_size = font_size
         self.label = MathTex(r"{}".format(text), font_size=font_size, font="Consolas")
         self.label.set_color(WHITE)
-        super().__init__(self.label, parent_imobject=parent_imobject)
+        super().__init__(self.label, parent_imobject=parent_imobject, key_imobject=key_imobject)
 
     def change_text(self, new_text_str):
         # update field
@@ -58,8 +58,8 @@ class IMathTex(IMobject):
             new_text.move_to(mh.get_copy(self).get_center())
 
             # configure transforms
-            self.fsm_model.curr.capture_prev(mh.get_copy(self))
-            curr_state.targets[self] = new_text
+            self.fsm_model.curr.capture_prev(self)
+            curr_state.change_target_mobject(self, new_text)
 
             # setup current ui
             curr_state.play_copy(ITransform(self), self.fsm_model.scene_model.scene)
@@ -79,7 +79,7 @@ class IMarkupText(IMobject):
     """
     Intermediate MarkupText mobject
     """
-    def __init__(self, text, parent_imobject=None, font_size=14, fsm_model=None):
+    def __init__(self, text, parent_imobject=None, font_size=14, fsm_model=None, key_imobject=None):
         self.text = text
         self.fsm_model = fsm_model
         self.font_size = font_size
@@ -89,7 +89,7 @@ class IMarkupText(IMobject):
             self.format_text(text), font_size=font_size, font="Consolas"
         )
         self.label.set_color(WHITE)
-        super().__init__(self.label, parent_imobject=parent_imobject)
+        super().__init__(self.label, parent_imobject=parent_imobject, key_imobject=key_imobject)
 
     def handle_bold(self, cs, ce, highlight):
         self.highlight = highlight
@@ -156,8 +156,8 @@ class IMarkupText(IMobject):
         new_text.move_to(mh.get_copy(self).get_center())
 
         # configure transforms
-        self.fsm_model.curr.capture_prev(mh.get_copy(self))
-        curr_state.targets[self] = new_text
+        self.fsm_model.curr.capture_prev(self)
+        curr_state.change_target_mobject(self, new_text)
 
         # setup current ui
         curr_state.play_copy(ITransform(self), self.fsm_model.scene_model.scene)
@@ -166,7 +166,7 @@ class IMarkupText(IMobject):
         self.fsm_model.edit_transform_target(self, new_text, move_to=mh.get_copy(self).get_center())
 
         curr_state.target_decl_str[self] = self.decl_str()
-        self.edited_at = curr_state.idx
+        self.key_imobject.edited_at = curr_state.idx
 
     def decl_str(self):
         return f'MarkupText("{self.format_text(self.text)}", font_size={self.font_size}, font="Consolas")'
