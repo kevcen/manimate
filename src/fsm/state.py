@@ -96,12 +96,23 @@ class State:
         forward_anim.run_time = 0
         scene.play(forward_anim)
 
-    def add_mobjects(self, mobjects, scene):
+    def add_mobjects(self, scene, add):
+        mobjects = []
+        if add:
+            mobjects = [imobj for imobj in self.added if imobj.intro_anim is None]
+        else:
+            mobjects = self.removed
+            
         for imobject in mobjects:
-            mcopy = mh.get_copy(imobject)
-            scene.add(mcopy)
+                mcopy = mh.get_copy(imobject)
+                scene.add(mcopy)
 
-    def remove_mobjects(self, mobjects, scene):
+    def remove_mobjects(self, scene, add):
+        if add:
+            mobjects = [imobj for imobj in self.added if imobj.intro_anim is None]
+        else:
+            mobjects = self.removed
+
         for imobject in mobjects:
             mcopy = mh.get_copy(imobject)
             scene.remove(mcopy)
@@ -123,8 +134,8 @@ class State:
                 setattr(imobject, attr_name, value)
 
     def play(self, scene, fast=False):
-        self.add_mobjects(self.added, scene)
-        self.remove_mobjects(self.removed, scene)
+        self.add_mobjects(scene, True)
+        self.remove_mobjects(scene, False)
         self.forward_attributes()
         forward_anim = list(
             filter(None, map(lambda a: generator.forward(a, self), self.animations))
@@ -151,8 +162,8 @@ class State:
         if len(reversed_anim) > 0:
             scene.play(*reversed_anim)
 
-        self.add_mobjects(self.removed, scene)
-        self.remove_mobjects(self.added, scene)
+        self.add_mobjects(scene, False)
+        self.remove_mobjects(scene, True)
         self.reverse_attributes()
 
     ## debugging
