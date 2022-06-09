@@ -59,6 +59,8 @@ class INode(IMobject):
 
         ## TODO: movement store for writer
 
+        
+
     def align_children_x(self, fw, fs):
         if not self.children:
             return 1
@@ -83,6 +85,7 @@ class INode(IMobject):
             current_x = mobject.get_x()
             y = sy - dy * depth
             mobject.move_to([current_x, y, 0])
+            self.fsm_model.edit_transform_target(child, mobject.copy(), shift=-1) # track current position
             child.align_children_y(dy, sy, depth + 1)
             
 

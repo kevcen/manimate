@@ -149,14 +149,17 @@ class FsmModel(QObject):
         if color is not None:
             self.curr.called_target_functions[imobject]["set_color"] = {f'"{color}"'}
         if scale is not None:
+            self.curr.rev_attributes[imobject]["scale"] = imobject.past_scale
             imobject.past_scale = scale            
             self.curr.called_target_functions[imobject]["scale"] = {str(scale)}
         if move_to is not None:
+            self.curr.rev_attributes[imobject]["past_point"] = imobject.past_point
             imobject.past_point = move_to
             self.curr.called_target_functions[imobject]["move_to"] = {
                 str(move_to.tolist())
             }
         if shift is not None:
+            self.curr.rev_attributes[imobject]["past_point"] = imobject.past_point
             imobject.past_point = mh.get_copy(imobject).get_center().tolist()
             self.curr.called_target_functions[imobject]["move_to"] = {
                 str(imobject.past_point)
