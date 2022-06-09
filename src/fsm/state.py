@@ -1,8 +1,7 @@
-from bidict import bidict
 from collections import defaultdict
 
 from intermediate.ianimation import IApplyFunction, IReplacementTransform, ITransform
-import fsm.generator as generator
+import fsm.animation_generator as ag
 import controllers.mobject_helper as mh
 
 
@@ -15,8 +14,8 @@ class State:
         self.next = None  # next state
         self.prev = None  # previous state
         self.animations = animations if animations else []  # list of animations to play
-        self.targets = bidict()  # what the mobjects look like at this state at the end
-        self.rev_targets = bidict()
+        self.targets = {}  # what the mobjects look like at this state at the end
+        self.rev_targets = {}
         self.transforms = {}
         self.applyfunctions = {}
         ## TODO: replace transforms by using prepare_anim on called_target_functions
@@ -94,7 +93,7 @@ class State:
         scene.play(anim)
 
     def play_copy(self, anim, scene):
-        forward_anim = generator.forward(anim, self)
+        forward_anim = ag.forward(anim, self)
         forward_anim.run_time = 0
         scene.play(forward_anim)
 
@@ -140,7 +139,7 @@ class State:
         self.remove_mobjects(scene, False)
         self.forward_attributes()
         forward_anim = list(
-            filter(None, map(lambda a: generator.forward(a, self), self.animations))
+            filter(None, map(lambda a: ag.forward(a, self), self.animations))
         )
 
         for animation in forward_anim:
@@ -154,7 +153,7 @@ class State:
     def play_rev(self, scene):
         # print(f"rem {len(state.added)}, anim {len(state.animations)}")
         reversed_anim = list(
-            filter(None, map(lambda a: generator.reverse(a, self), self.animations))
+            filter(None, map(lambda a: ag.reverse(a, self), self.animations))
         )
 
         for animation in reversed_anim:
@@ -170,7 +169,7 @@ class State:
 
     ## debugging
     def replay(self, scene):
-        reversed_anim = [generator.reverse(instr, self) for instr in self.animations]
+        reversed_anim = [ag.reverse(instr, self) for instr in self.animations]
 
         for animation in reversed_anim:
             animation.run_time = 0
@@ -178,7 +177,7 @@ class State:
         if reversed_anim:
             scene.play(*reversed_anim)
 
-        forward_anim = [generator.forward(anim, self) for anim in self.animations]
+        forward_anim = [ag.forward(anim, self) for anim in self.animations]
         for animation in forward_anim:
             animation.run_time = 0
 

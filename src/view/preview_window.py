@@ -3,7 +3,7 @@ from moderngl_window.context.pyside2.window import Window as PySideWindow
 from moderngl_window.timers.clock import Timer
 
 
-class QTWindow(PySideWindow):
+class PreviewWindow(PySideWindow):
     """
     Previews the Manim animations...
 

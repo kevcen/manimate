@@ -17,7 +17,7 @@ from pathlib import Path
 from view.details_bar import DetailsBar
 from view.objects_bar import ObjectsBar
 from view.state_bar import StateWidget
-from view.preview_window import QTWindow
+from view.preview_window import PreviewWindow
 
 
 windows = set()
@@ -53,11 +53,11 @@ if __name__ == "__main__":
         format.setProfile(QSurfaceFormat.CoreProfile)
         QSurfaceFormat.setDefaultFormat(format)
         renderer = OpenGLRenderer()
-        window = QTWindow(app, renderer, close_all)
-        windows.add(window._widget)
-        renderer.window = window
-        renderer.frame_buffer_object = window.ctx.detect_framebuffer()
-        renderer.context = window.ctx
+        preview_window = PreviewWindow(app, renderer, close_all)
+        windows.add(preview_window._widget)
+        renderer.window = preview_window
+        renderer.frame_buffer_object = preview_window.ctx.detect_framebuffer()
+        renderer.context = preview_window.ctx
         renderer.context.enable(moderngl.BLEND)
         renderer.context.wireframe = config["enable_wireframe"]
         renderer.context.blend_func = (

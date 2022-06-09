@@ -68,8 +68,8 @@ class ParentEdge(Line):
         self.head_state = head_state
         self.filename = filename
         self.existing_names = {}
-        self.writeApplyFunction = False
-        self.writeTree = False
+        self.write_apply_function = False
+        self.write_tree = False
 
     def write(self):
         filepath = Path(self.filename)
@@ -95,10 +95,10 @@ class ParentEdge(Line):
 
                 curr = curr.next
 
-            if self.writeApplyFunction:
+            if self.write_apply_function:
                 f.write(self.APPLYFUNCTION)
 
-            if self.writeTree:
+            if self.write_tree:
                 f.write(self.TREECLASS)
 
     # debug
@@ -109,7 +109,7 @@ class ParentEdge(Line):
                 continue
 
             if isinstance(imobject, INode):
-                self.writeTree = True
+                self.write_tree = True
             if imobject.added_state == curr:
                 continue  # will be written in targets
 
@@ -154,7 +154,7 @@ class ParentEdge(Line):
             if imobject.is_deleted:
                 continue
             if isinstance(imobject, INode):
-                self.writeTree = True
+                self.write_tree = True
 
             tobj_str = (
                 mh.get_name(imobject)
@@ -230,7 +230,7 @@ class ParentEdge(Line):
                 if extra_args:
                     res.append(", ")
                     res.append(extra_args)
-                self.writeApplyFunction = True
+                self.write_apply_function = True
             case ITransform():
                 res.append(mh.get_name(imobject))
                 res.append(", ")
