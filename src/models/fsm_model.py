@@ -41,7 +41,7 @@ class FsmModel(QObject):
         self.curr = self.curr.prev
 
     def has_loop(self):
-        return self.curr.loop is not None and self.curr.loopCnt > 0
+        return self.curr.loop is not None and self.curr.loop_cnt > 0
 
     def run(self):
         self.scene_model.unselect_mobjects()
@@ -52,7 +52,7 @@ class FsmModel(QObject):
         while (self.curr.next != self.end or self.has_loop()) and self.is_running:
             print(self.curr.idx)
             if self.has_loop():
-                self.curr.loopCnt -= 1
+                self.curr.loop_cnt -= 1
                 self.set_state_number(self.curr.loop[0], False)
             else:
                 self.play_forward(fast=False)
@@ -70,7 +70,7 @@ class FsmModel(QObject):
             if idx < self.curr.idx:
                 for _ in range(self.curr.idx, idx, -1):
                     if userCalled and self.curr.loop is not None:
-                        self.curr.loopCnt = self.curr.loop[1]
+                        self.curr.loop_cnt = self.curr.loop[1]
                     self.play_back()
             else:
                 for _ in range(self.curr.idx, idx):

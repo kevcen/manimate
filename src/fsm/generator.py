@@ -33,8 +33,8 @@ def reverse(animation, state):
             # print('generate', mcopy.get_center(), tcopy.get_center())
             # mh.set_copy(imobj, tcopy)
             return Transform(mcopy, tcopy)
-        case IReplacementTransform(imobject=imobj):
-            mcopy = mh.get_copy(imobj)
+        case IReplacementTransform(imobject=imobj, itarget=itobj):
+            mcopy = mh.get_copy(itobj)
 
             tcopy = None
             if imobj in state.prev.targets:
@@ -46,6 +46,7 @@ def reverse(animation, state):
                 # print('rev target')
                 tcopy = state.rev_targets[imobj].copy()
 
+            mh.remove_copy(mcopy)
             mh.set_copy(imobj, tcopy)
             return ReplacementTransform(mcopy, tcopy)
         case ICreate(imobject=imobj):
@@ -67,10 +68,12 @@ def forward(animation, state):
             tcopy = state.targets[imobj].copy()
             # mh.set_copy(imobj, tcopy)
             return Transform(mcopy, tcopy)
-        case IReplacementTransform(imobject=imobj):
+        case IReplacementTransform(imobject=imobj, itarget=itobj):
             mcopy = mh.get_copy(imobj)
-            tcopy = state.targets[imobj].copy()
-            mh.set_copy(imobj, tcopy)
+            tcopy = state.targets[itobj].copy()
+            # mh.set_copy(imobj, tcopy)
+            mh.remove_copy(mcopy)
+            mh.set_copy(itobj, tcopy)
             return ReplacementTransform(mcopy, tcopy)
         case IFadeIn(imobject=imobj):
             mcopy = state.targets[imobj].copy()  # target[obj] == obj for introducers

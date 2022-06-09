@@ -21,6 +21,9 @@ class IReplacementTransform(IAnimation):
     """
     Intermediate replacement transform class
     """
+    def __init__(self, imobject, itarget):
+        super().__init__(imobject)
+        self.itarget = itarget
 
 class ICreate(IAnimation):
     """

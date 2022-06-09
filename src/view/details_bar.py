@@ -21,6 +21,7 @@ from intermediate.imobject import ICircle, IGroup, INone, ISquare, IStar, ITrian
 from intermediate.itext import Highlight, IMarkupText, IMathTex
 from intermediate.itree import INode
 import models.mobject_helper as mh
+from manim import VGroup
 
 
 class MarkupTextEdit(QTextEdit):
@@ -226,7 +227,7 @@ class DetailsBar(QWidget):
             if self.fsm_model.curr.loop is not None
             else 0
         )
-        self.loop_times.setValue(self.fsm_model.curr.loopCnt if self.fsm_model.curr.loopCnt is not None else 0)
+        self.loop_times.setValue(self.fsm_model.curr.loop_cnt if self.fsm_model.curr.loop_cnt is not None else 0)
         self.loop_times.blockSignals(False)
         self.loop_cb.blockSignals(False)
         if isinstance(imobject, INone):
@@ -353,10 +354,10 @@ class DetailsBar(QWidget):
                 self.loop_times.setValue(1)
 
             self.fsm_model.curr.loop = (state_num, 1)
-            self.fsm_model.curr.loopCnt = 1
+            self.fsm_model.curr.loop_cnt = 1
 
     def change_loop_times_handler(self, value):
-        self.fsm_model.curr.loopCnt = value
+        self.fsm_model.curr.loop_cnt = value
 
     def change_markup_text_handler(self):
         if isinstance(self.selected_imobject, INone):
@@ -507,22 +508,31 @@ class DetailsBar(QWidget):
         self.refresh()
 
     def show_creation_error(self):
+        self.show_error_box("Cannot perform this action when you just created this object!", "You can perform this action on the next frame.")
+    
+    def show_error_box(self, text, detailed_text):
         msg = QMessageBox()
         msg.setWindowTitle("Manimate")
-        msg.setText("Cannot perform this action when you just created this object!")
+        msg.setText(text)
         msg.setIcon(QMessageBox.Critical)
         msg.setStandardButtons(QMessageBox.Ok)
         msg.setDefaultButton(QMessageBox.Ok)
 
-        msg.setDetailedText("You can perform this action on the next frame.")
+        if detailed_text:
+            msg.setDetailedText(detailed_text)
 
         msg.exec_()
 
     def add_transform_handler(self):
         imobject = self.selected_imobject
+        if isinstance(imobject.mobject, VGroup):
+            self.show_error_box("Transforms unsupported for groups for now.", None)
+            return
+            
         if self.fsm_model.created_at_curr_state(imobject):
             self.show_creation_error()
             return
+
 
         curr_state = self.fsm_model.curr
         items = ["Circle", "Square", "Star", "Triangle", "Tree", "Text", "Latex"]
@@ -551,31 +561,33 @@ class DetailsBar(QWidget):
             target.move_to(mobject.get_center())
             self.fsm_model.curr.called_target_functions[imobject]["move_to"] = {str(mobject.get_center().tolist())}
             self.fsm_model.curr.capture_prev(mobject)
-            # self.fsm_model.instant_add_object_to_curr(target)
+            self.fsm_model.instant_add_object_to_curr(itarget, transform=True)
             imobject.edited_at = self.fsm_model.curr.idx
            
-            curr_state.add_replacement_transform(imobject)
+            curr_state.add_replacement_transform(imobject, itarget)
             
             # if imobject.group is not None:
             #     # TODO: account for this case when can access each child in group
             #     mh.get_copy(imobject.group).remove(mobject)
             #     self.scene_model.scene.add(mobject)
 
-            igroup = IGroup()
-            mh.set_name(igroup, f"{mh.get_name(imobject)}_grp")
-            mh.groups.add(igroup)
+            # igroup = IGroup()
+            # mh.set_name(igroup, f"{mh.get_name(imobject)}_grp")
+            # mh.groups.add(igroup)
 
-            igroup.add(itarget)
-            self.fsm_model.instant_add_object_to_curr(igroup, transform=True)
+            # igroup.add(itarget)
+            # self.fsm_model.instant_add_object_to_curr(igroup, transform=True)
             
-            curr_state.targets[imobject] = mh.get_copy(igroup)
-            self.fsm_model.curr.called_mobject_functions[igroup]["add"].add(imobject)
-
-            # setup current ui
-            curr_state.play_copy(IReplacementTransform(imobject), self.scene_model.scene)
+            # curr_state.targets[imobject] = mh.get_copy(igroup)
+            # self.fsm_model.curr.called_target_functions[igroup]["add"].add(imobject)
 
             # store for writer
-            curr_state.target_decl_str[imobject] = imobject.decl_str()
+            curr_state.targets[itarget] = itarget.mobject.copy()
+            curr_state.target_decl_str[itarget] = itarget.decl_str()
+
+            # setup current ui
+            curr_state.play_copy(IReplacementTransform(imobject, itarget), self.scene_model.scene)
+
 
     def closeEvent(self, e):
         self.close_handler()

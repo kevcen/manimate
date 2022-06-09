@@ -1,4 +1,4 @@
-from intermediate.ianimation import IApplyFunction, ITransform
+from intermediate.ianimation import IApplyFunction, IReplacementTransform, ITransform
 from intermediate.imobject import IMobject
 from intermediate.itree import INode
 import models.mobject_helper as mh
@@ -81,6 +81,7 @@ class ParentEdge(Line):
                 # add objects
                 # self.print_added(f, curr)
                 # rem objects
+                self.parse_target_equivalences(f, curr)
                 self.print_removed(f, curr)
 
                 # attributes
@@ -179,7 +180,7 @@ class ParentEdge(Line):
         for imobject in curr.targets:
             if imobject.is_deleted:
                 continue
-            if curr == imobject.added_state and imobject.intro_anim is None:
+            if imobject in curr.added and imobject.intro_anim is None:
                 f.write(f"        self.add({mh.get_name(imobject)})\n")
 
     def print_animations(self, f, curr):
@@ -193,6 +194,25 @@ class ParentEdge(Line):
             f.write(f"        self.play({', '.join(anim_strs)})\n")
         else:
             f.write("        self.wait(1)\n")
+
+    def parse_target_equivalences(self, f, curr):
+        for anim in curr.animations:
+            if anim.imobject.is_deleted:
+                continue
+
+            if isinstance(anim, IReplacementTransform):
+                imobject = anim.imobject
+                itarget = anim.itarget
+
+                target_str = (
+                    mh.get_name(itarget)
+                    if itarget.added_state == curr
+                    else self.get_target_name(itarget, curr)
+                )
+                self.existing_names[curr.targets[itarget]] = target_str
+                if imobject in curr.targets:
+                    self.existing_names[curr.targets[imobject]] = target_str
+
 
     def get_anim_str(self, anim, curr):
         res = []
@@ -216,7 +236,10 @@ class ParentEdge(Line):
                 res.append(mh.get_name(imobject))
                 res.append(", ")
                 res.append(self.use_target_name(imobject, curr))
-
+            case IReplacementTransform():
+                res.append(mh.get_name(imobject))
+                res.append(", ")
+                res.append(self.use_target_name(anim.itarget, curr))
             case _:
                 res.append(mh.get_name(imobject))
 

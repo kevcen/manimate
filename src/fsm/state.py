@@ -29,7 +29,7 @@ class State:
         self.idx = idx
         self.run_time = 1.0
         self.loop = None  # in form of (state, times)
-        self.loopCnt = None
+        self.loop_cnt = None
 
     def add_transform(self, imobject):
         """
@@ -43,10 +43,10 @@ class State:
 
         return self.transforms[imobject]
 
-    def add_replacement_transform(self, imobject):
+    def add_replacement_transform(self, imobject, itarget):
         if imobject in self.transforms and self.transforms[imobject] in self.animations:
             self.animations.remove(self.transforms[imobject])
-        self.transforms[imobject] = IReplacementTransform(imobject)
+        self.transforms[imobject] = IReplacementTransform(imobject, itarget)
         self.animations.append(self.transforms[imobject])
 
     def get_transform(self, imobject):
