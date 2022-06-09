@@ -2,6 +2,7 @@ class IAnimation:
     """
     Intermediate animation class
     """
+
     def __init__(self, imobject):
         self.imobject = imobject
 
@@ -17,13 +18,16 @@ class ITransform(IAnimation):
     Intermediate animation class
     """
 
+
 class IReplacementTransform(IAnimation):
     """
     Intermediate replacement transform class
     """
+
     def __init__(self, imobject, itarget):
         super().__init__(imobject)
         self.itarget = itarget
+
 
 class ICreate(IAnimation):
     """
@@ -35,6 +39,7 @@ class IApplyFunction(IAnimation):
     """
     Intermediate animation class
     """
+
     def __init__(self, imobject):
         super().__init__(imobject)
         self.color = None

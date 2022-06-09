@@ -1,15 +1,15 @@
 from intermediate.ianimation import IApplyFunction, IReplacementTransform, ITransform
 from intermediate.imobject import IMobject
 from intermediate.itree import INode
-import models.mobject_helper as mh
+import controllers.mobject_helper as mh
 from pathlib import Path
 
 
 class Writer:
     """
-    Writer class to write the automata model into a Python script.
+    Writer class to write the automata controller into a Python script.
     """
-   
+
     BOILERPLATE = """from manim import *
 
 class Main(Scene):
@@ -73,7 +73,7 @@ class ParentEdge(Line):
 
     def write(self):
         filepath = Path(self.filename)
-        filepath.touch(exist_ok=True)  
+        filepath.touch(exist_ok=True)
         with open(filepath, "w+", encoding="utf-8") as f:
             f.write(self.BOILERPLATE)
             curr = self.head_state.next
@@ -212,7 +212,6 @@ class ParentEdge(Line):
                 self.existing_names[curr.targets[itarget]] = target_str
                 if imobject in curr.targets:
                     self.existing_names[curr.targets[imobject]] = target_str
-
 
     def get_anim_str(self, anim, curr):
         res = []

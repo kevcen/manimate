@@ -1,11 +1,12 @@
 from manim import *
-import models.mobject_helper as mh
+import controllers.mobject_helper as mh
 
 
 class IMobject:
     """
     Intermediate mobject class
     """
+
     def __init__(self, mobject, parent_imobject=None):
         self.mobject = mobject  # mobject to be only used as a initial target
         self.added_state = None
@@ -28,6 +29,7 @@ class INone(IMobject):
     """
     Intermediate mobject class representing no selected object
     """
+
     def __init__(self):
         super().__init__(None)
 
@@ -36,6 +38,7 @@ class IGroup(IMobject):
     """
     Intermediate mobject class representing a grouping
     """
+
     def __init__(self):
         super().__init__(VGroup())
         self.vgroup_children = set()
@@ -62,6 +65,7 @@ class ICircle(IMobject):
     """
     Intermediate Circle class
     """
+
     def __init__(self, color=RED, radius=None, parent_imobject=None):
         super().__init__(
             Circle(color=color, radius=radius), parent_imobject=parent_imobject
@@ -77,6 +81,7 @@ class ISquare(IMobject):
     """
     Intermediate Square class
     """
+
     def __init__(self):
         super().__init__(Square())
 
@@ -85,6 +90,7 @@ class IStar(IMobject):
     """
     Intermediate Star class
     """
+
     def __init__(self):
         super().__init__(Star())
 
@@ -93,5 +99,6 @@ class ITriangle(IMobject):
     """
     Intermediate Triangle class
     """
+
     def __init__(self):
         super().__init__(Triangle())

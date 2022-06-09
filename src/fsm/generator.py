@@ -1,7 +1,13 @@
 from manim import *
 
-from intermediate.ianimation import IApplyFunction, ICreate, IFadeIn, IReplacementTransform, ITransform
-import models.mobject_helper as mh
+from intermediate.ianimation import (
+    IApplyFunction,
+    ICreate,
+    IFadeIn,
+    IReplacementTransform,
+    ITransform,
+)
+import controllers.mobject_helper as mh
 
 
 def reverse(animation, state):
@@ -89,4 +95,3 @@ def forward(animation, state):
             # mh.set_copy(imobj, tcopy)
             # return Transform(mcopy, tcopy)
             return ApplyFunction(animation.custom_method, mcopy)
-

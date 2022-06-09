@@ -2,7 +2,7 @@ from manim import *
 
 from PySide6.QtCore import Qt
 
-import models.mobject_helper as mh
+import controllers.mobject_helper as mh
 
 
 def point_to_mobject(self, point, search_set=None):
@@ -30,6 +30,7 @@ class Test(Scene):
     """
     Interactive Scene used in the Manim preview
     """
+
     def construct(self):
         self.mouse_is_down = False
         self.clicked_point = None

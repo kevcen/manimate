@@ -5,8 +5,11 @@ class Reader:
     """
     TODO: Reader class which can import an existing manim .py file
     """
+
     def __init__(self, filename):
-        with open(filename, "r", encoding="utf-8") as f, open("scene/tokens.txt", "w", encoding="utf-8") as print_file:
+        with open(filename, "r", encoding="utf-8") as f, open(
+            "scene/tokens.txt", "w", encoding="utf-8"
+        ) as print_file:
             last_lineno = -1
             last_col = 0
             for (

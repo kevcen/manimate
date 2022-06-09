@@ -10,14 +10,14 @@ from PySide6.QtWidgets import (
     QApplication,
 )
 
-from models.fsm_model import FsmModel
-from models.scene_model import SceneModel
+from controllers.fsm_controller import FsmController
+from controllers.scene_controller import SceneController
 import scene.manim_scene as manim_scene
 from pathlib import Path
 from view.details_bar import DetailsBar
 from view.objects_bar import ObjectsBar
 from view.state_bar import StateWidget
-from view.window import QTWindow
+from view.preview_window import QTWindow
 
 
 windows = set()
@@ -70,17 +70,17 @@ if __name__ == "__main__":
         scene = manim_scene.Test(renderer)
         renderer.scene = scene
 
-        scene_model = SceneModel(scene, renderer)
-        fsm_model = FsmModel(scene_model)
-        scene_model.set_fsm_model(fsm_model)
+        scene_controller = SceneController(scene, renderer)
+        fsm_controller = FsmController(scene_controller)
+        scene_controller.set_fsm_controller(fsm_controller)
 
-        objects_bar = ObjectsBar(fsm_model, close_all)
+        objects_bar = ObjectsBar(fsm_controller, close_all)
         objects_bar.show()
 
-        state_bar = StateWidget(scene_model, fsm_model, close_all)
+        state_bar = StateWidget(scene_controller, fsm_controller, close_all)
         state_bar.show()
 
-        details_bar = DetailsBar(scene_model, fsm_model, close_all)
+        details_bar = DetailsBar(scene_controller, fsm_controller, close_all)
         details_bar.show()
 
         with open("view/styles.qss", "r") as f:

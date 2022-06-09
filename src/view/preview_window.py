@@ -9,6 +9,7 @@ class QTWindow(PySideWindow):
 
     is a subclass of ModernGL's Pyside2 window
     """
+
     def __init__(self, app, renderer, close_handler) -> None:
         super().__init__()
         self.close_handler = close_handler
@@ -65,4 +66,3 @@ class QTWindow(PySideWindow):
         super().close_event(event)
         self.close_handler()
         event.accept()
-

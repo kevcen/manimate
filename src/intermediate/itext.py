@@ -3,13 +3,14 @@ from enum import Enum
 from manim import *
 from intermediate.ianimation import ITransform
 from intermediate.imobject import IMobject
-import models.mobject_helper as mh
+import controllers.mobject_helper as mh
 
 
 class Highlight(Enum):
     """
     Type of highlights that can be done of MarkupText
     """
+
     BOLD = 1
     ITALICS = 2
     UNDERLINE = 3
@@ -21,6 +22,7 @@ class IText(IMobject):
     """
     Intermediate Text mobject
     """
+
     def __init__(self, text, parent_imobject=None):
         self.label = Text(text)
         super().__init__(self.label, parent_imobject=parent_imobject)
@@ -36,9 +38,10 @@ class IMathTex(IMobject):
     """
     Intermediate MathTex mobject
     """
-    def __init__(self, text, parent_imobject=None, font_size=50, fsm_model=None):
+
+    def __init__(self, text, parent_imobject=None, font_size=50, fsm_controller=None):
         self.text = text
-        self.fsm_model = fsm_model
+        self.fsm_controller = fsm_controller
         self.font_size = font_size
         self.label = MathTex(r"{}".format(text), font_size=font_size, font="Consolas")
         self.label.set_color(WHITE)
@@ -47,7 +50,7 @@ class IMathTex(IMobject):
     def change_text(self, new_text_str):
         # update field
         self.text = new_text_str
-        curr_state = self.fsm_model.curr
+        curr_state = self.fsm_controller.curr
 
         # create new text
         try:
@@ -58,15 +61,17 @@ class IMathTex(IMobject):
             new_text.move_to(mh.get_copy(self).get_center())
 
             # configure transforms
-            self.fsm_model.curr.capture_prev(mh.get_copy(self))
+            self.fsm_controller.curr.capture_prev(mh.get_copy(self))
             curr_state.targets[self] = new_text
 
             # setup current ui
-            curr_state.play_copy(ITransform(self), self.fsm_model.scene_model.scene)
+            curr_state.play_copy(ITransform(self), self.fsm_controller.scene_controller.scene)
 
             # store for writer
-            self.fsm_model.edit_transform_target(self, new_text, move_to=mh.get_copy(self).get_center())
-            
+            self.fsm_controller.edit_transform_target(
+                self, new_text, move_to=mh.get_copy(self).get_center()
+            )
+
             curr_state.target_decl_str[self] = self.decl_str()
         except:
             print("latex compile error")
@@ -79,9 +84,10 @@ class IMarkupText(IMobject):
     """
     Intermediate MarkupText mobject
     """
-    def __init__(self, text, parent_imobject=None, font_size=14, fsm_model=None):
+
+    def __init__(self, text, parent_imobject=None, font_size=14, fsm_controller=None):
         self.text = text
-        self.fsm_model = fsm_model
+        self.fsm_controller = fsm_controller
         self.font_size = font_size
         self.bold_areas = []
         self.highlight = Highlight.BOLD
@@ -95,8 +101,10 @@ class IMarkupText(IMobject):
         self.highlight = highlight
         new_bold_areas = [(cs, ce)]
 
-        self.fsm_model.curr.rev_attributes[self]["bold_areas"] = self.bold_areas
-        self.fsm_model.curr.changed_mobject_attributes[self]["bold_areas"] = new_bold_areas
+        self.fsm_controller.curr.rev_attributes[self]["bold_areas"] = self.bold_areas
+        self.fsm_controller.curr.changed_mobject_attributes[self][
+            "bold_areas"
+        ] = new_bold_areas
 
         self.bold_areas = new_bold_areas
 
@@ -140,15 +148,15 @@ class IMarkupText(IMobject):
     def change_text(self, new_text_str):
         # update field
 
-        self.fsm_model.curr.rev_attributes[self]["text"] = self.text
-        self.fsm_model.curr.changed_mobject_attributes[self]["text"] = new_text_str
+        self.fsm_controller.curr.rev_attributes[self]["text"] = self.text
+        self.fsm_controller.curr.changed_mobject_attributes[self]["text"] = new_text_str
 
         self.text = new_text_str
 
         self.update_markup_text(self.format_text(new_text_str))
 
     def update_markup_text(self, markup_text):
-        curr_state = self.fsm_model.curr
+        curr_state = self.fsm_controller.curr
 
         # create new text
         new_text = MarkupText(markup_text, font_size=self.font_size, font="Consolas")
@@ -156,14 +164,16 @@ class IMarkupText(IMobject):
         new_text.move_to(mh.get_copy(self).get_center())
 
         # configure transforms
-        self.fsm_model.curr.capture_prev(mh.get_copy(self))
+        self.fsm_controller.curr.capture_prev(mh.get_copy(self))
         curr_state.targets[self] = new_text
 
         # setup current ui
-        curr_state.play_copy(ITransform(self), self.fsm_model.scene_model.scene)
+        curr_state.play_copy(ITransform(self), self.fsm_controller.scene_controller.scene)
 
         # store for writer
-        self.fsm_model.edit_transform_target(self, new_text, move_to=mh.get_copy(self).get_center())
+        self.fsm_controller.edit_transform_target(
+            self, new_text, move_to=mh.get_copy(self).get_center()
+        )
 
         curr_state.target_decl_str[self] = self.decl_str()
         self.edited_at = curr_state.idx

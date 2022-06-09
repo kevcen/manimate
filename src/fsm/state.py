@@ -3,12 +3,14 @@ from collections import defaultdict
 
 from intermediate.ianimation import IApplyFunction, IReplacementTransform, ITransform
 import fsm.generator as generator
-import models.mobject_helper as mh
+import controllers.mobject_helper as mh
+
 
 class State:
     """
-    A single state of the automata-based animation model.
+    A single state of the automata-based animation controller.
     """
+
     def __init__(self, idx, animations=None):
         self.next = None  # next state
         self.prev = None  # previous state
@@ -102,10 +104,10 @@ class State:
             mobjects = [imobj for imobj in self.added if imobj.intro_anim is None]
         else:
             mobjects = self.removed
-            
+
         for imobject in mobjects:
-                mcopy = mh.get_copy(imobject)
-                scene.add(mcopy)
+            mcopy = mh.get_copy(imobject)
+            scene.add(mcopy)
 
     def remove_mobjects(self, scene, add):
         if add:

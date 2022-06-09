@@ -4,21 +4,22 @@ from manim import *
 from file.writer import Writer
 from fsm.state import State
 from intermediate.itree import INode
-import models.mobject_helper as mh
+import controllers.mobject_helper as mh
 
 
-class FsmModel(QObject):
+class FsmController(QObject):
     """
-    A model for the finite state machine model of the animation.
+    A controller for the finite state machine controller of the animation.
     """
+
     stateChange = Signal(int, int)
     CLAMP_DISTANCE = 1
     # selectedMobjectChange = Signal(IMobject)
-    def __init__(self, scene_model):
+    def __init__(self, scene_controller):
         super().__init__()
 
         self.num_states = 1
-        self.scene_model = scene_model
+        self.scene_controller = scene_controller
 
         self.head = State(0)
         self.end = State(2)
@@ -34,17 +35,17 @@ class FsmModel(QObject):
 
     def play_forward(self, fast=True):
         self.curr = self.curr.next
-        self.curr.play(self.scene_model.scene, fast)
+        self.curr.play(self.scene_controller.scene, fast)
 
     def play_back(self):
-        self.curr.play_rev(self.scene_model.scene)
+        self.curr.play_rev(self.scene_controller.scene)
         self.curr = self.curr.prev
 
     def has_loop(self):
         return self.curr.loop is not None and self.curr.loop_cnt > 0
 
     def run(self):
-        self.scene_model.unselect_mobjects()
+        self.scene_controller.unselect_mobjects()
         self.is_running = True
         if self.curr.next == self.end:
             self.set_state_number(1, False)  # go back to start
@@ -61,7 +62,7 @@ class FsmModel(QObject):
         self.is_running = False
 
     def stop(self):
-        self.scene_model.unselect_mobjects()
+        self.scene_controller.unselect_mobjects()
         self.is_running = False
 
     def set_state_number(self, idx, userCalled=True):
@@ -133,7 +134,7 @@ class FsmModel(QObject):
         target = mcopy.copy()
 
         if not isinstance(target, MarkupText):
-            target.set_color(self.scene_model.selected[mcopy])
+            target.set_color(self.scene_controller.selected[mcopy])
         self.edit_transform_target(imobject, target, shift=delta)
 
     def edit_transform_target(
@@ -150,7 +151,7 @@ class FsmModel(QObject):
             self.curr.called_target_functions[imobject]["set_color"] = {f'"{color}"'}
         if scale is not None:
             self.curr.rev_attributes[imobject]["scale"] = imobject.past_scale
-            imobject.past_scale = scale            
+            imobject.past_scale = scale
             self.curr.called_target_functions[imobject]["scale"] = {str(scale)}
         if move_to is not None:
             self.curr.rev_attributes[imobject]["past_point"] = imobject.past_point
@@ -168,7 +169,6 @@ class FsmModel(QObject):
         if not self.created_at_curr_state(imobject):
             self.curr.add_transform(imobject)
             self.curr.target_decl_str[imobject] = f"{mh.get_name(imobject)}.copy()"
-
 
     def get_curr_scale(self, imobject):
         res = imobject.past_scale
@@ -195,11 +195,11 @@ class FsmModel(QObject):
             self.instant_add_object_to_curr(imobject.parent_edge)
 
         if select:  # if select needs changing
-            self.scene_model.unselect_mobjects()
+            self.scene_controller.unselect_mobjects()
 
-        if not transform: #prevents 'self.add' on writer
+        if not transform:  # prevents 'self.add' on writer
             self.curr.added.append(imobject)
-            self.scene_model.add_copy(imobject)
+            self.scene_controller.add_copy(imobject)
 
         self.curr.targets[imobject] = imobject.mobject
         self.curr.target_decl_str[imobject] = imobject.decl_str()
@@ -208,10 +208,10 @@ class FsmModel(QObject):
         imobject.intro_anim = None
 
         if select and imobject.allowed_to_select:
-            self.scene_model.set_selected_imobject(imobject)
+            self.scene_controller.set_selected_imobject(imobject)
 
     def instant_remove_obj_at_curr(self, imobject):
-        self.scene_model.remove(imobject)
+        self.scene_controller.remove(imobject)
         if not self.created_at_curr_state(imobject):
             self.curr.removed.append(imobject)
             imobject.removed_state = self.curr
@@ -239,7 +239,7 @@ class FsmModel(QObject):
             del self.curr.targets[imobject]
             del self.curr.target_decl_str[imobject]
 
-        self.scene_model.unselect_mobjects()
+        self.scene_controller.unselect_mobjects()
 
     def add_transform_to_curr(self):
         # TODO: make a transform widget to alter color, position, shape?
