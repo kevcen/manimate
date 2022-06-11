@@ -19,21 +19,25 @@ def get_groups():
 
 def get_copy(imobject):
     if imobject not in copies:
+        print('new copy generate')
         set_copy(imobject, generate_new_copy(imobject))
 
     return copies[imobject]
 
 
-def generate_new_copy(imobject):
+def generate_new_copy(imobject, default=None):
     if isinstance(imobject.mobject, VGroup):
         vgroup_children = [get_copy(child) for child in imobject.vgroup_children]
         vgroup = VGroup(*vgroup_children)
         # if imobject.color_changed:
         #     print("COLOR CHANGED VGROUP")
+        print("linking children")
         vgroup.set_color(imobject.mobject.get_color())
+        if default is not None:
+            vgroup.move_to(default)
         return vgroup
 
-    mcopy = imobject.mobject.copy()
+    mcopy = imobject.mobject.copy() if default is None else default
     return mcopy
 
 

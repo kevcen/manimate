@@ -18,6 +18,7 @@ class IMobject:
         self.group = None
         self.allowed_to_select = True
         self.past_scale = 1.0
+        self.scale = 1.0
         self.past_point = None
         self.color_changed = False
         self.child_add_state = None

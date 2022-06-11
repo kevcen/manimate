@@ -96,6 +96,7 @@ class IMarkupText(IMobject):
         self.font_size = font_size
         self.bold_areas = []
         self.highlight = Highlight.BOLD
+        self.bold_color = RED
         self.label = MarkupText(
             self.format_text(text), font_size=font_size, font="Consolas"
         )
@@ -128,7 +129,7 @@ class IMarkupText(IMobject):
             case Highlight.BIG:
                 return "<big>", "</big>"
             case Highlight.COLOR_CHANGE:
-                return '<span foreground="#FF0000">', "</span>"
+                return f'<span foreground=\"{self.bold_color}\">', "</span>"
 
     def format_bolds(self, html_text_arr):
         res = []
@@ -168,6 +169,7 @@ class IMarkupText(IMobject):
         # create new text
         new_text = MarkupText(markup_text, font_size=self.font_size, font="Consolas")
         # new_text.match_color(mh.getCopy(self))
+        new_text.scale(self.past_scale)
         new_text.move_to(mh.get_copy(self).get_center())
 
         # configure transforms
@@ -179,11 +181,12 @@ class IMarkupText(IMobject):
 
         # store for writer
         self.fsm_controller.edit_transform_target(
-            self, new_text, move_to=mh.get_copy(self).get_center()
+            self, new_text, move_to=mh.get_copy(self).get_center(), scale=self.past_scale
         )
 
         curr_state.target_decl_str[self] = self.decl_str()
         self.edited_at = curr_state.idx
 
     def decl_str(self):
+        print("markup delc  str")
         return f'MarkupText("{self.format_text(self.text)}", font_size={self.font_size}, font="Consolas")'

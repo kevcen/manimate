@@ -128,6 +128,7 @@ class FsmController(QObject):
             mcopy.move_to(past_point)
             return
 
+        print('confirm move')
         target = mcopy.copy()
 
         if not isinstance(target, MarkupText):
@@ -148,14 +149,15 @@ class FsmController(QObject):
             self.curr.called_target_functions[imobject]["set_color"] = {f'"{color}"'}
         if scale is not None:
             if "scale" not in self.curr.rev_attributes[imobject]:
-                self.curr.changed_mobject_attributes[imobject]["past_scale"] = scale
-            self.curr.rev_attributes[imobject]["past_scale"] = imobject.past_scale
-            imobject.past_scale = scale
+                self.curr.rev_attributes[imobject]["scale"] = imobject.scale
+            self.curr.changed_mobject_attributes[imobject]["scale"] = scale
+            imobject.scale = scale
+
             self.curr.called_target_functions[imobject]["scale"] = {str(scale)}
         if move_to is not None:
             if "past_point" not in self.curr.rev_attributes[imobject]:
-                self.curr.changed_mobject_attributes[imobject]["past_point"] = move_to
-            self.curr.rev_attributes[imobject]["past_point"] = imobject.past_point
+                self.curr.rev_attributes[imobject]["past_point"] = imobject.past_point
+            self.curr.changed_mobject_attributes[imobject]["past_point"] = move_to
             imobject.past_point = move_to
             self.curr.called_target_functions[imobject]["move_to"] = {
                 str(move_to.tolist())
@@ -169,7 +171,7 @@ class FsmController(QObject):
                 str(imobject.past_point)
             }
         # update animation
-        if not self.created_at_curr_state(imobject):
+        if imobject not in self.curr.target_decl_str and not self.created_at_curr_state(imobject):
             self.curr.add_transform(imobject)
             self.curr.target_decl_str[imobject] = f"{mh.get_name(imobject)}.copy()"
 
@@ -194,8 +196,13 @@ class FsmController(QObject):
         return self.created_at_curr_state(imobject) and imobject.intro_anim is not None
 
     def instant_add_object_to_curr(self, imobject, select=True, transform=False):
-        if isinstance(imobject, INode) and imobject.parent_edge is not None:
-            self.instant_add_object_to_curr(imobject.parent_edge)
+        if isinstance(imobject, INode):
+            if imobject.parent_edge is not None:
+                self.instant_add_object_to_curr(imobject.parent_edge)
+            self.curr.targets[imobject.label] = mh.get_copy(imobject.label).copy()
+            imobject.label.child_add_state = self.curr
+            imobject.container.child_add_state = self.curr
+            
 
         if select:  # if select needs changing
             self.scene_controller.unselect_mobjects()

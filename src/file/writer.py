@@ -3,6 +3,7 @@ from intermediate.imobject import IMobject
 from intermediate.itree import INode
 import controllers.mobject_helper as mh
 from pathlib import Path
+from manim import VGroup
 
 
 class Writer:
@@ -150,31 +151,40 @@ class ParentEdge(Line):
 
     def print_targets(self, f, curr):
         f.write("#PRINT TARGETS\n")
-        #TODO : print vgroup targets first
+        #print vgroup targets first
         for imobject in curr.targets:
-            if imobject.is_deleted:
-                continue
-            if isinstance(imobject, INode):
-                self.write_tree = True
+            if imobject.is_deleted or not isinstance(imobject.mobject, VGroup):
+                continue            
+            self.print_single_target(f, curr, imobject)
 
-            tobj_str = (
-                mh.get_name(imobject)
-                if imobject.added_state == curr or imobject.child_add_state == curr
-                else self.get_target_name(imobject, curr)
-            )
 
-            target_decl = curr.target_decl_str[imobject]
-            f.write(f"        {tobj_str} = {target_decl}\n")
-
-            for func, args in curr.called_target_functions[imobject].items():
-                args_names = [
-                    (self.get_target_name(arg, curr) if arg in curr.targets else mh.get_name(arg)) if isinstance(arg, IMobject) else arg
-                    for arg in args
-                ]
-                f.write(f"        {tobj_str}.{func}({', '.join(args_names)})\n")
+        for imobject in curr.targets:
+            if imobject.is_deleted or isinstance(imobject.mobject, VGroup):
+                continue            
+            self.print_single_target(f, curr, imobject)
 
         if curr.targets:
             f.write("\n")
+
+    def print_single_target(self, f, curr, imobject):
+        if isinstance(imobject, INode):
+            self.write_tree = True
+
+        tobj_str = (
+            mh.get_name(imobject)
+            if imobject.added_state == curr or imobject.child_add_state == curr
+            else self.get_target_name(imobject, curr)
+        )
+
+        target_decl = curr.target_decl_str[imobject]
+        f.write(f"        {tobj_str} = {target_decl}\n")
+
+        for func, args in curr.called_target_functions[imobject].items():
+            args_names = [
+                (self.get_target_name(arg, curr) if arg in curr.targets else mh.get_name(arg)) if isinstance(arg, IMobject) else arg
+                for arg in args
+            ]
+            f.write(f"        {tobj_str}.{func}({', '.join(args_names)})\n")
 
     def print_modified_added(self, f, curr):
         f.write("#PRINT TARGET ADD\n")

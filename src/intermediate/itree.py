@@ -10,12 +10,12 @@ class INode(IMobject):
     Intermediate mobject representing a single Tree Node
     """
 
-    def __init__(self, fsm_controller):
+    def __init__(self, fsm_controller, text="t"):
         self.parent = None
         self.children = []
 
         # Manim mobjects
-        self.text = "t"
+        self.text = text
         self.label = IText(self.text, parent_imobject=self)
         self.container = ICircle(radius=0.6, color=RED, parent_imobject=self)
         self.mobject = VGroup(self.label.mobject, self.container.mobject)
@@ -25,7 +25,6 @@ class INode(IMobject):
 
         # Aux info
         self.fsm_controller = fsm_controller
-        self.fsm_controller.curr.targets[self.label] = self.label.mobject.copy()
         self.fsm_controller.curr.target_decl_str[self.label] = f"{mh.get_name(self)}.label"
         self.fsm_controller.curr.target_decl_str[self.container] = f"{mh.get_name(self)}.container"
 
@@ -48,6 +47,7 @@ class INode(IMobject):
         if self.parent_edge is not None:
             self.fsm_controller.instant_add_object_to_curr(self.parent_edge)
         self.fsm_controller.instant_add_object_to_curr(self)
+        self.fsm_controller.curr.targets[self.label] = self.label.mobject.copy()
         self.label.child_add_state = self.fsm_controller.curr
         self.container.child_add_state = self.fsm_controller.curr
 
@@ -97,7 +97,11 @@ class INode(IMobject):
 
     def change_label_text(self, new_text_str):
         curr_state = self.fsm_controller.curr
+        # print('text change')
+        # mh.get_copy(self.label).set_color(RED)
+        # return
 
+        # print("curr text", self.text)
         # create new text
         new_text = Text(new_text_str)
         color = self.fsm_controller.scene_controller.selected[mh.get_copy(self)]
@@ -118,15 +122,16 @@ class INode(IMobject):
         if not self.fsm_controller.created_at_curr_state(self):
             curr_state.add_transform(self.label)
 
-        if "text" not in self.curr.rev_attributes[self]:
-            self.curr.changed_mobject_attributes[self]["text"] = self.text
+        if "text" not in curr_state.rev_attributes[self]:
+            curr_state.changed_mobject_attributes[self]["text"] = self.text
         self.text = new_text_str
-        self.curr.rev_attributes[self]["text"] = self.text
+        curr_state.rev_attributes[self]["text"] = self.text
         # setup current ui
+
         curr_state.play_copy(ITransform(self.label), self.fsm_controller.scene_controller.scene)
 
 
-        mh.get_copy(self).add(mh.get_copy(self.label))
+        # mh.get_copy(self).add(mh.get_copy(self.label))
         # mh.setCopy(self, self.mobject)
 
         # store for writer
@@ -148,6 +153,9 @@ class INode(IMobject):
             curr_state.target_decl_str[self] = f"{mh.get_name(self)}.copy()"
         else:
             curr_state.target_decl_str[self] = self.decl_str()
+
+        
+        # mh.get_copy(self.label).set_color('#e622c5')
 
     def change_parent(self, new_parent):
         if "parent" not in self.fsm_controller.curr.rev_attributes[self]:

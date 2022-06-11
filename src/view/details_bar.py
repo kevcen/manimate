@@ -185,10 +185,8 @@ class DetailsBar(QWidget):
             lambda: self.highlight_markup_text(Highlight.BIG)
         )
 
-        self.color_markup_text = QPushButton("red")
-        self.color_markup_text.clicked.connect(
-            lambda: self.highlight_markup_text(Highlight.COLOR_CHANGE)
-        )
+        self.color_markup_text = QPushButton("color")
+        self.color_markup_text.clicked.connect(self.highlight_color_change)
 
         self.text_edits = (
             self.bold_markup_text,
@@ -343,6 +341,17 @@ class DetailsBar(QWidget):
         self.loop_cb.clear()
         self.group_cb.clear()
 
+    def highlight_color_change(self):
+        if isinstance(self.selected_imobject, INone):
+            return
+        color = QColorDialog.getColor()
+
+        if color.isValid():
+            self.selected_imobject.bold_color = color.name()
+            cursor = self.change_markup_text.textCursor()
+            self.selected_imobject.handle_bold(
+                cursor.selectionStart(), cursor.selectionEnd(), Highlight.COLOR_CHANGE
+            )
     def highlight_markup_text(self, highlight):
         if isinstance(self.selected_imobject, INone):
             return
@@ -492,11 +501,13 @@ class DetailsBar(QWidget):
             target = mcopy.copy()
 
             self.fsm_controller.edit_transform_target(imobject, target, color=color.name())
-            # if isinstance(imobject.mobject, VGroup):
-            #     for child in imobject.vgroup_children:
-            #         child_mobject = mh.get_copy(child)
-            #         child_mobject.set_color(color.name())
-            #         self.fsm_controller.edit_transform_target(child, child_mobject , color=color.name())
+            if isinstance(imobject.mobject, VGroup):
+                for child in imobject.vgroup_children:
+                    child_mobject = mh.get_copy(child)
+                    child_mobject.set_color(color.name())
+                    if child in self.fsm_controller.curr.targets:
+                        self.fsm_controller.curr.targets[child].set_color(color.name())
+                    # self.fsm_controller.edit_transform_target(child, child_mobject , color=color.name())
 
     def scale_box_handler(self, value):
         imobject = self.selected_imobject
@@ -508,7 +519,12 @@ class DetailsBar(QWidget):
         target = mcopy.copy()
         target.set_color(self.scene_controller.selected[mcopy])
 
-        self.fsm_controller.edit_transform_target(imobject, target, scale=new_scale)
+        if "past_scale" not in self.fsm_controller.curr.rev_attributes[imobject]:
+            self.fsm_controller.curr.rev_attributes[imobject]["past_scale"] = imobject.past_scale
+        self.fsm_controller.curr.changed_mobject_attributes[imobject]["past_scale"] = new_scale
+        imobject.past_scale = new_scale
+
+        self.fsm_controller.edit_transform_target(imobject, target, scale=(new_scale / old_scale))
 
     def name_edit_handler(self):
 
@@ -585,15 +601,20 @@ class DetailsBar(QWidget):
                     itarget = IMathTex(
                         r"\xrightarrow{x^6y^8}", fsm_controller=self.fsm_controller
                     )
+            curr_state.capture_prev(mobject)
+            itarget.added_state = curr_state
+            
+            # self.fsm_controller.instant_add_object_to_curr(itarget, transform=True)
+            imobject.edited_at = curr_state.idx
+
 
             target = itarget.mobject
+                
+
             target.move_to(mobject.get_center())
-            self.fsm_controller.curr.called_target_functions[imobject]["move_to"] = {
+            curr_state.called_target_functions[imobject]["move_to"] = {
                 str(mobject.get_center().tolist())
             }
-            self.fsm_controller.curr.capture_prev(mobject)
-            self.fsm_controller.instant_add_object_to_curr(itarget, transform=True)
-            imobject.edited_at = self.fsm_controller.curr.idx
 
             curr_state.add_replacement_transform(imobject, itarget)
 
@@ -610,16 +631,23 @@ class DetailsBar(QWidget):
             # self.fsm_controller.instant_add_object_to_curr(igroup, transform=True)
 
             # curr_state.targets[imobject] = mh.get_copy(igroup)
-            # self.fsm_controller.curr.called_target_functions[igroup]["add"].add(imobject)
+            # curr_state.called_target_functions[igroup]["add"].add(imobject)
 
             # store for writer
-            curr_state.targets[itarget] = itarget.mobject.copy()
+            print('1')
+            curr_state.targets[itarget] = target
             curr_state.target_decl_str[itarget] = itarget.decl_str()
 
+            # if isinstance(itarget, INode):
+            #     mh.get_copy(itarget.label).set_color('#6c57c9')
             # setup current ui
+            # print('before', hex(id(itarget.label)), hex(id(mh.get_copy(itarget.label))))
             curr_state.play_copy(
                 IReplacementTransform(imobject, itarget), self.scene_controller.scene
             )
+            # print('after', hex(id(itarget.label)), hex(id(mh.get_copy(itarget.label))))
+            # if isinstance(itarget, INode):
+            #     mh.get_copy(itarget.label).set_color('#6c57c9')
 
     def closeEvent(self, e):
         self.close_handler()
