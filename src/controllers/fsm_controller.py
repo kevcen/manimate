@@ -148,8 +148,8 @@ class FsmController(QObject):
             self.curr.called_target_functions[imobject]["set_color"] = {f'"{color}"'}
         if scale is not None:
             if "scale" not in self.curr.rev_attributes[imobject]:
-                self.curr.changed_mobject_attributes[imobject]["scale"] = scale
-            self.curr.rev_attributes[imobject]["scale"] = imobject.past_scale
+                self.curr.changed_mobject_attributes[imobject]["past_scale"] = scale
+            self.curr.rev_attributes[imobject]["past_scale"] = imobject.past_scale
             imobject.past_scale = scale
             self.curr.called_target_functions[imobject]["scale"] = {str(scale)}
         if move_to is not None:

@@ -375,7 +375,13 @@ class DetailsBar(QWidget):
 
         self.selected_imobject.edited_at = self.fsm_controller.curr.idx
         text = self.change_markup_text.toPlainText()
-        self.selected_imobject.change_text(text)
+        error = self.selected_imobject.change_text(text)
+        if error is not None:
+            self.show_error_box(
+                error[0],
+                error[1],
+            )
+
 
     def change_node_text_handler(self):
         self.selected_imobject.edited_at = self.fsm_controller.curr.idx
@@ -500,6 +506,7 @@ class DetailsBar(QWidget):
         new_scale = self.fsm_controller.clean_scale(value)
         mcopy.scale(new_scale / old_scale)
         target = mcopy.copy()
+        target.set_color(self.scene_controller.selected[mcopy])
 
         self.fsm_controller.edit_transform_target(imobject, target, scale=new_scale)
 

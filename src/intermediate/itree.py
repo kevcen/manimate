@@ -25,6 +25,7 @@ class INode(IMobject):
 
         # Aux info
         self.fsm_controller = fsm_controller
+        self.fsm_controller.curr.targets[self.label] = self.label.mobject.copy()
         self.fsm_controller.curr.target_decl_str[self.label] = f"{mh.get_name(self)}.label"
         self.fsm_controller.curr.target_decl_str[self.container] = f"{mh.get_name(self)}.container"
 
@@ -100,12 +101,14 @@ class INode(IMobject):
         # create new text
         new_text = Text(new_text_str)
         color = self.fsm_controller.scene_controller.selected[mh.get_copy(self)]
-        new_text.match_color(mh.get_copy(self.label))
+        print(mh.get_copy(self).get_color())
+        new_text.match_color(mh.get_copy(self)) #selected colour
         new_text.move_to(mh.get_copy(self.label).get_center())
+        new_text.scale(self.past_scale)
 
         # configure transforms
         self.fsm_controller.curr.capture_prev(mh.get_copy(self.label))
-        curr_state.targets[self.label] = new_text
+        curr_state.targets[self.label] = new_text.copy()
         if self.label.child_add_state == curr_state:
             curr_state.target_decl_str[self.label] = f"{mh.get_name(self)}.label"
         else:
@@ -115,7 +118,10 @@ class INode(IMobject):
         if not self.fsm_controller.created_at_curr_state(self):
             curr_state.add_transform(self.label)
 
+        if "text" not in self.curr.rev_attributes[self]:
+            self.curr.changed_mobject_attributes[self]["text"] = self.text
         self.text = new_text_str
+        self.curr.rev_attributes[self]["text"] = self.text
         # setup current ui
         curr_state.play_copy(ITransform(self.label), self.fsm_controller.scene_controller.scene)
 
@@ -126,6 +132,7 @@ class INode(IMobject):
         # store for writer
         curr_state.targets[self] = mh.get_copy(self).copy()
         curr_state.targets[self].set_color(color)
+        curr_state.targets[self.label].set_color(color)
         if not self.fsm_controller.created_at_curr_state(
             self
         ):  # match properties with old label
@@ -134,6 +141,7 @@ class INode(IMobject):
             ]
 
             ## can be placed outside if statement too
+            self.fsm_controller.curr.called_target_functions[self.label]["scale"] = {str(self.past_scale)}
             self.fsm_controller.curr.called_target_functions[self.label]["move_to"] = [
                 str(mh.get_copy(self.label).get_center().tolist())
             ]

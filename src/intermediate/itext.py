@@ -49,7 +49,6 @@ class IMathTex(IMobject):
 
     def change_text(self, new_text_str):
         # update field
-        self.text = new_text_str
         curr_state = self.fsm_controller.curr
 
         # create new text
@@ -72,10 +71,16 @@ class IMathTex(IMobject):
                 self, new_text, move_to=mh.get_copy(self).get_center()
             )
 
+            self.text = new_text_str
             curr_state.target_decl_str[self] = self.decl_str()
         except:
-            print("latex compile error")
+            if self.text != new_text_str:
+                return (
+                    f"Cannot compile {new_text_str} into latex.",
+                    None,
+                )
 
+        return None
     def decl_str(self):
         return f'MathTex(r"{{}}".format("{self.text}"), font_size={self.font_size}, font="Consolas")'
 
@@ -155,6 +160,7 @@ class IMarkupText(IMobject):
         self.text = new_text_str
 
         self.update_markup_text(self.format_text(new_text_str))
+        return None
 
     def update_markup_text(self, markup_text):
         curr_state = self.fsm_controller.curr
