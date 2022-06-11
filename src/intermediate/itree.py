@@ -1,5 +1,5 @@
 from intermediate.ianimation import ITransform
-from intermediate.imobject import ICircle, IMobject
+from intermediate.imobject import ICircle, IDependent, IMobject
 from intermediate.itext import IText
 import controllers.mobject_helper as mh
 from manim import *
@@ -17,8 +17,9 @@ class INode(IMobject):
         # Manim mobjects
         self.text = text
         self.label = IText(self.text, parent_imobject=self)
+        self.label.is_deleted = True  # do not print
         self.container = ICircle(radius=0.6, color=RED, parent_imobject=self)
-        self.container.is_deleted = True # do not print
+        self.container.is_deleted = True  # do not print
         self.mobject = VGroup(self.label.mobject, self.container.mobject)
         self.mobject.set_color(RED)
         self.parent_edge = None
@@ -35,7 +36,7 @@ class INode(IMobject):
         for child in self.vgroup_children:
             self.fsm_controller.curr.targets[child] = child.mobject.copy()
             child.child_add_state = self.fsm_controller.curr
-            child.past_point = [0,0,0]
+            child.past_point = [0, 0, 0]
 
         super().__init__(self.mobject)
 
@@ -44,12 +45,12 @@ class INode(IMobject):
         parentcpy = mh.get_copy(self)
         self.add_edge(self, child)
         self.children.append(child)
-        child.show_node()
-        
+
         new_point = [parentcpy.get_x(), parentcpy.get_y() - 2, 0]
         mh.get_copy(child).move_to(np.array(new_point))
         child.past_point = new_point
         self.fsm_controller.curr.targets[child] = mh.get_copy(child).copy()
+        # self.fsm_controller.curr.targets[child].set_color()
         self.fsm_controller.curr.target_decl_str[child] = child.decl_str()
         self.fsm_controller.curr.called_target_functions[child]["move_to"] = [
             str(new_point)
@@ -57,9 +58,11 @@ class INode(IMobject):
         for vgroup_child in child.vgroup_children:
             vgroup_child.past_point = mh.get_copy(vgroup_child).get_center().tolist()
             print("spawn", vgroup_child, vgroup_child.past_point)
-            self.fsm_controller.curr.called_target_functions[vgroup_child]["move_to"] = [
-                str(vgroup_child.past_point)
-            ]
+            self.fsm_controller.curr.called_target_functions[vgroup_child][
+                "move_to"
+            ] = [str(vgroup_child.past_point)]
+        
+        child.show_node()
 
     def show_node(self):
         if self.parent_edge is not None:
@@ -108,17 +111,21 @@ class INode(IMobject):
             self.fsm_controller.edit_transform_target(
                 child, mobject.copy(), shift=-1
             )  # track current position
-            for vgroup_child in self.vgroup_children:
+            for vgroup_child in child.vgroup_children:
                 # self.fsm_controller.curr.called_target_functions[vgroup_child]["move_to"] = [
                 #     str(vgroup_child.past_point)
                 # ]
+                target = mh.get_copy(vgroup_child).copy()
+                if vgroup_child in self.fsm_controller.scene_controller.selected:
+                    target.set_color(self.fsm_controller.scene_controller.selected[mh.get_copy(child)])
                 self.fsm_controller.edit_transform_target(
-                    vgroup_child, mh.get_copy(vgroup_child), shift=-1
+                    vgroup_child, target, move_to=[current_x, y, 0]
                 )
             child.align_children_y(dy, sy, depth + 1)
 
     def change_label_text(self, new_text_str):
         curr_state = self.fsm_controller.curr
+        self.label.is_deleted = False  # do print
         # print('text change')
         # mh.get_copy(self.label).set_color(RED)
         # return
@@ -129,7 +136,8 @@ class INode(IMobject):
         color = self.fsm_controller.scene_controller.selected[mh.get_copy(self)]
         print(mh.get_copy(self).get_color())
         new_text.match_color(mh.get_copy(self))  # selected colour
-        new_text.move_to(self.label.past_point)
+        center_point = mh.get_copy(self).get_center().tolist()
+        new_text.move_to(center_point)
         new_text.scale(self.past_scale)
 
         print("LABEL CHANGE", self.label, self.label.past_point)
@@ -163,7 +171,7 @@ class INode(IMobject):
         curr_state.targets[self].set_color(color)
         curr_state.targets[self.label].set_color(color)
         self.fsm_controller.curr.called_target_functions[self.label]["move_to"] = [
-            str(self.label.past_point)
+            str(center_point)
         ]
         print("LABEL CHANGE AFTER", self.label.past_point)
 
@@ -215,7 +223,7 @@ class INode(IMobject):
         return f"Tree(\"{self.text}\", parent={mh.get_name(self.parent) if self.parent is not None else 'None'})"  # Text will be altered with target
 
 
-class IParentEdge(IMobject):
+class IParentEdge(IDependent):
     """
     Intermediate mobject representing an edge connecting a node to its a parent
     """

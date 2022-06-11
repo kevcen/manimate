@@ -51,11 +51,11 @@ class State:
     def add_replacement_transform(self, imobject, itarget):
         if imobject in self.transforms and self.transforms[imobject] in self.animations:
             self.animations.remove(self.transforms[imobject])
-        
+
         if imobject in self.targets:
-            del self.targets[imobject] #becomes itarget
+            del self.targets[imobject]  # becomes itarget
         if imobject in self.target_decl_str:
-            del self.target_decl_str[imobject] #becomes itarget
+            del self.target_decl_str[imobject]  # becomes itarget
 
         self.transforms[imobject] = IReplacementTransform(imobject, itarget)
         if isinstance(imobject.mobject, VGroup):

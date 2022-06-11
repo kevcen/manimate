@@ -70,7 +70,7 @@ class IMathTex(IMobject):
 
             # store for writer
             self.fsm_controller.edit_transform_target(
-                self, new_text, move_to=mh.get_copy(self).get_center()
+                self, new_text, move_to=mh.get_copy(self).get_center().tolist()
             )
 
             self.text = new_text_str
@@ -128,9 +128,7 @@ class IMarkupText(IMobject):
             self.fsm_controller.curr.rev_attributes[self][
                 "bold_areas"
             ] = self.bold_areas
-        self.fsm_controller.curr.changed_mobject_attributes[self][
-            "bold_areas"
-        ] = []
+        self.fsm_controller.curr.changed_mobject_attributes[self]["bold_areas"] = []
 
         self.bold_areas = []
 
@@ -145,7 +143,7 @@ class IMarkupText(IMobject):
             case Highlight.BIG:
                 return "<big>", "</big>"
             case Highlight.COLOR_CHANGE:
-                return f'<span foreground=\"{self.bold_color}\">', "</span>"
+                return f'<span foreground="{self.bold_color}">', "</span>"
 
     def format_bolds(self, html_text_arr):
         res = []
@@ -201,7 +199,7 @@ class IMarkupText(IMobject):
         self.fsm_controller.edit_transform_target(
             self,
             new_text,
-            move_to=mh.get_copy(self).get_center(),
+            move_to=mh.get_copy(self).get_center().tolist(),
             scale=self.past_scale,
         )
 

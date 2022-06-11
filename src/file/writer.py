@@ -1,5 +1,5 @@
 from intermediate.ianimation import IApplyFunction, IReplacementTransform, ITransform
-from intermediate.imobject import IMobject
+from intermediate.imobject import IDependent, IMobject
 from intermediate.itree import INode
 import controllers.mobject_helper as mh
 from pathlib import Path
@@ -53,15 +53,18 @@ class Tree(VGroup):
 class ParentEdge(Line):
     def __init__(self, node):
         self.node = node
-        super().__init__(node.get_bottom(), node.get_top(), color=RED)
-        self.add_updater(lambda mob: self.updateLine(mob))
+        super().__init__(
+            node.get_bottom() if node.parent is None else node.parent.get_bottom(),
+            node.get_top(),
+            color=RED,
+        )
+        self.add_updater(lambda mob: self.update_line(mob))
 
-    def updateLine(self, line):
+    def update_line(self, line):
         if self.node.parent is None:
             return 
 
-        line.put_start_and_end_on(self.node.parent.get_bottom(),
-                    self.node.get_top())
+        line.put_start_and_end_on(self.node.parent.get_bottom(), self.node.get_top())
 
 """
 
@@ -104,7 +107,7 @@ class ParentEdge(Line):
 
     # debug
     def print_added(self, f, curr):
-        f.write("#PRINT ADDED\n")
+        f.write("       #PRINT ADDED\n")
         for imobject in curr.added:
             if imobject.is_deleted:
                 continue
@@ -124,7 +127,7 @@ class ParentEdge(Line):
             f.write("\n")
 
     def print_removed(self, f, curr):
-        f.write("#PRINT REMOVED\n")
+        f.write("       #PRINT REMOVED\n")
         for imobject in curr.removed:
             if imobject.is_deleted:
                 continue
@@ -137,7 +140,7 @@ class ParentEdge(Line):
         pass
 
     def print_mobject_functions(self, f, curr):
-        f.write("#PRINT MOBJ FUNCS\n")
+        f.write("       #PRINT MOBJ FUNCS\n")
         for imobject in curr.called_mobject_functions:
             if imobject.is_deleted:
                 continue
@@ -150,26 +153,30 @@ class ParentEdge(Line):
                 f.write(f"        {mobj_name}.{func}({', '.join(args_names)})\n")
 
     def print_targets(self, f, curr):
-        f.write("#PRINT TARGETS\n")
+        f.write("       #PRINT TARGETS\n")
 
         target_strs = []
         # print vgroup targets first
         for imobject in curr.targets:
-            if imobject.is_deleted or not isinstance(imobject.mobject, VGroup):
+            if imobject.is_deleted or not isinstance(imobject.mobject, VGroup) or isinstance(imobject, IDependent):
                 continue
             target_strs.append(self.print_target_init(f, curr, imobject))
 
         for imobject in curr.targets:
-            if imobject.is_deleted or isinstance(imobject.mobject, VGroup):
+            if imobject.is_deleted or isinstance(imobject.mobject, VGroup) or isinstance(imobject, IDependent):
                 continue
             target_strs.append(self.print_target_init(f, curr, imobject))
-
-        if curr.targets:
-            f.write("\n")
 
         for imobject, tobj_str in target_strs:
             self.print_target_manip(f, curr, imobject, tobj_str)
 
+        for imobject in curr.targets:
+            if imobject.is_deleted or not isinstance(imobject, IDependent):
+                continue
+
+            imobject, tobj_str = self.print_target_init(f, curr, imobject)
+            self.print_target_manip(f, curr, imobject, tobj_str)
+            
         if curr.targets:
             f.write("\n")
 
@@ -201,10 +208,9 @@ class ParentEdge(Line):
                 for arg in args
             ]
             f.write(f"        {tobj_str}.{func}({', '.join(args_names)})\n")
-        
 
     def print_modified_added(self, f, curr):
-        f.write("#PRINT TARGET ADD\n")
+        f.write("       #PRINT TARGET ADD\n")
         for imobject in curr.targets:
             if imobject.is_deleted:
                 continue
@@ -212,7 +218,7 @@ class ParentEdge(Line):
                 f.write(f"        self.add({mh.get_name(imobject)})\n")
 
     def print_animations(self, f, curr):
-        f.write("#PRINT ANIMS\n")
+        f.write("       #PRINT ANIMS\n")
         anim_strs = [
             self.get_anim_str(anim, curr)
             for anim in curr.animations

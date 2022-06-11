@@ -32,7 +32,9 @@ def reverse(animation, state):
                 tcopy = state.prev.targets[imobj].copy()
             else:
                 print("use rev target")
-                if imobj.edited_at is not None and imobj.edited_at < state.idx:
+                if imobj not in state.rev_targets or (
+                    imobj.edited_at is not None and imobj.edited_at < state.idx
+                ):
                     state.capture_prev(mcopy, bypass=True)
 
                 # print('rev target')
@@ -49,7 +51,9 @@ def reverse(animation, state):
                 print("use targets")
                 tcopy = state.prev.targets[imobj].copy()
             else:
-                if imobj.edited_at is not None and imobj.edited_at < state.idx:
+                if imobj not in state.rev_targets or (
+                    imobj.edited_at is not None and imobj.edited_at < state.idx
+                ):
                     state.capture_prev(mcopy, bypass=True)
 
                 print("rev target")

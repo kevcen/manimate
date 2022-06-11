@@ -147,7 +147,9 @@ class FsmController(QObject):
         # -------------
 
         self.curr.targets[imobject] = target
-        # self.curr.target_decl_str[imobject] = imobject.decl_str()
+
+        if imobject not in self.curr.target_decl_str:
+            self.curr.target_decl_str[imobject] = imobject.decl_str()
 
         if color is not None:
             self.curr.called_target_functions[imobject]["set_color"] = {f'"{color}"'}
@@ -166,11 +168,13 @@ class FsmController(QObject):
             for imobj in imobjs:
                 if "past_point" not in self.curr.rev_attributes[imobj]:
                     self.curr.rev_attributes[imobj]["past_point"] = imobj.past_point
-                self.curr.changed_mobject_attributes[imobj]["past_point"] = move_to
+                self.curr.changed_mobject_attributes[imobj][
+                    "past_point"
+                ] = move_to
                 imobj.past_point = move_to
                 print("move to edit", imobj, move_to)
                 self.curr.called_target_functions[imobj]["move_to"] = {
-                    str(move_to.tolist())
+                    str(move_to)
                 }
         if shift is not None:
             imobjs = [imobject]
@@ -231,8 +235,11 @@ class FsmController(QObject):
             self.curr.added.append(imobject)
             self.scene_controller.add_copy(imobject)
 
-        self.curr.targets[imobject] = imobject.mobject.copy()
-        self.curr.target_decl_str[imobject] = imobject.decl_str()
+        if imobject not in self.curr.targets:
+            self.curr.targets[imobject] = imobject.mobject.copy()
+        
+        if imobject not in self.curr.target_decl_str:
+            self.curr.target_decl_str[imobject] = imobject.decl_str()
 
         imobject.added_state = self.curr
         imobject.intro_anim = None

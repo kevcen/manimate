@@ -368,12 +368,12 @@ class DetailsBar(QWidget):
         self.selected_imobject.handle_bold(
             cursor.selectionStart(), cursor.selectionEnd(), highlight
         )
+
     def clear_highlight(self):
         if isinstance(self.selected_imobject, INone):
             return
 
         self.selected_imobject.clear_bold()
-        
 
     def loop_cb_handler(self, i):
         if self.change_parent_cb.count == 0 or not self.loop_cb.currentText():
@@ -634,7 +634,6 @@ class DetailsBar(QWidget):
             imobject.edited_at = curr_state.idx
 
             target = itarget.mobject
-
 
             curr_state.add_replacement_transform(imobject, itarget)
 
