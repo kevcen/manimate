@@ -25,6 +25,8 @@ class INode(IMobject):
 
         # Aux info
         self.fsm_controller = fsm_controller
+        self.fsm_controller.curr.target_decl_str[self.label] = f"{mh.get_name(self)}.label"
+        self.fsm_controller.curr.target_decl_str[self.container] = f"{mh.get_name(self)}.container"
 
         super().__init__(self.mobject)
 
@@ -45,6 +47,8 @@ class INode(IMobject):
         if self.parent_edge is not None:
             self.fsm_controller.instant_add_object_to_curr(self.parent_edge)
         self.fsm_controller.instant_add_object_to_curr(self)
+        self.label.child_add_state = self.fsm_controller.curr
+        self.container.child_add_state = self.fsm_controller.curr
 
     def align_children(self):
         camera = self.fsm_controller.scene_controller.renderer.camera
@@ -96,17 +100,22 @@ class INode(IMobject):
         # create new text
         new_text = Text(new_text_str)
         color = self.fsm_controller.scene_controller.selected[mh.get_copy(self)]
-        new_text.set_color("#8fbc8f")
+        new_text.match_color(mh.get_copy(self.label))
         new_text.move_to(mh.get_copy(self.label).get_center())
 
         # configure transforms
         self.fsm_controller.curr.capture_prev(mh.get_copy(self.label))
         curr_state.targets[self.label] = new_text
+        if self.label.child_add_state == curr_state:
+            curr_state.target_decl_str[self.label] = f"{mh.get_name(self)}.label"
+        else:
+            curr_state.target_decl_str[self.label] = f"Text(\"{new_text_str}\")"
+
         self.edited_at = curr_state.idx
         if not self.fsm_controller.created_at_curr_state(self):
             curr_state.add_transform(self.label)
 
-        self.text = new_text
+        self.text = new_text_str
         # setup current ui
         curr_state.play_copy(ITransform(self.label), self.fsm_controller.scene_controller.scene)
 
@@ -117,18 +126,20 @@ class INode(IMobject):
         # store for writer
         curr_state.targets[self] = mh.get_copy(self).copy()
         curr_state.targets[self].set_color(color)
-        curr_state.target_decl_str[self] = self.decl_str()
         if not self.fsm_controller.created_at_curr_state(
             self
         ):  # match properties with old label
             self.fsm_controller.curr.called_target_functions[self.label]["match_color"] = [
-                self.label
+                self
             ]
 
             ## can be placed outside if statement too
             self.fsm_controller.curr.called_target_functions[self.label]["move_to"] = [
                 str(mh.get_copy(self.label).get_center().tolist())
             ]
+            curr_state.target_decl_str[self] = f"{mh.get_name(self)}.copy()"
+        else:
+            curr_state.target_decl_str[self] = self.decl_str()
 
     def change_parent(self, new_parent):
         self.fsm_controller.curr.rev_attributes[self]["parent"] = self.parent

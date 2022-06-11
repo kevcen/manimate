@@ -150,6 +150,7 @@ class ParentEdge(Line):
 
     def print_targets(self, f, curr):
         f.write("#PRINT TARGETS\n")
+        #TODO : print vgroup targets first
         for imobject in curr.targets:
             if imobject.is_deleted:
                 continue
@@ -158,7 +159,7 @@ class ParentEdge(Line):
 
             tobj_str = (
                 mh.get_name(imobject)
-                if imobject.added_state == curr
+                if imobject.added_state == curr or imobject.child_add_state == curr
                 else self.get_target_name(imobject, curr)
             )
 
@@ -167,7 +168,7 @@ class ParentEdge(Line):
 
             for func, args in curr.called_target_functions[imobject].items():
                 args_names = [
-                    mh.get_name(arg) if isinstance(arg, IMobject) else arg
+                    (self.get_target_name(arg, curr) if arg in curr.targets else mh.get_name(arg)) if isinstance(arg, IMobject) else arg
                     for arg in args
                 ]
                 f.write(f"        {tobj_str}.{func}({', '.join(args_names)})\n")

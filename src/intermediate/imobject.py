@@ -20,6 +20,7 @@ class IMobject:
         self.past_scale = 1.0
         self.past_point = None
         self.color_changed = False
+        self.child_add_state = None
 
     def decl_str(self):
         return f"{self.mobject.__class__.__name__}()"

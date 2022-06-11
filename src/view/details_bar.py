@@ -268,7 +268,7 @@ class DetailsBar(QWidget):
                     else 0
                 )
                 self.change_parent_cb.blockSignals(False)
-                self.change_node_text.setText(mh.get_copy(imobject.label).text)
+                self.change_node_text.setText(imobject.text)
                 self.change_node_text.blockSignals(False)
             case IMarkupText() | IMathTex():
                 for w in self.text_widgets:
