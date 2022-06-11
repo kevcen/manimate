@@ -101,7 +101,8 @@ class IMarkupText(IMobject):
         self.highlight = highlight
         new_bold_areas = [(cs, ce)]
 
-        self.fsm_controller.curr.rev_attributes[self]["bold_areas"] = self.bold_areas
+        if "bold_areas" not in self.fsm_controller.curr.rev_attributes[self]:
+            self.fsm_controller.curr.rev_attributes[self]["bold_areas"] = self.bold_areas
         self.fsm_controller.curr.changed_mobject_attributes[self][
             "bold_areas"
         ] = new_bold_areas
@@ -147,8 +148,8 @@ class IMarkupText(IMobject):
 
     def change_text(self, new_text_str):
         # update field
-
-        self.fsm_controller.curr.rev_attributes[self]["text"] = self.text
+        if "text" not in self.fsm_controller.curr.rev_attributes[self]:
+            self.fsm_controller.curr.rev_attributes[self]["text"] = self.text
         self.fsm_controller.curr.changed_mobject_attributes[self]["text"] = new_text_str
 
         self.text = new_text_str

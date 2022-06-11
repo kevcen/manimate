@@ -117,14 +117,14 @@ class FsmController(QObject):
         if state != self.end:
             self.shift_above_idxs(state.next, inc)
 
-    def confirm_move(self, mcopy, delta):
+    def confirm_move(self, mcopy, delta, altdown):
         imobject = mh.get_original(mcopy)
         if imobject is None:
             return  # selected item is old, before transform
 
         past_point = imobject.past_point
 
-        if past_point is not None and np.linalg.norm(delta) < self.CLAMP_DISTANCE:
+        if not altdown and past_point is not None and np.linalg.norm(delta) < self.CLAMP_DISTANCE:
             mcopy.move_to(past_point)
             return
 
@@ -147,19 +147,22 @@ class FsmController(QObject):
         if color is not None:
             self.curr.called_target_functions[imobject]["set_color"] = {f'"{color}"'}
         if scale is not None:
-            self.curr.changed_mobject_attributes[imobject]["scale"] = scale
+            if "scale" not in self.curr.rev_attributes[imobject]:
+                self.curr.changed_mobject_attributes[imobject]["scale"] = scale
             self.curr.rev_attributes[imobject]["scale"] = imobject.past_scale
             imobject.past_scale = scale
             self.curr.called_target_functions[imobject]["scale"] = {str(scale)}
         if move_to is not None:
-            self.curr.changed_mobject_attributes[imobject]["past_point"] = move_to
+            if "past_point" not in self.curr.rev_attributes[imobject]:
+                self.curr.changed_mobject_attributes[imobject]["past_point"] = move_to
             self.curr.rev_attributes[imobject]["past_point"] = imobject.past_point
             imobject.past_point = move_to
             self.curr.called_target_functions[imobject]["move_to"] = {
                 str(move_to.tolist())
             }
         if shift is not None:
-            self.curr.rev_attributes[imobject]["past_point"] = imobject.past_point
+            if "past_point" not in self.curr.rev_attributes[imobject]:
+                self.curr.rev_attributes[imobject]["past_point"] = imobject.past_point
             imobject.past_point = mh.get_copy(imobject).get_center().tolist()
             self.curr.changed_mobject_attributes[imobject]["past_point"] = imobject.past_point
             self.curr.called_target_functions[imobject]["move_to"] = {
@@ -201,7 +204,7 @@ class FsmController(QObject):
             self.curr.added.append(imobject)
             self.scene_controller.add_copy(imobject)
 
-        self.curr.targets[imobject] = imobject.mobject
+        self.curr.targets[imobject] = imobject.mobject.copy()
         self.curr.target_decl_str[imobject] = imobject.decl_str()
 
         imobject.added_state = self.curr

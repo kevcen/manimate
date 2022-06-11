@@ -142,7 +142,8 @@ class INode(IMobject):
             curr_state.target_decl_str[self] = self.decl_str()
 
     def change_parent(self, new_parent):
-        self.fsm_controller.curr.rev_attributes[self]["parent"] = self.parent
+        if "parent" not in self.fsm_controller.curr.rev_attributes[self]:
+            self.fsm_controller.curr.rev_attributes[self]["parent"] = self.parent
         self.fsm_controller.curr.changed_mobject_attributes[self]["parent"] = new_parent
         self.fsm_controller.curr.called_mobject_functions[self]["set_parent"] = [new_parent]
 

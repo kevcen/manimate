@@ -78,9 +78,9 @@ class SceneController(QObject):
 
     """" Movement functions """
     # TODO: refactor non-scene related functions out
-    def confirm_selected_shift(self, delta):
+    def confirm_selected_shift(self, delta, altdown):
         for mcopy in self.selected:
-            self.fsm_controller.confirm_move(mcopy, delta)
+            self.fsm_controller.confirm_move(mcopy, delta, altdown)
 
     def created_at_curr_state_with_anim(self, mcopy):
         imobject = mh.get_original(mcopy)

@@ -67,6 +67,7 @@ class Test(Scene):
     def on_mouse_release(self, point, mouse_button, modifiers):
         if mouse_button == "LEFT":
             # add animation to state
-            self.handler.confirm_selected_shift(point - self.clicked_point)
+            altdown = modifiers & Qt.AltModifier != 0
+            self.handler.confirm_selected_shift(point - self.clicked_point, altdown)
 
             self.mouse_is_down = False
