@@ -124,11 +124,15 @@ class FsmController(QObject):
 
         past_point = imobject.past_point
 
-        if not altdown and past_point is not None and np.linalg.norm(delta) < self.CLAMP_DISTANCE:
+        if (
+            not altdown
+            and past_point is not None
+            and np.linalg.norm(delta) < self.CLAMP_DISTANCE
+        ):
             mcopy.move_to(past_point)
             return
 
-        print('confirm move')
+        print("confirm move")
         target = mcopy.copy()
 
         if not isinstance(target, MarkupText):
@@ -166,14 +170,17 @@ class FsmController(QObject):
             if "past_point" not in self.curr.rev_attributes[imobject]:
                 self.curr.rev_attributes[imobject]["past_point"] = imobject.past_point
             imobject.past_point = mh.get_copy(imobject).get_center().tolist()
-            self.curr.changed_mobject_attributes[imobject]["past_point"] = imobject.past_point
+            self.curr.changed_mobject_attributes[imobject][
+                "past_point"
+            ] = imobject.past_point
             self.curr.called_target_functions[imobject]["move_to"] = {
                 str(imobject.past_point)
             }
         # update animation
-        if imobject not in self.curr.target_decl_str and not self.created_at_curr_state(imobject):
+        if not self.created_at_curr_state(imobject):
             self.curr.add_transform(imobject)
-            self.curr.target_decl_str[imobject] = f"{mh.get_name(imobject)}.copy()"
+            if imobject not in self.curr.target_decl_str:
+                self.curr.target_decl_str[imobject] = f"{mh.get_name(imobject)}.copy()"
 
     def get_curr_scale(self, imobject):
         res = imobject.past_scale
@@ -202,7 +209,6 @@ class FsmController(QObject):
             self.curr.targets[imobject.label] = mh.get_copy(imobject.label).copy()
             imobject.label.child_add_state = self.curr
             imobject.container.child_add_state = self.curr
-            
 
         if select:  # if select needs changing
             self.scene_controller.unselect_mobjects()

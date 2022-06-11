@@ -223,7 +223,9 @@ class DetailsBar(QWidget):
         self.state_group_box.setTitle(f"State {self.fsm_controller.curr.idx}")
         self.animation_run_time.setValue(self.fsm_controller.curr.run_time)
         self.loop_cb.addItem("None")
-        self.loop_cb.addItems([f"State {n}" for n in range(1, self.fsm_controller.end.idx)])
+        self.loop_cb.addItems(
+            [f"State {n}" for n in range(1, self.fsm_controller.end.idx)]
+        )
         self.loop_cb.setCurrentIndex(
             self.loop_cb.findText(f"State {self.fsm_controller.curr.loop[0]}")
             if self.fsm_controller.curr.loop is not None
@@ -352,6 +354,7 @@ class DetailsBar(QWidget):
             self.selected_imobject.handle_bold(
                 cursor.selectionStart(), cursor.selectionEnd(), Highlight.COLOR_CHANGE
             )
+
     def highlight_markup_text(self, highlight):
         if isinstance(self.selected_imobject, INone):
             return
@@ -390,7 +393,6 @@ class DetailsBar(QWidget):
                 error[0],
                 error[1],
             )
-
 
     def change_node_text_handler(self):
         self.selected_imobject.edited_at = self.fsm_controller.curr.idx
@@ -482,7 +484,9 @@ class DetailsBar(QWidget):
             group = mh.get_copy(igroup)
 
             igroup.add(imobject)
-            self.fsm_controller.curr.called_mobject_functions[igroup]["add"].add(imobject)
+            self.fsm_controller.curr.called_mobject_functions[igroup]["add"].add(
+                imobject
+            )
 
             # self.scene_controller.unselect_mobjects()
         else:
@@ -500,7 +504,9 @@ class DetailsBar(QWidget):
             self.scene_controller.selected[mcopy] = color.name()
             target = mcopy.copy()
 
-            self.fsm_controller.edit_transform_target(imobject, target, color=color.name())
+            self.fsm_controller.edit_transform_target(
+                imobject, target, color=color.name()
+            )
             if isinstance(imobject.mobject, VGroup):
                 for child in imobject.vgroup_children:
                     child_mobject = mh.get_copy(child)
@@ -520,11 +526,17 @@ class DetailsBar(QWidget):
         target.set_color(self.scene_controller.selected[mcopy])
 
         if "past_scale" not in self.fsm_controller.curr.rev_attributes[imobject]:
-            self.fsm_controller.curr.rev_attributes[imobject]["past_scale"] = imobject.past_scale
-        self.fsm_controller.curr.changed_mobject_attributes[imobject]["past_scale"] = new_scale
+            self.fsm_controller.curr.rev_attributes[imobject][
+                "past_scale"
+            ] = imobject.past_scale
+        self.fsm_controller.curr.changed_mobject_attributes[imobject][
+            "past_scale"
+        ] = new_scale
         imobject.past_scale = new_scale
 
-        self.fsm_controller.edit_transform_target(imobject, target, scale=(new_scale / old_scale))
+        self.fsm_controller.edit_transform_target(
+            imobject, target, scale=(new_scale / old_scale)
+        )
 
     def name_edit_handler(self):
 
@@ -582,6 +594,7 @@ class DetailsBar(QWidget):
         )
         if ok:
             mobject = mh.get_copy(imobject)
+            center_point = mobject.get_center().copy()
             # itemLabel.setText(item)
             itarget = None
             match item:
@@ -596,25 +609,21 @@ class DetailsBar(QWidget):
                 case "Tree":
                     itarget = INode(self.fsm_controller)
                 case "Text":
-                    itarget = IMarkupText("click to add text", fsm_controller=self.fsm_controller)
+                    itarget = IMarkupText(
+                        "click to add text", fsm_controller=self.fsm_controller
+                    )
                 case "Latex":
                     itarget = IMathTex(
                         r"\xrightarrow{x^6y^8}", fsm_controller=self.fsm_controller
                     )
             curr_state.capture_prev(mobject)
             itarget.added_state = curr_state
-            
+
             # self.fsm_controller.instant_add_object_to_curr(itarget, transform=True)
             imobject.edited_at = curr_state.idx
 
-
             target = itarget.mobject
-                
 
-            target.move_to(mobject.get_center())
-            curr_state.called_target_functions[imobject]["move_to"] = {
-                str(mobject.get_center().tolist())
-            }
 
             curr_state.add_replacement_transform(imobject, itarget)
 
@@ -634,7 +643,7 @@ class DetailsBar(QWidget):
             # curr_state.called_target_functions[igroup]["add"].add(imobject)
 
             # store for writer
-            print('1')
+            print("1")
             curr_state.targets[itarget] = target
             curr_state.target_decl_str[itarget] = itarget.decl_str()
 
@@ -648,6 +657,11 @@ class DetailsBar(QWidget):
             # print('after', hex(id(itarget.label)), hex(id(mh.get_copy(itarget.label))))
             # if isinstance(itarget, INode):
             #     mh.get_copy(itarget.label).set_color('#6c57c9')
+
+            mh.get_copy(itarget).move_to(center_point)
+            curr_state.called_target_functions[itarget]["move_to"] = {
+                str(center_point.tolist())
+            }
 
     def closeEvent(self, e):
         self.close_handler()

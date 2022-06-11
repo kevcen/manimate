@@ -3,6 +3,7 @@ from collections import defaultdict
 from intermediate.ianimation import IApplyFunction, IReplacementTransform, ITransform
 import fsm.animation_generator as ag
 import controllers.mobject_helper as mh
+from manim import VGroup
 
 
 class State:
@@ -40,15 +41,27 @@ class State:
 
         if imobject not in self.transforms:
             self.transforms[imobject] = ITransform(imobject)
-            self.animations.append(self.transforms[imobject])
+            if isinstance(imobject.mobject, VGroup):
+                self.animations.insert(0, self.transforms[imobject])
+            else:
+                self.animations.append(self.transforms[imobject])
 
         return self.transforms[imobject]
 
     def add_replacement_transform(self, imobject, itarget):
         if imobject in self.transforms and self.transforms[imobject] in self.animations:
             self.animations.remove(self.transforms[imobject])
+        
+        if imobject in self.targets:
+            del self.targets[imobject] #becomes itarget
+        if imobject in self.target_decl_str:
+            del self.target_decl_str[imobject] #becomes itarget
+
         self.transforms[imobject] = IReplacementTransform(imobject, itarget)
-        self.animations.append(self.transforms[imobject])
+        if isinstance(imobject.mobject, VGroup):
+            self.animations.insert(0, self.transforms[imobject])
+        else:
+            self.animations.append(self.transforms[imobject])
 
     def get_transform(self, imobject):
         return self.transforms[imobject] if imobject in self.transforms else None
@@ -154,7 +167,7 @@ class State:
         # print(f"rem {len(state.added)}, anim {len(state.animations)}")
         reversed_anim = list(
             filter(None, map(lambda a: ag.reverse(a, self), self.animations))
-        )
+        )[::-1]
 
         for animation in reversed_anim:
             # print('rev', animation, animation.mobject)
@@ -169,7 +182,8 @@ class State:
 
     ## debugging
     def replay(self, scene):
-        reversed_anim = [ag.reverse(instr, self) for instr in self.animations]
+        # reversed_anim = [ag.reverse(instr, self) for instr in self.animations if not isinstance(instr.imobject.mobject, VGroup)]
+        # reversed_anim += [ag.reverse(instr, self) for instr in self.animations if isinstance(instr.imobject.mobject, VGroup)]
 
         for animation in reversed_anim:
             animation.run_time = 0

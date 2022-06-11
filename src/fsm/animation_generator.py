@@ -28,10 +28,10 @@ def reverse(animation, state):
 
             tcopy = None
             if imobj in state.prev.targets:
-                print('use target')
+                print("use target")
                 tcopy = state.prev.targets[imobj].copy()
             else:
-                print('use rev target')
+                print("use rev target")
                 if imobj.edited_at is not None and imobj.edited_at < state.idx:
                     state.capture_prev(mcopy, bypass=True)
 
@@ -46,13 +46,13 @@ def reverse(animation, state):
 
             tcopy = None
             if imobj in state.prev.targets:
-                print('use targets')
+                print("use targets")
                 tcopy = state.prev.targets[imobj].copy()
             else:
                 if imobj.edited_at is not None and imobj.edited_at < state.idx:
                     state.capture_prev(mcopy, bypass=True)
 
-                print('rev target')
+                print("rev target")
                 tcopy = state.rev_targets[imobj].copy()
 
             mh.remove_copy(mcopy)
@@ -82,7 +82,9 @@ def forward(animation, state):
             return Transform(mcopy, tcopy)
         case IReplacementTransform(imobject=imobj, itarget=itobj):
             mcopy = mh.get_copy(imobj)
-            tcopy = mh.generate_new_copy(itobj, default=state.targets[itobj].copy())
+            tcopy = mh.generate_new_copy(
+                itobj, child_state=state, default=state.targets[itobj].copy()
+            )
             # mh.set_copy(imobj, tcopy)
             mh.remove_copy(mcopy)
             mh.set_copy(itobj, tcopy)

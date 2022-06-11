@@ -64,7 +64,9 @@ class IMathTex(IMobject):
             curr_state.targets[self] = new_text
 
             # setup current ui
-            curr_state.play_copy(ITransform(self), self.fsm_controller.scene_controller.scene)
+            curr_state.play_copy(
+                ITransform(self), self.fsm_controller.scene_controller.scene
+            )
 
             # store for writer
             self.fsm_controller.edit_transform_target(
@@ -81,6 +83,7 @@ class IMathTex(IMobject):
                 )
 
         return None
+
     def decl_str(self):
         return f'MathTex(r"{{}}".format("{self.text}"), font_size={self.font_size}, font="Consolas")'
 
@@ -108,7 +111,9 @@ class IMarkupText(IMobject):
         new_bold_areas = [(cs, ce)]
 
         if "bold_areas" not in self.fsm_controller.curr.rev_attributes[self]:
-            self.fsm_controller.curr.rev_attributes[self]["bold_areas"] = self.bold_areas
+            self.fsm_controller.curr.rev_attributes[self][
+                "bold_areas"
+            ] = self.bold_areas
         self.fsm_controller.curr.changed_mobject_attributes[self][
             "bold_areas"
         ] = new_bold_areas
@@ -129,7 +134,7 @@ class IMarkupText(IMobject):
             case Highlight.BIG:
                 return "<big>", "</big>"
             case Highlight.COLOR_CHANGE:
-                return f'<span foreground=\"{self.bold_color}\">', "</span>"
+                return f'<span foreground="{self.bold_color}">', "</span>"
 
     def format_bolds(self, html_text_arr):
         res = []
@@ -177,11 +182,16 @@ class IMarkupText(IMobject):
         curr_state.targets[self] = new_text
 
         # setup current ui
-        curr_state.play_copy(ITransform(self), self.fsm_controller.scene_controller.scene)
+        curr_state.play_copy(
+            ITransform(self), self.fsm_controller.scene_controller.scene
+        )
 
         # store for writer
         self.fsm_controller.edit_transform_target(
-            self, new_text, move_to=mh.get_copy(self).get_center(), scale=self.past_scale
+            self,
+            new_text,
+            move_to=mh.get_copy(self).get_center(),
+            scale=self.past_scale,
         )
 
         curr_state.target_decl_str[self] = self.decl_str()
