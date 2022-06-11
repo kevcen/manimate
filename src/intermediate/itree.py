@@ -18,6 +18,7 @@ class INode(IMobject):
         self.text = text
         self.label = IText(self.text, parent_imobject=self)
         self.container = ICircle(radius=0.6, color=RED, parent_imobject=self)
+        self.container.is_deleted = True # do not print
         self.mobject = VGroup(self.label.mobject, self.container.mobject)
         self.mobject.set_color(RED)
         self.parent_edge = None
@@ -31,25 +32,34 @@ class INode(IMobject):
         self.fsm_controller.curr.target_decl_str[
             self.container
         ] = f"{mh.get_name(self)}.container"
-        self.fsm_controller.curr.targets[self.label] = self.label.mobject.copy()
-        self.label.child_add_state = self.fsm_controller.curr
-        self.container.child_add_state = self.fsm_controller.curr
+        for child in self.vgroup_children:
+            self.fsm_controller.curr.targets[child] = child.mobject.copy()
+            child.child_add_state = self.fsm_controller.curr
+            child.past_point = [0,0,0]
+
         super().__init__(self.mobject)
 
     def spawn_child(self):
         child = INode(self.fsm_controller)
         parentcpy = mh.get_copy(self)
+        self.add_edge(self, child)
+        self.children.append(child)
+        child.show_node()
+        
         new_point = [parentcpy.get_x(), parentcpy.get_y() - 2, 0]
-        child.mobject.move_to(np.array(new_point))
+        mh.get_copy(child).move_to(np.array(new_point))
         child.past_point = new_point
-        self.fsm_controller.curr.targets[child] = child.mobject.copy()
+        self.fsm_controller.curr.targets[child] = mh.get_copy(child).copy()
         self.fsm_controller.curr.target_decl_str[child] = child.decl_str()
         self.fsm_controller.curr.called_target_functions[child]["move_to"] = [
             str(new_point)
         ]
-        self.add_edge(self, child)
-        self.children.append(child)
-        child.show_node()
+        for vgroup_child in child.vgroup_children:
+            vgroup_child.past_point = mh.get_copy(vgroup_child).get_center().tolist()
+            print("spawn", vgroup_child, vgroup_child.past_point)
+            self.fsm_controller.curr.called_target_functions[vgroup_child]["move_to"] = [
+                str(vgroup_child.past_point)
+            ]
 
     def show_node(self):
         if self.parent_edge is not None:
@@ -98,6 +108,13 @@ class INode(IMobject):
             self.fsm_controller.edit_transform_target(
                 child, mobject.copy(), shift=-1
             )  # track current position
+            for vgroup_child in self.vgroup_children:
+                # self.fsm_controller.curr.called_target_functions[vgroup_child]["move_to"] = [
+                #     str(vgroup_child.past_point)
+                # ]
+                self.fsm_controller.edit_transform_target(
+                    vgroup_child, mh.get_copy(vgroup_child), shift=-1
+                )
             child.align_children_y(dy, sy, depth + 1)
 
     def change_label_text(self, new_text_str):
@@ -112,9 +129,10 @@ class INode(IMobject):
         color = self.fsm_controller.scene_controller.selected[mh.get_copy(self)]
         print(mh.get_copy(self).get_color())
         new_text.match_color(mh.get_copy(self))  # selected colour
-        new_text.move_to(mh.get_copy(self.label).get_center())
+        new_text.move_to(self.label.past_point)
         new_text.scale(self.past_scale)
 
+        print("LABEL CHANGE", self.label, self.label.past_point)
         # configure transforms
         self.fsm_controller.curr.capture_prev(mh.get_copy(self.label))
         curr_state.targets[self.label] = new_text.copy()
@@ -144,6 +162,11 @@ class INode(IMobject):
         curr_state.targets[self] = mh.get_copy(self).copy()
         curr_state.targets[self].set_color(color)
         curr_state.targets[self.label].set_color(color)
+        self.fsm_controller.curr.called_target_functions[self.label]["move_to"] = [
+            str(self.label.past_point)
+        ]
+        print("LABEL CHANGE AFTER", self.label.past_point)
+
         if not self.fsm_controller.created_at_curr_state(
             self
         ):  # match properties with old label
@@ -155,10 +178,10 @@ class INode(IMobject):
             self.fsm_controller.curr.called_target_functions[self.label]["scale"] = {
                 str(self.past_scale)
             }
-            self.fsm_controller.curr.called_target_functions[self.label]["move_to"] = [
-                str(mh.get_copy(self.label).get_center().tolist())
-            ]
-            curr_state.target_decl_str[self] = f"{mh.get_name(self)}.copy()"
+
+            if self not in curr_state.target_decl_str:
+                curr_state.target_decl_str[self] = f"{mh.get_name(self)}.copy()"
+
         else:
             curr_state.target_decl_str[self] = self.decl_str()
 

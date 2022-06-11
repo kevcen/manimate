@@ -147,7 +147,7 @@ class FsmController(QObject):
         # -------------
 
         self.curr.targets[imobject] = target
-        self.curr.target_decl_str[imobject] = imobject.decl_str()
+        # self.curr.target_decl_str[imobject] = imobject.decl_str()
 
         if color is not None:
             self.curr.called_target_functions[imobject]["set_color"] = {f'"{color}"'}
@@ -159,23 +159,37 @@ class FsmController(QObject):
 
             self.curr.called_target_functions[imobject]["scale"] = {str(scale)}
         if move_to is not None:
-            if "past_point" not in self.curr.rev_attributes[imobject]:
-                self.curr.rev_attributes[imobject]["past_point"] = imobject.past_point
-            self.curr.changed_mobject_attributes[imobject]["past_point"] = move_to
-            imobject.past_point = move_to
-            self.curr.called_target_functions[imobject]["move_to"] = {
-                str(move_to.tolist())
-            }
+            imobjs = [imobject]
+            if isinstance(imobject.mobject, VGroup):
+                imobjs += imobject.vgroup_children
+
+            for imobj in imobjs:
+                if "past_point" not in self.curr.rev_attributes[imobj]:
+                    self.curr.rev_attributes[imobj]["past_point"] = imobj.past_point
+                self.curr.changed_mobject_attributes[imobj]["past_point"] = move_to
+                imobj.past_point = move_to
+                print("move to edit", imobj, move_to)
+                self.curr.called_target_functions[imobj]["move_to"] = {
+                    str(move_to.tolist())
+                }
         if shift is not None:
-            if "past_point" not in self.curr.rev_attributes[imobject]:
-                self.curr.rev_attributes[imobject]["past_point"] = imobject.past_point
-            imobject.past_point = mh.get_copy(imobject).get_center().tolist()
-            self.curr.changed_mobject_attributes[imobject][
-                "past_point"
-            ] = imobject.past_point
-            self.curr.called_target_functions[imobject]["move_to"] = {
-                str(imobject.past_point)
-            }
+            imobjs = [imobject]
+            if isinstance(imobject.mobject, VGroup):
+                imobjs += imobject.vgroup_children
+
+            center = mh.get_copy(imobject).get_center().tolist()
+            # if isinstance(shift, int) and shift==-1:
+            for imobj in imobjs:
+                if "past_point" not in self.curr.rev_attributes[imobj]:
+                    self.curr.rev_attributes[imobj]["past_point"] = imobj.past_point
+                imobj.past_point = center
+                print("shift edit", imobj, imobj.past_point)
+                self.curr.changed_mobject_attributes[imobj][
+                    "past_point"
+                ] = imobj.past_point
+                self.curr.called_target_functions[imobj]["move_to"] = {
+                    str(imobj.past_point)
+                }
         # update animation
         if not self.created_at_curr_state(imobject):
             self.curr.add_transform(imobject)
@@ -206,9 +220,9 @@ class FsmController(QObject):
         if isinstance(imobject, INode):
             if imobject.parent_edge is not None:
                 self.instant_add_object_to_curr(imobject.parent_edge)
-            self.curr.targets[imobject.label] = mh.get_copy(imobject.label).copy()
-            imobject.label.child_add_state = self.curr
-            imobject.container.child_add_state = self.curr
+            for child in imobject.vgroup_children:
+                self.curr.targets[child] = mh.get_copy(child).copy()
+                child.child_add_state = self.curr
 
         if select:  # if select needs changing
             self.scene_controller.unselect_mobjects()

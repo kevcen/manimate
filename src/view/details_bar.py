@@ -14,6 +14,7 @@ from PySide6.QtWidgets import (
     QColorDialog,
     QMessageBox,
     QInputDialog,
+    QGridLayout,
 )
 
 from intermediate.ianimation import ICreate, IFadeIn, IReplacementTransform
@@ -188,12 +189,16 @@ class DetailsBar(QWidget):
         self.color_markup_text = QPushButton("color")
         self.color_markup_text.clicked.connect(self.highlight_color_change)
 
+        self.clear_bolds = QPushButton("-")
+        self.clear_bolds.clicked.connect(self.clear_highlight)
+
         self.text_edits = (
             self.bold_markup_text,
             self.italic_markup_text,
             self.underline_markup_text,
             self.big_markup_text,
             self.color_markup_text,
+            self.clear_bolds,
         )
         self.text_widgets = (self.change_markup_text,)
         self.text_edit_layout = QHBoxLayout()
@@ -278,9 +283,9 @@ class DetailsBar(QWidget):
                 self.change_markup_text.blockSignals(True)
 
                 if isinstance(imobject, IMarkupText):
-                    self.text_edit_layout = QHBoxLayout()
-                    for w in self.text_edits:
-                        self.text_edit_layout.addWidget(w)
+                    self.text_edit_layout = QGridLayout()
+                    for i, w in enumerate(self.text_edits):
+                        self.text_edit_layout.addWidget(w, i // 3, i % 3)
                     self.layout.insertLayout(
                         self.layout.count() - 1, self.text_edit_layout
                     )
@@ -363,6 +368,12 @@ class DetailsBar(QWidget):
         self.selected_imobject.handle_bold(
             cursor.selectionStart(), cursor.selectionEnd(), highlight
         )
+    def clear_highlight(self):
+        if isinstance(self.selected_imobject, INone):
+            return
+
+        self.selected_imobject.clear_bold()
+        
 
     def loop_cb_handler(self, i):
         if self.change_parent_cb.count == 0 or not self.loop_cb.currentText():

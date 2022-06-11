@@ -123,6 +123,17 @@ class IMarkupText(IMobject):
         # print(self.format_bolds(html.escape(self.text)))
         self.update_markup_text(self.format_text(self.text))
 
+    def clear_bold(self):
+        if "bold_areas" not in self.fsm_controller.curr.rev_attributes[self]:
+            self.fsm_controller.curr.rev_attributes[self][
+                "bold_areas"
+            ] = self.bold_areas
+        self.fsm_controller.curr.changed_mobject_attributes[self][
+            "bold_areas"
+        ] = []
+
+        self.bold_areas = []
+
     def get_highlight_tags(self):
         match self.highlight:
             case Highlight.BOLD:
@@ -134,7 +145,7 @@ class IMarkupText(IMobject):
             case Highlight.BIG:
                 return "<big>", "</big>"
             case Highlight.COLOR_CHANGE:
-                return f'<span foreground="{self.bold_color}">', "</span>"
+                return f'<span foreground=\"{self.bold_color}\">', "</span>"
 
     def format_bolds(self, html_text_arr):
         res = []
