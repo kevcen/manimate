@@ -209,7 +209,6 @@ class DetailsBar(QWidget):
         self.setLayout(self.layout)
 
     def refresh(self, imobject=None):
-        print("REFRESH", imobject)
         if (
             imobject == self.selected_imobject
             and self.curr_idx == self.fsm_controller.curr.idx
@@ -223,7 +222,6 @@ class DetailsBar(QWidget):
         self.add_items(imobject)
 
     def add_items(self, imobject):
-        print("ADD", imobject)
         self.state_group_box.setTitle(f"State {self.fsm_controller.curr.idx}")
         self.animation_run_time.setValue(self.fsm_controller.curr.run_time)
         self.loop_cb.addItem("None")
@@ -397,7 +395,6 @@ class DetailsBar(QWidget):
         imobj_name = self.change_parent_cb.currentText()
         imobj = mh.get_imobject_by_name(imobj_name) if imobj_name is not None else None
 
-        print("CHANGE PARENT", imobj_name, imobj)
         self.selected_imobject.change_parent(imobj)
 
     def intro_anim_handler(self, i):
@@ -489,6 +486,11 @@ class DetailsBar(QWidget):
             target = mcopy.copy()
 
             self.fsm_controller.edit_transform_target(imobject, target, color=color.name())
+            # if isinstance(imobject.mobject, VGroup):
+            #     for child in imobject.vgroup_children:
+            #         child_mobject = mh.get_copy(child)
+            #         child_mobject.set_color(color.name())
+            #         self.fsm_controller.edit_transform_target(child, child_mobject , color=color.name())
 
     def scale_box_handler(self, value):
         imobject = self.selected_imobject

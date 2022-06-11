@@ -56,7 +56,7 @@ class SceneController(QObject):
             return
 
         self.selected[mobject] = mobject.get_color()
-        print("SELECT", self.selected)
+        # print("SELECT", self.selected)
 
         if not isinstance(imobject, IMarkupText):
             mobject.set_color("#8fbc8f")
@@ -68,8 +68,6 @@ class SceneController(QObject):
 
     def unselect_mobjects(self):
         self.ctrldown = False
-        print(self.selected)
-        print("UNSELETED")
         for mobject, color in self.selected.items():
             if not isinstance(mobject, MarkupText):
                 mobject.set_color(color)

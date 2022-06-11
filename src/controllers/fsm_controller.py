@@ -51,7 +51,6 @@ class FsmController(QObject):
             self.set_state_number(1, False)  # go back to start
 
         while (self.curr.next != self.end or self.has_loop()) and self.is_running:
-            print(self.curr.idx)
             if self.has_loop():
                 self.curr.loop_cnt -= 1
                 self.set_state_number(self.curr.loop[0], False)
@@ -66,7 +65,6 @@ class FsmController(QObject):
         self.is_running = False
 
     def set_state_number(self, idx, userCalled=True):
-        print("SET STATE NUMBER?", idx, self.curr.idx)
         if 1 <= idx <= self.num_states:
             if idx < self.curr.idx:
                 for _ in range(self.curr.idx, idx, -1):
@@ -127,7 +125,6 @@ class FsmController(QObject):
         past_point = imobject.past_point
 
         if past_point is not None and np.linalg.norm(delta) < self.CLAMP_DISTANCE:
-            print(delta, np.linalg.norm(delta))
             mcopy.move_to(past_point)
             return
 
@@ -150,10 +147,12 @@ class FsmController(QObject):
         if color is not None:
             self.curr.called_target_functions[imobject]["set_color"] = {f'"{color}"'}
         if scale is not None:
+            self.curr.changed_mobject_attributes[imobject]["scale"] = scale
             self.curr.rev_attributes[imobject]["scale"] = imobject.past_scale
             imobject.past_scale = scale
             self.curr.called_target_functions[imobject]["scale"] = {str(scale)}
         if move_to is not None:
+            self.curr.changed_mobject_attributes[imobject]["past_point"] = move_to
             self.curr.rev_attributes[imobject]["past_point"] = imobject.past_point
             imobject.past_point = move_to
             self.curr.called_target_functions[imobject]["move_to"] = {
@@ -162,6 +161,7 @@ class FsmController(QObject):
         if shift is not None:
             self.curr.rev_attributes[imobject]["past_point"] = imobject.past_point
             imobject.past_point = mh.get_copy(imobject).get_center().tolist()
+            self.curr.changed_mobject_attributes[imobject]["past_point"] = imobject.past_point
             self.curr.called_target_functions[imobject]["move_to"] = {
                 str(imobject.past_point)
             }

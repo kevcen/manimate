@@ -95,7 +95,8 @@ class INode(IMobject):
 
         # create new text
         new_text = Text(new_text_str)
-        new_text.match_color(mh.get_copy(self.label))
+        color = self.fsm_controller.scene_controller.selected[mh.get_copy(self)]
+        new_text.set_color("#8fbc8f")
         new_text.move_to(mh.get_copy(self.label).get_center())
 
         # configure transforms
@@ -106,14 +107,16 @@ class INode(IMobject):
             curr_state.add_transform(self.label)
 
         self.text = new_text
-
         # setup current ui
         curr_state.play_copy(ITransform(self.label), self.fsm_controller.scene_controller.scene)
+
 
         mh.get_copy(self).add(mh.get_copy(self.label))
         # mh.setCopy(self, self.mobject)
 
         # store for writer
+        curr_state.targets[self] = mh.get_copy(self).copy()
+        curr_state.targets[self].set_color(color)
         curr_state.target_decl_str[self] = self.decl_str()
         if not self.fsm_controller.created_at_curr_state(
             self
