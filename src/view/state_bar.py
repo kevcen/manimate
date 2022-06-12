@@ -31,7 +31,7 @@ class TimeSlider(QSlider):
         if interval == 0:
             interval = self.pageStep()
 
-        tp = self.tickPosition
+        tp = self.tickPosition()
         if tp != QSlider.TickPosition.NoTicks:
             for i in range(self.minimum(), self.maximum() + 1, interval):
                 if self.minimum() == self.maximum():
@@ -47,7 +47,7 @@ class TimeSlider(QSlider):
                     - 1
                 )
                 h = 2
-                p.setPen(QColor("white"))
+                p.setPen(QColor("#ffffff"))
                 if (
                     tp == QSlider.TickPosition.TicksBothSides
                     or tp == QSlider.TickPosition.TicksAbove

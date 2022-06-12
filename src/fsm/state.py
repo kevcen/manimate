@@ -29,7 +29,7 @@ class State:
         self.added = []
         self.removed = []
         self.idx = idx
-        self.run_time = 1.0
+        self.run_time = 2
         self.loop = None  # in form of (state, times)
         self.loop_cnt = None
 
