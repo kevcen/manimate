@@ -460,12 +460,22 @@ class DetailsBar(QWidget):
 
     def remove_mobject_handler(self):
         imobject = self.selected_imobject
-        affected_imobjects = [imobject]
-        if isinstance(imobject, INode) and imobject.parent_edge is not None:
-            affected_imobjects.append(imobject.parent_edge)
-        for aff_imobj in affected_imobjects:
-            self.fsm_controller.instant_remove_obj_at_curr(aff_imobj)
-        self.refresh()
+
+        msg = QMessageBox()
+        msg.setWindowTitle("Manimate")
+        msg.setText(f"Are you sure you want to remove this MObject?")
+        msg.setIcon(QMessageBox.Critical)
+        msg.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
+        msg.setDefaultButton(QMessageBox.Cancel)
+        msg.setDetailedText(f"You will remove {mh.get_name(imobject)} from this state, you could potentially lose this MObject forever.")
+        ret = msg.exec_()
+        if ret == QMessageBox.Ok:
+            affected_imobjects = [imobject]
+            if isinstance(imobject, INode) and imobject.parent_edge is not None:
+                affected_imobjects.append(imobject.parent_edge)
+            for aff_imobj in affected_imobjects:
+                self.fsm_controller.instant_remove_obj_at_curr(aff_imobj)
+            self.refresh()
 
     def new_group_handler(self):
         group = IGroup()
