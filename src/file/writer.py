@@ -158,12 +158,20 @@ class ParentEdge(Line):
         target_strs = []
         # print vgroup targets first
         for imobject in curr.targets:
-            if imobject.is_deleted or not isinstance(imobject.mobject, VGroup) or isinstance(imobject, IDependent):
+            if (
+                imobject.is_deleted
+                or not isinstance(imobject.mobject, VGroup)
+                or isinstance(imobject, IDependent)
+            ):
                 continue
             target_strs.append(self.print_target_init(f, curr, imobject))
 
         for imobject in curr.targets:
-            if imobject.is_deleted or isinstance(imobject.mobject, VGroup) or isinstance(imobject, IDependent):
+            if (
+                imobject.is_deleted
+                or isinstance(imobject.mobject, VGroup)
+                or isinstance(imobject, IDependent)
+            ):
                 continue
             target_strs.append(self.print_target_init(f, curr, imobject))
 
@@ -176,7 +184,7 @@ class ParentEdge(Line):
 
             imobject, tobj_str = self.print_target_init(f, curr, imobject)
             self.print_target_manip(f, curr, imobject, tobj_str)
-            
+
         if curr.targets:
             f.write("\n")
 
@@ -224,10 +232,11 @@ class ParentEdge(Line):
             for anim in curr.animations
             if not anim.imobject.is_deleted
         ]
+        run_time = f", run_time={str(curr.run_time)}" if curr.run_time != 1.0 else ""
         if anim_strs:
             f.write(f"        self.play({', '.join(anim_strs)})\n")
         else:
-            f.write("        self.wait(1)\n")
+            f.write(f"        self.wait({curr.run_time})\n")
 
     def parse_target_equivalences(self, f, curr):
         for anim in curr.animations:

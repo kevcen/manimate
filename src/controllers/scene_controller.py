@@ -55,7 +55,7 @@ class SceneController(QObject):
         if mobject in self.selected:
             return
 
-        self.selected[mobject] = mobject.get_color()
+        self.selected[mobject] = mobject.get_color().hex_l
         # print("SELECT", self.selected)
 
         if not isinstance(imobject, IMarkupText):

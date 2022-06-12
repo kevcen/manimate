@@ -149,7 +149,10 @@ class FsmController(QObject):
         self.curr.targets[imobject] = target
 
         if imobject not in self.curr.target_decl_str:
-            self.curr.target_decl_str[imobject] = imobject.decl_str()
+            if not self.created_at_curr_state(imobject):
+                self.curr.target_decl_str[imobject] = f"{mh.get_name(imobject)}.copy()"
+            else:
+                self.curr.target_decl_str[imobject] = imobject.decl_str()
 
         if color is not None:
             self.curr.called_target_functions[imobject]["set_color"] = {f'"{color}"'}
@@ -160,6 +163,9 @@ class FsmController(QObject):
             imobject.scale = scale
 
             self.curr.called_target_functions[imobject]["scale"] = {str(scale)}
+            if scale == 1.0:
+                del self.curr.called_target_functions[imobject]["scale"]
+
         if move_to is not None:
             imobjs = [imobject]
             if isinstance(imobject.mobject, VGroup):
@@ -168,14 +174,10 @@ class FsmController(QObject):
             for imobj in imobjs:
                 if "past_point" not in self.curr.rev_attributes[imobj]:
                     self.curr.rev_attributes[imobj]["past_point"] = imobj.past_point
-                self.curr.changed_mobject_attributes[imobj][
-                    "past_point"
-                ] = move_to
+                self.curr.changed_mobject_attributes[imobj]["past_point"] = move_to
                 imobj.past_point = move_to
                 print("move to edit", imobj, move_to)
-                self.curr.called_target_functions[imobj]["move_to"] = {
-                    str(move_to)
-                }
+                self.curr.called_target_functions[imobj]["move_to"] = {str(move_to)}
         if shift is not None:
             imobjs = [imobject]
             if isinstance(imobject.mobject, VGroup):
@@ -237,7 +239,7 @@ class FsmController(QObject):
 
         if imobject not in self.curr.targets:
             self.curr.targets[imobject] = imobject.mobject.copy()
-        
+
         if imobject not in self.curr.target_decl_str:
             self.curr.target_decl_str[imobject] = imobject.decl_str()
 

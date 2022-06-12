@@ -35,6 +35,7 @@ class INone(IMobject):
     def __init__(self):
         super().__init__(None)
 
+
 class IDependent(IMobject):
     """
     Intermediate abstract class representing mobjects that depend on others
@@ -43,7 +44,9 @@ class IDependent(IMobject):
 
     E.g. IParentEdge needs to be defined after INode
     """
+
     pass
+
 
 class IGroup(IMobject):
     """

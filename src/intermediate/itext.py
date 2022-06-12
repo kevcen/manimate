@@ -43,8 +43,8 @@ class IMathTex(IMobject):
         self.text = text
         self.fsm_controller = fsm_controller
         self.font_size = font_size
-        self.label = MathTex(r"{}".format(text), font_size=font_size, font="Consolas")
-        self.label.set_color(WHITE)
+        self.label = MathTex(r"{}".format(text), font_size=font_size)
+        self.label.set_color("#FFFFFF")
         super().__init__(self.label, parent_imobject=parent_imobject)
 
     def change_text(self, new_text_str):
@@ -53,29 +53,33 @@ class IMathTex(IMobject):
 
         # create new text
         try:
-            new_text = MathTex(
-                r"{}".format(new_text_str), font_size=self.font_size, font="Consolas"
-            )
-            # new_text.match_color(mh.getCopy(self))
+            new_text = MathTex(r"{}".format(new_text_str), font_size=self.font_size)
+            new_text.match_color(mh.get_copy(self))  # selected color
             new_text.move_to(mh.get_copy(self).get_center())
 
             # configure transforms
             self.fsm_controller.curr.capture_prev(mh.get_copy(self))
             curr_state.targets[self] = new_text
 
+            color = self.fsm_controller.scene_controller.selected[mh.get_copy(self)]
+            curr_state.targets[self].set_color(color)
+            # store for writer
+            self.text = new_text_str
+            self.fsm_controller.edit_transform_target(
+                self,
+                new_text.copy(),
+                color=color,
+                move_to=mh.get_copy(self).get_center().tolist(),
+            )
+            curr_state.target_decl_str[self] = self.decl_str()
+
             # setup current ui
             curr_state.play_copy(
                 ITransform(self), self.fsm_controller.scene_controller.scene
             )
 
-            # store for writer
-            self.fsm_controller.edit_transform_target(
-                self, new_text, move_to=mh.get_copy(self).get_center().tolist()
-            )
-
-            self.text = new_text_str
-            curr_state.target_decl_str[self] = self.decl_str()
-        except:
+        except Exception as e:
+            print(e)
             if self.text != new_text_str:
                 return (
                     f"Cannot compile {new_text_str} into latex.",
@@ -85,7 +89,7 @@ class IMathTex(IMobject):
         return None
 
     def decl_str(self):
-        return f'MathTex(r"{{}}".format("{self.text}"), font_size={self.font_size}, font="Consolas")'
+        return f'MathTex(r"{{}}".format("{self.text}"), font_size={self.font_size})'
 
 
 class IMarkupText(IMobject):
@@ -131,6 +135,7 @@ class IMarkupText(IMobject):
         self.fsm_controller.curr.changed_mobject_attributes[self]["bold_areas"] = []
 
         self.bold_areas = []
+        self.update_markup_text(self.format_text(self.text))
 
     def get_highlight_tags(self):
         match self.highlight:
@@ -190,11 +195,6 @@ class IMarkupText(IMobject):
         self.fsm_controller.curr.capture_prev(mh.get_copy(self))
         curr_state.targets[self] = new_text
 
-        # setup current ui
-        curr_state.play_copy(
-            ITransform(self), self.fsm_controller.scene_controller.scene
-        )
-
         # store for writer
         self.fsm_controller.edit_transform_target(
             self,
@@ -202,10 +202,14 @@ class IMarkupText(IMobject):
             move_to=mh.get_copy(self).get_center().tolist(),
             scale=self.past_scale,
         )
-
         curr_state.target_decl_str[self] = self.decl_str()
-        self.edited_at = curr_state.idx
+
+        # setup current ui
+        curr_state.play_copy(
+            ITransform(self), self.fsm_controller.scene_controller.scene
+        )
 
     def decl_str(self):
         print("markup delc  str")
-        return f'MarkupText("{self.format_text(self.text)}", font_size={self.font_size}, font="Consolas")'
+        text = self.format_text(self.text).replace('"', '\\"')
+        return f'MarkupText("""{text}""", font_size={self.font_size}, font="Consolas")'
