@@ -3,6 +3,7 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
     QTabWidget,
+    QGroupBox,
 )
 from intermediate.imobject import ICircle, ISquare, IStar, ITriangle
 from intermediate.itext import IMarkupText, IMathTex
@@ -122,16 +123,33 @@ class ObjectsBar(QTabWidget):
             )
         )
 
-        for w in (
-            addTree,
-            addCircle,
-            addSquare,
-            addTriangle,
-            addStar,
-            addMarkupText,
-            addMathTex,
+        self.simple_mobjects = QGroupBox("Simple Shapes")
+        self.complex_mobjects = QGroupBox("Complex Data Structures")
+        self.text_mobjects = QGroupBox("Text")
+        
+        simple_layout = QVBoxLayout()
+        complex_layout = QVBoxLayout()
+        text_layout = QVBoxLayout()
+
+        for w in (addCircle, addSquare, addTriangle, addStar):
+            simple_layout.addWidget(w)
+
+        for w in (addTree, ):
+            complex_layout.addWidget(w)
+
+        for w in (addMarkupText, addMathTex):
+            text_layout.addWidget(w)
+
+        self.simple_mobjects.setLayout(simple_layout)
+        self.complex_mobjects.setLayout(complex_layout)
+        self.text_mobjects.setLayout(text_layout)
+
+        for w, l in (
+            (self.simple_mobjects, 4),
+            (self.text_mobjects, 2),
+            (self.complex_mobjects, 1),
         ):
-            layout.addWidget(w)
+            layout.addWidget(w, l)
 
         tab.setLayout(layout)
         return tab
