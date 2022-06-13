@@ -1,0 +1,6 @@
+bidict==0.22.0
+manim==0.15.2
+moderngl==5.6.4
+moderngl_window==2.4.1
+numpy==1.22.4
+PySide6==6.3.0
