@@ -11,7 +11,8 @@ A novel WYSIWYG animation builder for Manim
 - moderngl
 - bidict
 - IPython 8.0.1
-- PySide 6
+- PySide 6 and 2
+- IPython
 - Manim community dependencies - `sudo apt install libcairo2-dev libpango1.0-dev ffmpeg` for Ubuntu
 - Manim community - `pip install manim` for Ubuntu
 
