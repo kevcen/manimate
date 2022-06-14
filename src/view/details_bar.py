@@ -108,6 +108,7 @@ class DetailsBar(QWidget):
 
         self.scale_box = QDoubleSpinBox()
         self.scale_box.setMinimum(0)
+        self.scale_box.setSingleStep(0.5)
         self.scale_box.valueChanged.connect(self.scale_box_handler)
 
         remove_btn = QPushButton("remove mobject")
@@ -464,7 +465,7 @@ class DetailsBar(QWidget):
         msg = QMessageBox()
         msg.setWindowTitle("Manimate")
         msg.setText(f"Are you sure you want to remove this MObject?")
-        msg.setIcon(QMessageBox.Critical)
+        msg.setIcon(QMessageBox.Warning)
         msg.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
         msg.setDefaultButton(QMessageBox.Cancel)
         msg.setDetailedText(f"You will remove {mh.get_name(imobject)} from this state, you could potentially lose this MObject forever.")
@@ -528,7 +529,7 @@ class DetailsBar(QWidget):
             self.fsm_controller.edit_transform_target(
                 imobject, target, color=color.name()
             )
-            if isinstance(imobject.mobject, VGroup):
+            if not imobject.user_defined and isinstance(imobject.mobject, VGroup):
                 for child in imobject.vgroup_children:
                     child_mobject = mh.get_copy(child)
                     child_mobject.set_color(color.name())

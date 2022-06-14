@@ -110,7 +110,7 @@ class StateWidget(QWidget):
         del_frame_btn.clicked.connect(fsm_controller.del_state)
 
         export_btn = QPushButton("Export")
-        export_btn.clicked.connect(fsm_controller.export)
+        export_btn.clicked.connect(lambda: fsm_controller.export())
 
         time_slider = TimeSlider()
         time_slider.setOrientation(Qt.Horizontal)

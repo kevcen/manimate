@@ -68,12 +68,19 @@ class ParentEdge(Line):
 
 """
 
-    def __init__(self, head_state, filename="scene/output_scene.py"):
+    def __init__(self, head_state, filename):
         self.head_state = head_state
         self.filename = filename
         self.existing_names = {}
         self.write_apply_function = False
         self.write_tree = False
+        self.user_defined_text = {}
+
+    def initialise(self, filename):
+        self.existing_names = {}
+        self.write_apply_function = False
+        self.write_tree = False
+        self.filename = filename
 
     def write(self):
         filepath = Path(self.filename)
@@ -104,6 +111,10 @@ class ParentEdge(Line):
 
             if self.write_tree:
                 f.write(self.TREECLASS)
+
+            for _, text in self.user_defined_text.items():
+                f.write(text)
+                f.write("\n")
 
     # debug
     def print_added(self, f, curr):

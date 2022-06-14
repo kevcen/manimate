@@ -60,7 +60,7 @@ def reverse(animation, state):
                 tcopy = state.rev_targets[imobj].copy()
 
             mh.remove_copy(mcopy)
-            if isinstance(itobj.mobject, VGroup):
+            if not itobj.user_defined and isinstance(itobj.mobject, VGroup):
                 for child in itobj.vgroup_children:
                     mh.remove_copy(mh.get_copy(child))
             mh.set_copy(imobj, tcopy)

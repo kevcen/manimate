@@ -41,7 +41,7 @@ class State:
 
         if imobject not in self.transforms:
             self.transforms[imobject] = ITransform(imobject)
-            if isinstance(imobject.mobject, VGroup):
+            if not imobject.user_defined and isinstance(imobject.mobject, VGroup):
                 self.animations.insert(0, self.transforms[imobject])
             else:
                 self.animations.append(self.transforms[imobject])
@@ -58,7 +58,7 @@ class State:
             del self.target_decl_str[imobject]  # becomes itarget
 
         self.transforms[imobject] = IReplacementTransform(imobject, itarget)
-        if isinstance(imobject.mobject, VGroup):
+        if not imobject.user_defined and isinstance(imobject.mobject, VGroup):
             self.animations.insert(0, self.transforms[imobject])
         else:
             self.animations.append(self.transforms[imobject])
@@ -99,7 +99,7 @@ class State:
         if imobject in state.targets:
             return state.targets[imobject].copy()
         return self.find_prev_target(state.prev, imobject)
-
+        
     # Scene related functions
     def play_one(self, anim, scene):
         anim.run_time = 0

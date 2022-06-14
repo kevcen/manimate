@@ -7,7 +7,7 @@ class IMobject:
     Intermediate mobject class
     """
 
-    def __init__(self, mobject, parent_imobject=None):
+    def __init__(self, mobject, parent_imobject=None, user_defined=False):
         self.mobject = mobject  # mobject to be only used as a initial target
         self.added_state = None
         self.removed_state = None
@@ -22,7 +22,9 @@ class IMobject:
         self.past_point = None
         self.color_changed = False
         self.child_add_state = None
-
+        self.user_defined = user_defined
+        Axes()
+        
     def decl_str(self):
         return f"{self.mobject.__class__.__name__}()"
 

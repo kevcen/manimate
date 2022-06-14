@@ -43,7 +43,7 @@ def get_copy_target(imobject, child_state=None):
 
 
 def generate_new_copy(imobject, default=None, child_state=None):
-    if isinstance(imobject.mobject, VGroup):
+    if not imobject.user_defined and isinstance(imobject.mobject, VGroup):
         vgroup_children = [
             get_copy_target(child, child_state=child_state)
             for child in imobject.vgroup_children

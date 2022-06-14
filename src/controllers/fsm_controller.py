@@ -33,6 +33,8 @@ class FsmController(QObject):
 
         self.curr = state  # animations to play
 
+        self.writer = Writer(self.head, "io/export_scene.py")
+
     def play_forward(self, fast=True):
         self.curr = self.curr.next
         self.curr.play(self.scene_controller.scene, fast)
@@ -168,7 +170,7 @@ class FsmController(QObject):
 
         if move_to is not None:
             imobjs = [imobject]
-            if isinstance(imobject.mobject, VGroup):
+            if not imobject.user_defined and isinstance(imobject.mobject, VGroup):
                 imobjs += imobject.vgroup_children
 
             for imobj in imobjs:
@@ -180,7 +182,7 @@ class FsmController(QObject):
                 self.curr.called_target_functions[imobj]["move_to"] = {str(move_to)}
         if shift is not None:
             imobjs = [imobject]
-            if isinstance(imobject.mobject, VGroup):
+            if not imobject.user_defined and isinstance(imobject.mobject, VGroup):
                 imobjs += imobject.vgroup_children
 
             center = mh.get_copy(imobject).get_center().tolist()
@@ -284,7 +286,14 @@ class FsmController(QObject):
         # TODO: make a transform widget to alter color, position, shape?
         pass
 
-    def export(self):
-        writer = Writer(self.head, "io/export_scene.py")
+    def export(self, filename="io/export_scene.py"):
+        self.writer.initialise(filename=filename)
+        self.writer.write()
 
-        writer.write()
+    def add_python_to_writer(self, file_name):
+        with open(file_name, 'r') as f:
+            lines = f.readlines()
+
+            self.writer.user_defined_text[file_name] = ''.join(lines[1:])
+    
+
