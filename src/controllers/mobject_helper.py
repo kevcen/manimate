@@ -60,7 +60,8 @@ def generate_new_copy(imobject, default=None, child_state=None):
     if default is None:
         print("NO TARGET COPY")
     mcopy = imobject.mobject.copy() if default is None else default
-    mcopy.move_to([0, 0, 0])  # move to center
+    # if default is None:
+    #     mcopy.move_to([0, 0, 0])  # move to center
     return mcopy
 
 

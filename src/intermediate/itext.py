@@ -50,7 +50,6 @@ class IMathTex(IMobject):
     def change_text(self, new_text_str):
         # update field
         curr_state = self.fsm_controller.curr
-
         # create new text
         try:
             new_text = MathTex(r"{}".format(new_text_str), font_size=self.font_size)
@@ -90,7 +89,8 @@ class IMathTex(IMobject):
         return None
 
     def decl_str(self):
-        return f'MathTex(r"{{}}".format("{self.text}"), font_size={self.font_size})'
+        text = self.text.replace('\\', '\\\\')
+        return f'MathTex(r"{{}}".format("{text}"), font_size={self.font_size})'
 
 
 class IMarkupText(IMobject):

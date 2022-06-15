@@ -615,6 +615,7 @@ class DetailsBar(QWidget):
             self, "Choose Target", "Select Target MObject", items, 0, False
         )
         if ok:
+            print("TRANSFORM GET COPY")
             mobject = mh.get_copy(imobject)
             center_point = mobject.get_center().copy()
             # itemLabel.setText(item)
@@ -665,7 +666,7 @@ class DetailsBar(QWidget):
 
             # store for writer
             print("1")
-            curr_state.targets[itarget] = target
+            curr_state.targets[itarget] = target.move_to(center_point)
             curr_state.target_decl_str[itarget] = itarget.decl_str()
 
             # if isinstance(itarget, INode):
@@ -679,10 +680,12 @@ class DetailsBar(QWidget):
             # if isinstance(itarget, INode):
             #     mh.get_copy(itarget.label).set_color('#6c57c9')
 
-            mh.get_copy(itarget).move_to(center_point)
+            
             curr_state.called_target_functions[itarget]["move_to"] = {
                 str(center_point.tolist())
             }
+
+            self.scene_controller.set_selected_mobject(mh.get_copy(itarget))
 
     def closeEvent(self, e):
         self.close_handler()

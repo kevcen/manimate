@@ -13,7 +13,7 @@ import inspect
 from intermediate.imobject import ICircle, IMobject, ISquare, IStar, ITriangle
 from intermediate.itext import IMarkupText, IMathTex
 from intermediate.itree import INode
-
+from manim import Mobject
 
 class ObjectsBar(QTabWidget):
     """
