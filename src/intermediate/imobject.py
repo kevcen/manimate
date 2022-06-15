@@ -23,7 +23,6 @@ class IMobject:
         self.color_changed = False
         self.child_add_state = None
         self.user_defined = user_defined
-        Axes()
         
     def decl_str(self):
         return f"{self.mobject.__class__.__name__}()"
