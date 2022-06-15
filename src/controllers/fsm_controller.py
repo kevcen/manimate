@@ -38,20 +38,23 @@ class FsmController(QObject):
     def play_forward(self, fast=True):
         self.curr = self.curr.next
         self.curr.play(self.scene_controller.scene, fast)
+        self.stateChange.emit(self.curr.idx, self.num_states)
 
     def play_back(self):
         self.curr.play_rev(self.scene_controller.scene)
         self.curr = self.curr.prev
+        self.stateChange.emit(self.curr.idx, self.num_states)
 
     def has_loop(self):
         return self.curr.loop is not None and self.curr.loop_cnt > 0
 
     def run(self):
         self.scene_controller.unselect_mobjects()
-        self.is_running = True
+        # print("curr", hex(id(self.curr.next)), "end", hex(id(self.end)))
         if self.curr.next == self.end:
             self.set_state_number(1, False)  # go back to start
 
+        self.is_running = True
         while (self.curr.next != self.end or self.has_loop()) and self.is_running:
             if self.has_loop():
                 self.curr.loop_cnt -= 1
@@ -67,6 +70,9 @@ class FsmController(QObject):
         self.is_running = False
 
     def set_state_number(self, idx, userCalled=True):
+        if self.is_running:
+            return
+
         if 1 <= idx <= self.num_states:
             if idx < self.curr.idx:
                 for _ in range(self.curr.idx, idx, -1):

@@ -67,7 +67,7 @@ if __name__ == "__main__":
             moderngl.ONE,
         )
 
-        scene = manim_scene.Test(renderer)
+        scene = manim_scene.PreviewScene(renderer)
         renderer.scene = scene
 
         scene_controller = SceneController(scene, renderer)

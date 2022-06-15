@@ -26,7 +26,7 @@ def point_to_mobject(self, point, search_set=None):
 Scene.point_to_mobject = point_to_mobject
 
 
-class Test(Scene):
+class PreviewScene(Scene):
     """
     Interactive Scene used in the Manim preview
     """

@@ -4,6 +4,7 @@ from intermediate.itree import INode
 import controllers.mobject_helper as mh
 from pathlib import Path
 from manim import VGroup
+import os
 
 
 class Writer:
@@ -84,6 +85,11 @@ class ParentEdge(Line):
 
     def write(self):
         filepath = Path(self.filename)
+        dir_name = self.filename.split('/')[:-1]
+        if dir_name:
+            dir_name = '/'.join(dir_name)
+            os.makedirs(dir_name, exist_ok=True)
+            
         filepath.touch(exist_ok=True)
         with open(filepath, "w+", encoding="utf-8") as f:
             f.write(self.BOILERPLATE)
