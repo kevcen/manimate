@@ -6,7 +6,9 @@ from PySide6.QtWidgets import (
     QGroupBox,
     QFileDialog,
     QMessageBox,
+    QDialog,
 )
+from PySide6.QtCore import QDir
 import importlib.util
 import sys
 import inspect
@@ -48,7 +50,7 @@ class ObjectsBar(QTabWidget):
         exit_btn = QPushButton("Exit")
         exit_btn.clicked.connect(self.close_handler)
         export_script = QPushButton("Export As Python Script")
-        export_script.clicked.connect(lambda: self.fsm_controller.export())
+        export_script.clicked.connect(self.export_script_handler)
         import_mobject = QPushButton("Import A MObject Class")
         import_mobject.clicked.connect(self.import_mobject_handler)
         export_mp4 = QPushButton("TODO: Export As MP4")
@@ -64,7 +66,19 @@ class ObjectsBar(QTabWidget):
 
         tab.setLayout(layout)
         return tab
-    
+
+    def export_script_handler(self):
+        print('export')
+        dialog = QFileDialog()
+        dialog.setFilter(dialog.filter() | QDir.Hidden)
+        dialog.setDefaultSuffix('py')
+        dialog.setAcceptMode(QFileDialog.AcceptSave)
+        dialog.setNameFilters(['Python (*.py)'])
+        if dialog.exec_() == QDialog.Accepted:
+            filename = dialog.selectedFiles()[0]
+            # filename = dialog.getSaveFileName(self, 'Export File', '/home', 'Python Files (*.py)')[0]
+            self.fsm_controller.export(filename)
+
     def import_mobject_handler(self):
         file_name = QFileDialog.getOpenFileName(self, 'Open File', '/home', 'Python Files (*.py)')[0]
         module_name = file_name.split('/')[-1][:-3]
