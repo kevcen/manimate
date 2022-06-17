@@ -9,8 +9,9 @@ No releases of this project has been made yet, but you can clone this project an
 
 1. Install python3.10 and pip   
    - Ubuntu: `apt install python3.10 && curl -sS https://bootstrap.pypa.io/get-pip.py | python3.10`
-2. Download dependencies with `pip install .`
-3. Navigate to src directory and run `python3.10 main.py`
+2. Install dependencies with `pip install -r requirements.txt`
+3. Navigate to `src` directory
+4. Run `python3.10 main.py`
 
 
 <!-- 
