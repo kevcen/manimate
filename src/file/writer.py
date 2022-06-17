@@ -1,7 +1,7 @@
-from src.intermediate.ianimation import IApplyFunction, IReplacementTransform, ITransform
-from src.intermediate.imobject import IDependent, IMobject
-from src.intermediate.itree import INode
-import src.controllers.mobject_helper as mh
+from intermediate.ianimation import IApplyFunction, IReplacementTransform, ITransform
+from intermediate.imobject import IDependent, IMobject
+from intermediate.itree import INode
+import controllers.mobject_helper as mh
 from pathlib import Path
 from manim import VGroup
 import os

@@ -1,13 +1,13 @@
 from manim import *
 
-from src.intermediate.ianimation import (
+from intermediate.ianimation import (
     IApplyFunction,
     ICreate,
     IFadeIn,
     IReplacementTransform,
     ITransform,
 )
-import src.controllers.mobject_helper as mh
+import controllers.mobject_helper as mh
 
 
 def reverse(animation, state):

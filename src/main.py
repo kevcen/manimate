@@ -12,17 +12,15 @@ from PySide6.QtWidgets import (
 
 from pathlib import Path
 from os import path
-from src.controllers.fsm_controller import FsmController
-from src.controllers.scene_controller import SceneController
-import src.scene.manim_scene as manim_scene
-from src.view.details_bar import DetailsBar
-from src.view.objects_bar import ObjectsBar
-from src.view.state_bar import StateWidget
-from src.view.preview_window import PreviewWindow
-
+from controllers.fsm_controller import FsmController
+from controllers.scene_controller import SceneController
+import scene.manim_scene as manim_scene
+from view.details_bar import DetailsBar
+from view.objects_bar import ObjectsBar
+from view.state_bar import StateWidget
+from view.preview_window import PreviewWindow
 
 windows = set()
-
 
 def close_all():
     for window in windows:
@@ -85,6 +83,7 @@ def main():
         details_bar = DetailsBar(scene_controller, fsm_controller, close_all)
         details_bar.show()
 
+        print(path.join(this_dir, "view", "styles.qss"))
         with open(path.join(this_dir, "view", "styles.qss"), "r") as f:
             _style = f.read()
             for w in (objects_bar, details_bar, state_bar):

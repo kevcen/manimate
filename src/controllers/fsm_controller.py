@@ -1,10 +1,10 @@
 from PySide6.QtCore import Signal, QObject
 import numpy as np
 from manim import *
-from src.file.writer import Writer
-from src.fsm.state import State
-from src.intermediate.itree import INode
-import src.controllers.mobject_helper as mh
+from file.writer import Writer
+from fsm.state import State
+from intermediate.itree import INode
+import controllers.mobject_helper as mh
 
 
 class FsmController(QObject):

@@ -2,9 +2,9 @@ from manim.utils.color import *
 from manim import *
 from PySide6.QtCore import Signal, QObject
 
-from src.intermediate.imobject import IMobject, INone
-from src.intermediate.itext import IMarkupText
-import src.controllers.mobject_helper as mh
+from intermediate.imobject import IMobject, INone
+from intermediate.itext import IMarkupText
+import controllers.mobject_helper as mh
 
 
 class SceneController(QObject):

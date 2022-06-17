@@ -1,9 +1,9 @@
 import html
 from enum import Enum
 from manim import *
-from src.intermediate.ianimation import ITransform
-from src.intermediate.imobject import IMobject
-import src.controllers.mobject_helper as mh
+from intermediate.ianimation import ITransform
+from intermediate.imobject import IMobject
+import controllers.mobject_helper as mh
 
 
 class Highlight(Enum):
