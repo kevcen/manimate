@@ -10,14 +10,15 @@ from PySide6.QtWidgets import (
     QApplication,
 )
 
-from controllers.fsm_controller import FsmController
-from controllers.scene_controller import SceneController
-import scene.manim_scene as manim_scene
 from pathlib import Path
-from view.details_bar import DetailsBar
-from view.objects_bar import ObjectsBar
-from view.state_bar import StateWidget
-from view.preview_window import PreviewWindow
+from os import path
+from src.controllers.fsm_controller import FsmController
+from src.controllers.scene_controller import SceneController
+import src.scene.manim_scene as manim_scene
+from src.view.details_bar import DetailsBar
+from src.view.objects_bar import ObjectsBar
+from src.view.state_bar import StateWidget
+from src.view.preview_window import PreviewWindow
 
 
 windows = set()
@@ -30,14 +31,15 @@ def close_all():
     # sys.exit()
 
 
-if __name__ == "__main__":
+def main():
     # read_tokens = Reader("scene/manim_scene.py")
 
     signal.signal(signal.SIGINT, signal.SIG_DFL)
     app = QApplication(sys.argv)
+    this_dir, _ = path.split(__file__)
     with tempconfig(
         {
-            "input_file": Path("scene/manim_scene.py").absolute(),
+            "input_file": path.join(this_dir, "scene", "manim_scene.py"),
             "disable_caching": True,
             "renderer": "opengl",
             "preview": True,
@@ -83,7 +85,7 @@ if __name__ == "__main__":
         details_bar = DetailsBar(scene_controller, fsm_controller, close_all)
         details_bar.show()
 
-        with open("view/styles.qss", "r") as f:
+        with open(path.join(this_dir, "view", "styles.qss"), "r") as f:
             _style = f.read()
             for w in (objects_bar, details_bar, state_bar):
                 windows.add(w)
@@ -92,3 +94,8 @@ if __name__ == "__main__":
         scene.render()
 
     sys.exit(app.exec())
+
+
+
+if __name__ == "__main__":
+    main()

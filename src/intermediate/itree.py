@@ -1,7 +1,7 @@
-from intermediate.ianimation import ITransform
-from intermediate.imobject import ICircle, IDependent, IMobject
-from intermediate.itext import IText
-import controllers.mobject_helper as mh
+from src.intermediate.ianimation import ITransform
+from src.intermediate.imobject import ICircle, IDependent, IMobject
+from src.intermediate.itext import IText
+import src.controllers.mobject_helper as mh
 from manim import *
 
 

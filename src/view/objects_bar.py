@@ -10,9 +10,9 @@ from PySide6.QtWidgets import (
 import importlib.util
 import sys
 import inspect
-from intermediate.imobject import ICircle, IMobject, ISquare, IStar, ITriangle
-from intermediate.itext import IMarkupText, IMathTex
-from intermediate.itree import INode
+from src.intermediate.imobject import ICircle, IMobject, ISquare, IStar, ITriangle
+from src.intermediate.itext import IMarkupText, IMathTex
+from src.intermediate.itree import INode
 from manim import Mobject
 
 class ObjectsBar(QTabWidget):

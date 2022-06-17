@@ -17,11 +17,11 @@ from PySide6.QtWidgets import (
     QGridLayout,
 )
 
-from intermediate.ianimation import ICreate, IFadeIn, IReplacementTransform
-from intermediate.imobject import ICircle, IGroup, INone, ISquare, IStar, ITriangle
-from intermediate.itext import Highlight, IMarkupText, IMathTex
-from intermediate.itree import INode
-import controllers.mobject_helper as mh
+from src.intermediate.ianimation import ICreate, IFadeIn, IReplacementTransform
+from src.intermediate.imobject import ICircle, IGroup, INone, ISquare, IStar, ITriangle
+from src.intermediate.itext import Highlight, IMarkupText, IMathTex
+from src.intermediate.itree import INode
+import src.controllers.mobject_helper as mh
 from manim import VGroup
 
 

@@ -1,8 +1,8 @@
 from collections import defaultdict
 
-from intermediate.ianimation import IApplyFunction, IReplacementTransform, ITransform
-import fsm.animation_generator as ag
-import controllers.mobject_helper as mh
+from src.intermediate.ianimation import IApplyFunction, IReplacementTransform, ITransform
+import src.fsm.animation_generator as ag
+import src.controllers.mobject_helper as mh
 from manim import VGroup
 
 

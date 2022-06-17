@@ -2,7 +2,7 @@ from manim import *
 
 from PySide6.QtCore import Qt
 
-import controllers.mobject_helper as mh
+import src.controllers.mobject_helper as mh
 
 
 def point_to_mobject(self, point, search_set=None):

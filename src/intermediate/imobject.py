@@ -1,5 +1,5 @@
 from manim import *
-import controllers.mobject_helper as mh
+import src.controllers.mobject_helper as mh
 
 
 class IMobject:
