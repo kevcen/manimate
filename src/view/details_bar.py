@@ -557,7 +557,7 @@ class DetailsBar(QWidget):
         imobject.past_scale = new_scale
 
         self.fsm_controller.edit_transform_target(
-            imobject, target, scale=(new_scale / old_scale)
+            imobject, target, scale=new_scale
         )
 
     def name_edit_handler(self):

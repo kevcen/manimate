@@ -124,7 +124,7 @@ class ParentEdge(Line):
 
     # debug
     def print_added(self, f, curr):
-        f.write("       #PRINT ADDED\n")
+        # f.write("       #PRINT ADDED\n")
         for imobject in curr.added:
             if imobject.is_deleted:
                 continue
@@ -144,7 +144,7 @@ class ParentEdge(Line):
             f.write("\n")
 
     def print_removed(self, f, curr):
-        f.write("       #PRINT REMOVED\n")
+        # f.write("       #PRINT REMOVED\n")
         for imobject in curr.removed:
             if imobject.is_deleted:
                 continue
@@ -157,7 +157,7 @@ class ParentEdge(Line):
         pass
 
     def print_mobject_functions(self, f, curr):
-        f.write("       #PRINT MOBJ FUNCS\n")
+        # f.write("       #PRINT MOBJ FUNCS\n")
         for imobject in curr.called_mobject_functions:
             if imobject.is_deleted:
                 continue
@@ -170,7 +170,7 @@ class ParentEdge(Line):
                 f.write(f"        {mobj_name}.{func}({', '.join(args_names)})\n")
 
     def print_targets(self, f, curr):
-        f.write("       #PRINT TARGETS\n")
+        # f.write("       #PRINT TARGETS\n")
 
         target_strs = []
         # print vgroup targets first
@@ -235,7 +235,7 @@ class ParentEdge(Line):
             f.write(f"        {tobj_str}.{func}({', '.join(args_names)})\n")
 
     def print_modified_added(self, f, curr):
-        f.write("       #PRINT TARGET ADD\n")
+        # f.write("       #PRINT TARGET ADD\n")
         for imobject in curr.targets:
             if imobject.is_deleted:
                 continue
@@ -243,7 +243,7 @@ class ParentEdge(Line):
                 f.write(f"        self.add({mh.get_name(imobject)})\n")
 
     def print_animations(self, f, curr):
-        f.write("       #PRINT ANIMS\n")
+        # f.write("       #PRINT ANIMS\n")
         anim_strs = [
             self.get_anim_str(anim, curr)
             for anim in curr.animations
