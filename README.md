@@ -6,15 +6,16 @@ A novel WYSIWYG animation builder for Manim.
 ## How to run
 No releases of this project has been made yet, but you can clone this project and run it by:
 
-1. Install python3.10 and pip   
-   - Ubuntu: `apt install python3.10 && curl -sS https://bootstrap.pypa.io/get-pip.py | python3.10`
-2. Install dependencies with `pip install -r requirements.txt`
 3. Navigate to `src` directory
 4. Run `python3.10 main.py`
 
+## Prerequisites
 
+1. Python3.10 and Pip   
+   - Ubuntu: `apt install python3.10 && curl -sS https://bootstrap.pypa.io/get-pip.py | python3.10`
+2. Install dependencies with `pip install -r requirements.txt`
 
-## Note
+### Note
 
 Using Xorgs rather than Wayland will support the GUI better; this is default on most systems.
 
