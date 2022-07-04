@@ -2,9 +2,10 @@ from manim.utils.color import *
 from manim import *
 from PySide6.QtCore import Signal, QObject
 
-from intermediate.imobject import IMobject, INone
+from intermediate.imobject import IMobject, INone,IGroup
 from intermediate.itext import IMarkupText
 import controllers.mobject_helper as mh
+
 
 
 class SceneController(QObject):
@@ -58,7 +59,7 @@ class SceneController(QObject):
         self.selected[mobject] = mobject.get_color().hex_l
         # print("SELECT", self.selected)
 
-        if not isinstance(imobject, IMarkupText):
+        if not isinstance(imobject, IMarkupText) and not isinstance(imobject, IGroup):
             mobject.set_color("#8fbc8f")
 
         self.fsm_controller.curr.capture_prev(mobject)
@@ -69,8 +70,11 @@ class SceneController(QObject):
     def unselect_mobjects(self):
         self.ctrldown = False
         for mobject, color in self.selected.items():
-            if not isinstance(mobject, MarkupText):
+            imobject = mh.get_original(mobject)
+
+            if not isinstance(mobject, MarkupText) and not isinstance(imobject, IGroup):
                 mobject.set_color(color)
+
 
         self.selected = {}
 

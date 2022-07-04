@@ -16,16 +16,20 @@ class IMobject:
         self.parent_imobject = parent_imobject
         self.edited_at = None
         self.group = None
-        self.allowed_to_select = True
+        self.is_allowed_to_select = True
         self.past_scale = 1.0
         self.scale = 1.0
         self.past_point = None
-        self.color_changed = False
+        self.color_changed = None
         self.child_add_state = None
         self.user_defined = user_defined
         
+    def allowed_to_select(self):
+        return self.is_allowed_to_select
+
     def decl_str(self):
         return f"{self.mobject.__class__.__name__}()"
+
 
 
 class INone(IMobject):
@@ -74,6 +78,9 @@ class IGroup(IMobject):
 
     def decl_str(self):
         return f"VGroup({self.children_str()})"
+
+    # def allowed_to_select(self):
+    #     return 
 
 
 class ICircle(IMobject):

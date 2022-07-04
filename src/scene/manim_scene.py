@@ -17,7 +17,7 @@ def point_to_mobject(self, point, search_set=None):
         if (
             imobject is not None
             and mobject.is_point_touching(point)
-            and imobject.allowed_to_select
+            and imobject.allowed_to_select()
         ):
             return mobject
     return None

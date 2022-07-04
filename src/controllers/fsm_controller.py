@@ -6,6 +6,8 @@ from fsm.state import State
 from intermediate.itree import INode
 import controllers.mobject_helper as mh
 
+from intermediate.imobject import IGroup
+
 
 class FsmController(QObject):
     """
@@ -143,8 +145,9 @@ class FsmController(QObject):
         print("confirm move")
         target = mcopy.copy()
 
-        if not isinstance(target, MarkupText):
+        if not isinstance(target, MarkupText) and not isinstance(target, IGroup):
             target.set_color(self.scene_controller.selected[mcopy])
+
         self.edit_transform_target(imobject, target, shift=delta)
 
     def edit_transform_target(
@@ -254,7 +257,7 @@ class FsmController(QObject):
         imobject.added_state = self.curr
         imobject.intro_anim = None
 
-        if select and imobject.allowed_to_select:
+        if select and imobject.allowed_to_select():
             self.scene_controller.set_selected_imobject(imobject)
 
     def instant_remove_obj_at_curr(self, imobject):

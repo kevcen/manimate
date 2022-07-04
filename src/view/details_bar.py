@@ -22,7 +22,7 @@ from intermediate.imobject import ICircle, IGroup, INone, ISquare, IStar, ITrian
 from intermediate.itext import Highlight, IMarkupText, IMathTex
 from intermediate.itree import INode
 import controllers.mobject_helper as mh
-from manim import VGroup
+from manim import VGroup, MarkupText
 
 
 class MarkupTextEdit(QTextEdit):
@@ -510,6 +510,10 @@ class DetailsBar(QWidget):
                 imobject
             )
 
+            # igroup.added_state = self.fsm_controller.curr
+            # igroup.intro_anim = None
+            # self.fsm_controller.curr.added.append(igroup)
+
             # self.scene_controller.unselect_mobjects()
         else:
             pass  # TODO: tabs for each child
@@ -522,7 +526,7 @@ class DetailsBar(QWidget):
             mcopy = mh.get_copy(imobject)
 
             mcopy.set_color(color.name())
-            imobject.color_changed = True
+            imobject.color_changed = color.name()
             self.scene_controller.selected[mcopy] = color.name()
             target = mcopy.copy()
 
@@ -545,7 +549,8 @@ class DetailsBar(QWidget):
         new_scale = self.fsm_controller.clean_scale(value)
         mcopy.scale(new_scale / old_scale)
         target = mcopy.copy()
-        target.set_color(self.scene_controller.selected[mcopy])
+        if not isinstance(target, MarkupText) and not isinstance(imobject, IGroup):
+            target.set_color(self.scene_controller.selected[mcopy])
 
         if "past_scale" not in self.fsm_controller.curr.rev_attributes[imobject]:
             self.fsm_controller.curr.rev_attributes[imobject][
