@@ -1,6 +1,6 @@
 # Manimate
 
-<img src="readme_resources/result_example.gif" width="500"/>  <img src="readme_resources/result_example2.gif" width="500" />
+<img src="readme_resources/result_example.gif" width="300"/>  <img src="readme_resources/result_example2.gif" width="300" />
 
 Animations made entirely by Manimate.
 
