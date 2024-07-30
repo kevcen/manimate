@@ -23,7 +23,7 @@ It makes it easy for beginners to use the advanced features of Manim without nee
 
 #### Add Objects to Scene
 
-The left panel shows what objects you can add to the scene; e.g. circle, square, text, etc.
+The left panel shows what objects you can add to the scene; e.g. circles, squares, text, LaTeX, etc.
 
 #### Modify Objects at State
 
@@ -72,8 +72,8 @@ Install any prerequisites needed to build the project:
 
 ### Steps
 
-1. Clone the repository.
-2. Navigate into project directory.
+1. Clone the repository
+2. Navigate into project directory
 3. Install dependencies with `pip install -r requirements.txt`
    
 ## Usage
