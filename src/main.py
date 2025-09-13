@@ -45,52 +45,41 @@ def main():
             "format": None,
         }
     ):
+        renderer = OpenGLRenderer()
 
+        # Set the default surface format for the entire application
         format = QSurfaceFormat()
         format.setDepthBufferSize(24)
         format.setStencilBufferSize(8)
         format.setVersion(3, 2)
         format.setProfile(QSurfaceFormat.CoreProfile)
         QSurfaceFormat.setDefaultFormat(format)
-        renderer = OpenGLRenderer()
-        preview_window = PreviewWindow(app, renderer, close_all)
-        windows.add(preview_window._widget)
-        renderer.window = preview_window
-        renderer.frame_buffer_object = preview_window.ctx.detect_framebuffer()
-        renderer.context = preview_window.ctx
-        renderer.context.enable(moderngl.BLEND)
-        renderer.context.wireframe = config["enable_wireframe"]
-        renderer.context.blend_func = (
-            moderngl.SRC_ALPHA,
-            moderngl.ONE_MINUS_SRC_ALPHA,
-            moderngl.ONE,
-            moderngl.ONE,
-        )
 
         scene = manim_scene.PreviewScene(renderer)
         renderer.scene = scene
+
+        preview_window = PreviewWindow(app, renderer, close_all)
+        windows.add(preview_window)
 
         scene_controller = SceneController(scene, renderer)
         fsm_controller = FsmController(scene_controller)
         scene_controller.set_fsm_controller(fsm_controller)
 
         objects_bar = ObjectsBar(fsm_controller, close_all)
-        objects_bar.show()
 
         state_bar = StateWidget(scene_controller, fsm_controller, close_all)
-        state_bar.show()
 
         details_bar = DetailsBar(scene_controller, fsm_controller, close_all)
-        details_bar.show()
+
+        for w in (preview_window, objects_bar, state_bar, details_bar):
+            windows.add(w)
+            w.show()
 
         print(path.join(this_dir, "view", "styles.qss"))
         with open(path.join(this_dir, "view", "styles.qss"), "r") as f:
             _style = f.read()
             for w in (objects_bar, details_bar, state_bar):
-                windows.add(w)
                 w.setStyleSheet(_style)
-
-        scene.render()
 
     sys.exit(app.exec())
 

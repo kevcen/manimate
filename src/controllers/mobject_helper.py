@@ -48,7 +48,7 @@ def generate_new_copy(imobject, default=None, child_state=None):
             get_copy_target(child, child_state=child_state)
             for child in imobject.vgroup_children
         ]
-        vgroup = VGroup(*vgroup_children)
+        vgroup = VGroup(vgroup_children)
         # if imobject.color_changed:
         #     print("COLOR CHANGED VGROUP")
         print("linking children")

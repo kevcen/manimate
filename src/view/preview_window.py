@@ -1,68 +1,85 @@
-import moderngl_window as mglw
-from moderngl_window.context.pyside2.window import Window as PySideWindow
-from moderngl_window.timers.clock import Timer
+import moderngl
+from PySide6.QtOpenGLWidgets import QOpenGLWidget
+from PySide6.QtCore import QTimer, Qt
 
 
-class PreviewWindow(PySideWindow):
+class PreviewWindow(QOpenGLWidget):
     """
-    Previews the Manim animations...
-
-    is a subclass of ModernGL's Pyside2 window
+    A custom QOpenGLWidget for rendering Manim animations with ModernGL.
     """
 
-    def __init__(self, app, renderer, close_handler) -> None:
-        super().__init__()
-        self.close_handler = close_handler
+    def __init__(self, app, renderer, close_handler, parent=None):
+        super().__init__(parent)
         self.app = app
-        self._widget.setGeometry(550, 250, 900, 520)
-        self.title = "Manimate"
-
-        # self.size = size
         self.renderer = renderer
+        self.close_handler = close_handler
+        self.setGeometry(550, 250, 900, 520)
+        self.setWindowTitle("Manimate")
 
-        mglw.activate_context(window=self)
-        self.timer = Timer()
-        self.config = mglw.WindowConfig(ctx=self.ctx, wnd=self, timer=self.timer)
-        self.timer.start()
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.update)
+        self.timer.start(16)  # ~60 FPS
 
-        self.swap_buffers()
+    def initializeGL(self):
+        self.ctx = moderngl.create_context()
+        self.renderer.window = self
+        self.renderer.frame_buffer_object = self.ctx.detect_framebuffer()
+        self.renderer.context = self.ctx
+        self.renderer.context.enable(moderngl.BLEND)
+        self.renderer.context.wireframe = False
+        self.renderer.context.blend_func = (
+            moderngl.SRC_ALPHA,
+            moderngl.ONE_MINUS_SRC_ALPHA,
+            moderngl.ONE,
+            moderngl.ONE,
+        )
 
-    # Delegate event handling to scene.
-    def mouse_move_event(self, event):
-        super().mouse_move_event(event)
+    def paintGL(self):
+        self.renderer.render_frame()
+        self.update()
+
+    def resizeGL(self, w, h):
+        self.ctx.viewport = (0, 0, w, h)
+
+    def mouseMoveEvent(self, event):
         x, y = event.x(), event.y()
-        dx, dy = self._calc_mouse_delta(x, y)
+        # This is a hack to get the delta, as QMouseEvent does not provide it directly
+        if not hasattr(self, "old_x"):
+            self.old_x = x
+            self.old_y = y
+        dx, dy = x - self.old_x, y - self.old_y
+        self.old_x, self.old_y = x, y
+
         point = self.renderer.pixel_coords_to_space_coords(x, y, top_left=True)
         d_point = self.renderer.pixel_coords_to_space_coords(
             dx, dy, relative=True, top_left=True
         )
         self.renderer.scene.mouse_move_event(point, d_point)
 
-    def mouse_press_event(self, event):
-        super().mouse_press_event(event)
+    def mousePressEvent(self, event):
         x, y = event.x(), event.y()
-        button = self._mouse_button_map.get(event.button())
+        button = "UNKNOWN"
+        if event.button() == Qt.LeftButton:
+            button = "LEFT"
+        elif event.button() == Qt.RightButton:
+            button = "RIGHT"
+
         modifiers = event.modifiers()
         point = self.renderer.pixel_coords_to_space_coords(x, y, top_left=True)
-        mouse_button_map = {
-            1: "LEFT",
-            2: "RIGHT",
-        }
-        self.renderer.scene.on_mouse_press(point, mouse_button_map[button], modifiers)
+        self.renderer.scene.on_mouse_press(point, button, modifiers)
 
-    def mouse_release_event(self, event):
-        super().mouse_press_event(event)
+    def mouseReleaseEvent(self, event):
         x, y = event.x(), event.y()
-        button = self._mouse_button_map.get(event.button())
+        button = "UNKNOWN"
+        if event.button() == Qt.LeftButton:
+            button = "LEFT"
+        elif event.button() == Qt.RightButton:
+            button = "RIGHT"
+
         modifiers = event.modifiers()
         point = self.renderer.pixel_coords_to_space_coords(x, y, top_left=True)
-        mouse_button_map = {
-            1: "LEFT",
-            2: "RIGHT",
-        }
-        self.renderer.scene.on_mouse_release(point, mouse_button_map[button], modifiers)
+        self.renderer.scene.on_mouse_release(point, button, modifiers)
 
-    def close_event(self, event):
-        super().close_event(event)
+    def closeEvent(self, event):
         self.close_handler()
         event.accept()
